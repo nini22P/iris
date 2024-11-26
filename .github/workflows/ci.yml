@@ -17,7 +17,7 @@ jobs:
       - name: Move files
         run: |
           # Create a directory to hold the files
-          mkdir Iris
+          mkdir Release\windows\Iris
           # Move the build output to the Iris directory
           Move-Item -Path "build\windows\x64\runner\Release\*" -Destination "Release\windows\Iris" -Force
       - name: Upload artifact
