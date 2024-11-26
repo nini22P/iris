@@ -1,0 +1,29 @@
+name: Build
+on: [push, pull_request]
+
+jobs:
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Build Flutter application
+        run: flutter build windows
+      - name: Create ZIP archive
+        run: |
+          # Create a directory to hold the files
+          mkdir Iris
+          # Move the build output to the Iris directory
+          Move-Item -Path "build\windows\x64\runner\Release\*" -Destination "Iris" -Force
+          # Create a ZIP file
+          Compress-Archive -Path "Iris\*" -DestinationPath "Iris_win32_x64.zip"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Iris_win32_x64
+          path: Iris_win32_x64.zip
