@@ -1,3 +1,3 @@
-# iris
+# Iris
 
-A player
+A lightweight player
