@@ -3,7 +3,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/info.dart';
 import 'package:iris/pages/home_page.dart';
-import 'package:iris/pages/settings_page.dart';
+import 'package:iris/pages/settings/about_page.dart';
+import 'package:iris/pages/settings/libraries_page.dart';
+import 'package:iris/pages/settings/settings_page.dart';
 import 'package:iris/pages/video_page.dart';
 import 'package:iris/pages/files_page.dart';
 import 'package:iris/utils/is_desktop.dart';
@@ -17,8 +19,8 @@ void main() async {
   if (isDesktop()) {
     await windowManager.ensureInitialized();
 
-    WindowOptions windowOptions = WindowOptions(
-      size: const Size(1280, 720),
+    WindowOptions windowOptions = const WindowOptions(
+      size: Size(1280, 720),
       center: true,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
@@ -53,6 +55,8 @@ class MyApp extends HookWidget {
       routes: {
         // '/video': (BuildContext context) => const VideoPage(),
         '/settings': (BuildContext context) => const SettingsPage(),
+        '/settings/about': (BuildContext context) => const AboutPage(),
+        '/settings/libraries': (BuildContext context) => const LibrariesPage(),
       },
       onGenerateRoute: (RouteSettings settings) {
         switch (settings.name) {

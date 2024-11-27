@@ -1,3 +1,3 @@
 # Iris
 
-A lightweight player
+A lightweight video player

@@ -1,5 +1,5 @@
 name: iris
-description: "A player"
+description: "A lightweight video player"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -44,9 +44,11 @@ dependencies:
   flutter_zustand: ^0.0.5
   path: ^1.9.0
   path_provider: ^2.1.5
+  package_info_plus: ^8.1.1
   provider: ^6.1.2
   webdav_client: ^1.2.2
   window_manager: ^0.4.3
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -58,6 +60,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
+  flutter_oss_licenses: ^3.0.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

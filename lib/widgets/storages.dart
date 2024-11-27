@@ -17,7 +17,6 @@ class Storages extends HookWidget {
     useEffect(
       () {
         final subscription = useAppStore().stream.listen((state) {
-          print(state.storages);
           storages.value = state.storages;
         });
         return subscription.cancel;
@@ -41,7 +40,6 @@ class Storages extends HookWidget {
             switch (value) {
               case 'edit':
                 if (storages.value[index] is WebdavStorage) {
-                  print('Edit WebDAV Storage');
                   showWebDAVAlertDialog(context,
                           webdavStorage: storages.value[index] as WebdavStorage)
                       .then((_) => refreshStorages());
