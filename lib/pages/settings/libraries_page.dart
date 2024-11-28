@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/oss_licenses.dart';
 import 'package:iris/utils/url.dart';
-import 'package:iris/widgets/title_bar.dart';
+import 'package:iris/widgets/custom_app_bar.dart';
 
 class LibrariesPage extends HookWidget {
   const LibrariesPage({super.key});
@@ -14,7 +14,7 @@ class LibrariesPage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const TitleBar(title: title),
+      appBar: const CustomAppBar(title: title),
       body: ListView.builder(
         itemCount: dependencies.length,
         itemBuilder: (context, index) => ListTile(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/info.dart';
 import 'package:iris/utils/url.dart';
-import 'package:iris/widgets/title_bar.dart';
+import 'package:iris/widgets/custom_app_bar.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class AboutPage extends HookWidget {
@@ -23,7 +23,7 @@ class AboutPage extends HookWidget {
     }, []);
 
     return Scaffold(
-      appBar: const TitleBar(title: title),
+      appBar: const CustomAppBar(title: title),
       body: Column(
         children: [
           const ListTile(

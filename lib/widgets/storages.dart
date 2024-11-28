@@ -29,6 +29,7 @@ class Storages extends HookWidget {
     return ListView.builder(
       itemCount: storages.value.length,
       itemBuilder: (context, index) => ListTile(
+        contentPadding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
         title: Text(storages.value[index].name),
         subtitle: storages.value[index] is WebdavStorage
             ? const Text('WebDav')

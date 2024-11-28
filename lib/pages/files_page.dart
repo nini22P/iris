@@ -6,7 +6,7 @@ import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/pages/video_page.dart';
 import 'package:iris/utils/file_size_convert.dart';
-import 'package:iris/widgets/title_bar.dart';
+import 'package:iris/widgets/custom_app_bar.dart';
 
 class FilesPageArguments {
   final Storage storage;
@@ -51,7 +51,7 @@ class FilesPage extends HookWidget {
     }
 
     return Scaffold(
-      appBar: TitleBar(title: title),
+      appBar: CustomAppBar(title: title),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -83,6 +83,8 @@ class FilesPage extends HookWidget {
                         : ListView.builder(
                             itemCount: filteredFileList.length,
                             itemBuilder: (context, index) => ListTile(
+                              contentPadding:
+                                  const EdgeInsets.fromLTRB(16, 0, 8, 0),
                               leading: filteredFileList[index].isDir == true
                                   ? const Icon(Icons.folder)
                                   : const Icon(Icons.video_file),
