@@ -143,6 +143,7 @@ class WebDAVDialog extends HookWidget {
                     labelText: 'Password',
                   ),
                   initialValue: password.value,
+                  obscureText: true,
                   onChanged: (value) => password.value = value.trim(),
                 ),
                 const SizedBox(height: 16.0),

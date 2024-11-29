@@ -55,9 +55,7 @@ class MyApp extends HookWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-      ),
+      darkTheme: ThemeData.dark(),
       themeMode: ThemeMode.system,
       home: const HomePage(),
       routes: {

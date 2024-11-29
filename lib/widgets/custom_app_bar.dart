@@ -84,6 +84,17 @@ class CustomAppBar extends HookWidget implements PreferredSizeWidget {
             IconButton(
               onPressed: () => windowManager.close(),
               icon: const Icon(Icons.close_rounded),
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                    (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.pressed)) {
+                    return Colors.red.withOpacity(0.4);
+                  } else if (states.contains(WidgetState.hovered)) {
+                    return Colors.red.withOpacity(0.5);
+                  }
+                  return null; // 默认颜色
+                }),
+              ),
             ),
             const SizedBox(width: 8),
           ]
