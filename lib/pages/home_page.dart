@@ -17,7 +17,7 @@ class HomePage extends HookWidget {
         actions: [
           IconButton(
             onPressed: () => Navigator.of(context).pushNamed('/settings'),
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.settings_rounded),
           ),
           const SizedBox(width: 8),
         ],
@@ -26,7 +26,7 @@ class HomePage extends HookWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => showWebDAVAlertDialog(context),
         tooltip: 'Add',
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add_rounded),
       ),
     );
   }

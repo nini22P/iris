@@ -75,14 +75,16 @@ class WebdavStorage implements Storage {
 
       return files
           .map((file) => FileItem(
-                file.name,
-                '$dirPath/${file.name}',
-                file.isDir,
-                file.size,
-                checkFileType(file.name!),
-                auth,
-                findSubTitle(files.map((file) => file.name as String).toList(),
-                    file.name as String, dirPath),
+                name: file.name,
+                path: '$dirPath/${file.name}',
+                isDir: file.isDir,
+                size: file.size,
+                type: checkFileType(file.name!),
+                auth: auth,
+                subTitles: findSubTitle(
+                    files.map((file) => file.name as String).toList(),
+                    file.name as String,
+                    dirPath),
               ))
           .toList();
     } catch (e) {

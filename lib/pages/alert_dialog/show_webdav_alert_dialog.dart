@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/models/storages/webdav_storage.dart';
-import 'package:iris/store/app_store.dart';
+import 'package:iris/store/use_app_store.dart';
 
 Future<void> showWebDAVAlertDialog(BuildContext context,
     {WebdavStorage? webdavStorage}) async {

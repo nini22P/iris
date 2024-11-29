@@ -32,24 +32,24 @@ class AboutPage extends HookWidget {
             subtitle: Text(INFO.description),
           ),
           ListTile(
-            leading: const Icon(Icons.info),
+            leading: const Icon(Icons.info_rounded),
             title: const Text('Version'),
             subtitle: Text(
                 packageInfo.value != null ? packageInfo.value!.version : ''),
           ),
           ListTile(
-            leading: const Icon(Icons.code),
+            leading: const Icon(Icons.code_rounded),
             title: const Text('Source Code'),
             subtitle: const Text(INFO.githubUrl),
             onTap: () => launchURL(INFO.githubUrl),
           ),
           ListTile(
-            leading: const Icon(Icons.code),
+            leading: const Icon(Icons.code_rounded),
             title: const Text('Libraries'),
             onTap: () => Navigator.of(context).pushNamed('/settings/libraries'),
           ),
           ListTile(
-            leading: const Icon(Icons.person),
+            leading: const Icon(Icons.person_rounded),
             title: const Text('Author'),
             subtitle: const Text(INFO.author),
             onTap: () => launchURL(INFO.authorUrl),

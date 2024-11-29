@@ -14,7 +14,7 @@ class SettingsPage extends HookWidget {
       body: Column(
         children: [
           ListTile(
-            leading: const Icon(Icons.info),
+            leading: const Icon(Icons.info_rounded),
             title: const Text('About'),
             onTap: () => Navigator.of(context).pushNamed('/settings/about'),
           ),

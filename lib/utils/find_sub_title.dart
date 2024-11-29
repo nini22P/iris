@@ -20,7 +20,10 @@ List<SubTitle> findSubTitle(
         String subTitleName =
             file.split('.').sublist(1, file.split('.').length - 1).join('.');
 
-        foundSubTitles.add(SubTitle(subTitleName, '$basePath/$file'));
+        foundSubTitles.add(SubTitle(
+          name: subTitleName,
+          path: '$basePath/$file',
+        ));
       }
     }
     return foundSubTitles;

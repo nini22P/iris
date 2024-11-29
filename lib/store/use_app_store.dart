@@ -2,12 +2,15 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
-import 'package:iris/models/app_state.dart';
+import 'package:iris/models/store/app_state.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/persistent_store.dart';
 
 class AppStore extends PersistentStore<AppState> {
   AppStore() : super(AppState());
+
+  Future<void> updateAutoPlay(bool autoPlay) async =>
+      set(state.copyWith(autoPlay: autoPlay));
 
   Future<void> addStorage(Storage storage) async {
     set(state.copyWith(storages: [...state.storages, storage]));
@@ -38,8 +41,18 @@ class AppStore extends PersistentStore<AppState> {
     save(state);
   }
 
+  Future<void> showPlayer() async => set(state.copyWith(isShowPlayer: true));
+
+  Future<void> hidePlayer() async => set(state.copyWith(isShowPlayer: false));
+
+  Future<void> toggleIsShowPlayer() async =>
+      set(state.copyWith(isShowPlayer: !state.isShowPlayer));
+
   Future<void> toggleMaximize() async =>
       set(state.copyWith(isMaximized: !state.isMaximized));
+
+  Future<void> toggleFullScreen() async =>
+      set(state.copyWith(isFullScreen: !state.isFullScreen));
 
   @override
   Future<AppState?> load() async {
@@ -51,7 +64,10 @@ class AppStore extends PersistentStore<AppState> {
 
       String? appState = await storage.read(key: 'appState');
       if (appState != null) {
-        return AppState.fromJson(json.decode(appState));
+        return AppState.fromJson(json.decode(appState)).copyWith(
+          autoPlay: false,
+          isFullScreen: false,
+        );
       }
     } catch (e) {
       log('Error loading AppState: $e');

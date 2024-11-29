@@ -4,7 +4,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_get.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart';
-import 'package:iris/pages/video_page.dart';
+import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/widgets/custom_app_bar.dart';
 
@@ -41,13 +42,14 @@ class FilesPage extends HookWidget {
             .toList(),
         [fileList]);
 
-    void play(List<FileItem> fileList, int index) {
+    void play(List<FileItem> fileList, int index) async {
       final clickedFile = fileList[index];
-      final playqueue = fileList.where((file) => file.type == 'video').toList();
-      final newIndex = playqueue.indexOf(clickedFile);
+      final playQueue = fileList.where((file) => file.type == 'video').toList();
+      final newIndex = playQueue.indexOf(clickedFile);
 
-      Navigator.of(context).pushNamed('/video',
-          arguments: VideoPageArguments(playqueue, newIndex));
+      await useAppStore().showPlayer();
+      await useAppStore().updateAutoPlay(true);
+      await usePlayQueueStore().updatePlayQueue(playQueue, newIndex);
     }
 
     return Scaffold(
@@ -70,7 +72,7 @@ class FilesPage extends HookWidget {
                   ),
                 );
               },
-              divider: const Icon(Icons.chevron_right),
+              divider: const Icon(Icons.chevron_right_rounded),
             ),
           ),
           Expanded(
@@ -86,8 +88,8 @@ class FilesPage extends HookWidget {
                               contentPadding:
                                   const EdgeInsets.fromLTRB(16, 0, 8, 0),
                               leading: filteredFileList[index].isDir == true
-                                  ? const Icon(Icons.folder)
-                                  : const Icon(Icons.video_file),
+                                  ? const Icon(Icons.folder_rounded)
+                                  : const Icon(Icons.video_file_rounded),
                               title: Text(
                                 filteredFileList[index].name ?? '',
                                 // style: const TextStyle(

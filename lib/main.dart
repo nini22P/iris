@@ -7,9 +7,9 @@ import 'package:iris/pages/home_page.dart';
 import 'package:iris/pages/settings/about_page.dart';
 import 'package:iris/pages/settings/libraries_page.dart';
 import 'package:iris/pages/settings/settings_page.dart';
-import 'package:iris/pages/video_page.dart';
 import 'package:iris/pages/files_page.dart';
 import 'package:iris/utils/is_desktop.dart';
+import 'package:iris/widgets/player/iris_player.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -48,6 +48,7 @@ class MyApp extends HookWidget {
       ));
       return null;
     }, []);
+
     return MaterialApp(
       title: INFO.title,
       theme: ThemeData(
@@ -60,7 +61,6 @@ class MyApp extends HookWidget {
       themeMode: ThemeMode.system,
       home: const HomePage(),
       routes: {
-        // '/video': (BuildContext context) => const VideoPage(),
         '/settings': (BuildContext context) => const SettingsPage(),
         '/settings/about': (BuildContext context) => const AboutPage(),
         '/settings/libraries': (BuildContext context) => const LibrariesPage(),
@@ -74,16 +74,17 @@ class MyApp extends HookWidget {
                 storage: args.storage,
               ),
             );
-          case '/video':
-            final args = settings.arguments as VideoPageArguments;
-            return MaterialPageRoute(
-              builder: (BuildContext context) => VideoPage(
-                playQueue: args.playQueue,
-                index: args.index,
-              ),
-            );
         }
         return null;
+      },
+      builder: (context, child) {
+        return Overlay(
+          initialEntries: [
+            OverlayEntry(builder: (context) {
+              return IrisPlayer(child: child);
+            })
+          ],
+        );
       },
     );
   }

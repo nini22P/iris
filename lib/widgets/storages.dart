@@ -4,7 +4,7 @@ import 'package:iris/models/storages/storage.dart';
 import 'package:iris/models/storages/webdav_storage.dart';
 import 'package:iris/pages/alert_dialog/show_webdav_alert_dialog.dart';
 import 'package:iris/pages/files_page.dart';
-import 'package:iris/store/app_store.dart';
+import 'package:iris/store/use_app_store.dart';
 
 class Storages extends HookWidget {
   const Storages({super.key});

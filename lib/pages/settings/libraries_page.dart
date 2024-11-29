@@ -18,7 +18,7 @@ class LibrariesPage extends HookWidget {
       body: ListView.builder(
         itemCount: dependencies.length,
         itemBuilder: (context, index) => ListTile(
-          leading: const Icon(Icons.code),
+          leading: const Icon(Icons.code_rounded),
           title: Text(dependencies[index].name),
           subtitle: Text(
             dependencies[index].license ?? '',
