@@ -3,7 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:iris/hooks/use_player.dart';
+import 'package:iris/hooks/use_player_controller.dart';
+import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/widgets/custom_app_bar.dart';
@@ -27,8 +28,9 @@ class IrisPlayer extends HookWidget {
   Widget build(BuildContext context) {
     final player = useMemoized(() => Player());
     final controller = useMemoized(() => VideoController(player));
-
-    PlayerController playerController = usePlayer(context, player);
+    PlayerCore playerCore = usePlayerCore(context, player);
+    PlayerController playerController =
+        usePlayerController(context, playerCore);
 
     useEffect(() {
       return player.dispose;
@@ -104,16 +106,16 @@ class IrisPlayer extends HookWidget {
 
     useEffect(() {
       if (isDesktop()) {
-        windowManager.setTitle(playerController.title);
+        windowManager.setTitle(playerCore.title);
       }
       return;
-    }, [playerController.title]);
+    }, [playerCore.title]);
 
     return Scaffold(
         body: Stack(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(0, 0, 0, 128),
+          padding: const EdgeInsets.fromLTRB(0, 0, 0, 120),
           child: child!,
         ),
         Positioned(
@@ -123,8 +125,8 @@ class IrisPlayer extends HookWidget {
           child: Visibility(
             visible: !isShowPlayer.value,
             child: ControlBar(
+              playerCore: playerCore,
               playerController: playerController,
-              player: player,
               isShowPlayer: isShowPlayer,
               showControlBar: showControlBar,
             ),
@@ -261,7 +263,7 @@ class IrisPlayer extends HookWidget {
                         useAppStore().toggleIsShowPlayer();
                       },
                     ),
-                    title: playerController.title,
+                    title: playerCore.title,
                     bgColor: bgColor,
                   ),
                 ),
@@ -297,8 +299,8 @@ class IrisPlayer extends HookWidget {
                 child: Theme(
                   data: ThemeData.dark(),
                   child: ControlBar(
+                    playerCore: playerCore,
                     playerController: playerController,
-                    player: player,
                     bgColor: bgColor,
                     isShowPlayer: isShowPlayer,
                     showControlBar: showControlBar,

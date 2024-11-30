@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:iris/hooks/use_player.dart';
+import 'package:iris/hooks/use_player_controller.dart';
+import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/is_desktop.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
 String formatDurationToMinutes(Duration duration) {
@@ -17,28 +17,21 @@ String formatDurationToMinutes(Duration duration) {
 class ControlBar extends HookWidget {
   const ControlBar({
     super.key,
+    required this.playerCore,
     required this.playerController,
-    required this.player,
     this.bgColor,
     required this.isShowPlayer,
     required this.showControlBar,
   });
 
+  final PlayerCore playerCore;
   final PlayerController playerController;
-
-  final Player player;
-
   final Color? bgColor;
-
   final ValueNotifier<bool> isShowPlayer;
-
   final VoidCallback showControlBar;
 
   @override
   Widget build(BuildContext context) {
-    final previous = useCallback(() => playerController.previous(), []);
-    final next = useCallback(() => playerController.next(), []);
-
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
@@ -63,7 +56,7 @@ class ControlBar extends HookWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    formatDurationToMinutes(playerController.position),
+                    formatDurationToMinutes(playerCore.position),
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 14,
@@ -93,12 +86,11 @@ class ControlBar extends HookWidget {
                         trackHeight: 4,
                       ),
                       child: Slider(
-                        value: playerController.duration.inSeconds.toDouble() ==
-                                0
+                        value: playerCore.duration.inSeconds.toDouble() == 0
                             ? 0
-                            : playerController.position.inSeconds.toDouble(),
+                            : playerCore.position.inSeconds.toDouble(),
                         min: 0,
-                        max: playerController.duration.inSeconds.toDouble(),
+                        max: playerCore.duration.inSeconds.toDouble(),
                         onChanged: (value) {
                           // sliderisChanging.value = true;
                           // position.value = Duration(seconds: value.toInt());
@@ -106,13 +98,14 @@ class ControlBar extends HookWidget {
                         onChangeEnd: (value) {
                           // sliderisChanging.value = false;
                           // position.value = Duration(seconds: value.toInt());
-                          player.seek(Duration(seconds: value.toInt()));
+                          playerCore.player
+                              .seek(Duration(seconds: value.toInt()));
                         },
                       ),
                     ),
                   ),
                   Text(
-                    formatDurationToMinutes(playerController.duration),
+                    formatDurationToMinutes(playerCore.duration),
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 14,
@@ -149,7 +142,7 @@ class ControlBar extends HookWidget {
                                 8),
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              playerController.title,
+                              playerCore.title,
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Theme.of(context).colorScheme.onSurface,
@@ -162,7 +155,7 @@ class ControlBar extends HookWidget {
                   : const Spacer(),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: previous,
+                onPressed: playerController.previous,
                 icon: const Icon(
                   Icons.skip_previous_rounded,
                   size: 32,
@@ -170,21 +163,18 @@ class ControlBar extends HookWidget {
               ),
               const SizedBox(width: 8),
               IconButton(
-                icon: StreamBuilder(
-                  stream: player.stream.playing,
-                  builder: (context, playing) => Icon(
-                    player.state.playing == true
-                        ? Icons.pause_circle_outline_rounded
-                        : Icons.play_circle_outline_rounded,
-                    size: 42,
-                  ),
+                icon: Icon(
+                  playerCore.playing == true
+                      ? Icons.pause_circle_outline_rounded
+                      : Icons.play_circle_outline_rounded,
+                  size: 42,
                 ),
                 onPressed: () {
-                  if (player.state.playing == true) {
+                  if (playerCore.playing == true) {
                     playerController.pause();
                   } else {
                     if (isDesktop()) {
-                      windowManager.setTitle(playerController.title);
+                      windowManager.setTitle(playerCore.title);
                     }
                     playerController.play();
                   }
@@ -192,7 +182,7 @@ class ControlBar extends HookWidget {
               ),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: next,
+                onPressed: playerController.next,
                 icon: const Icon(
                   Icons.skip_next_rounded,
                   size: 32,

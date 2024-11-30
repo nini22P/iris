@@ -5,33 +5,29 @@ import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:media_kit/media_kit.dart';
 
-class PlayerController {
+class PlayerCore {
   final Player player;
-  final List<FileItem> playQueue;
   final String title;
+  final List<FileItem> playQueue;
+  final int currentIndex;
   final FileItem? currentFile;
+  final bool playing;
   final Duration position;
   final Duration duration;
-  final VoidCallback play;
-  final VoidCallback pause;
-  final VoidCallback previous;
-  final VoidCallback next;
 
-  PlayerController(
+  PlayerCore(
     this.player,
-    this.playQueue,
     this.title,
+    this.playQueue,
+    this.currentIndex,
     this.currentFile,
+    this.playing,
     this.position,
     this.duration,
-    this.play,
-    this.pause,
-    this.previous,
-    this.next,
   );
 }
 
-PlayerController usePlayer(BuildContext context, Player player) {
+PlayerCore usePlayerCore(BuildContext context, Player player) {
   final playQueue = useState<List<FileItem>>([]);
   final currentIndex = useState(0);
   final autoPlay = useState(false);
@@ -40,6 +36,7 @@ PlayerController usePlayer(BuildContext context, Player player) {
           playQueue.value.isEmpty ? null : playQueue.value[currentIndex.value],
       [playQueue.value, currentIndex.value]);
 
+  final playing = useState(false);
   final position = useState(Duration.zero);
   final duration = useState(Duration.zero);
   final sliderisChanging = useState(false);
@@ -48,7 +45,6 @@ PlayerController usePlayer(BuildContext context, Player player) {
   final playingStream = useStream(player.stream.playing);
   final positionStream = useStream(player.stream.position);
   final durationStream = useStream(player.stream.duration);
-  final playlistStream = useStream(player.stream.playlist);
 
   useEffect(() {
     final subscription = useAppStore().stream.listen((state) {
@@ -88,6 +84,10 @@ PlayerController usePlayer(BuildContext context, Player player) {
     duration.value = durationStream.data!;
   }
 
+  if (playingStream.hasData) {
+    playing.value = playingStream.data!;
+  }
+
   final title = useMemoized(
       () => currentFile != null
           ? '[${currentIndex.value + 1}/${playQueue.value.length}] ${currentFile.name}'
@@ -109,40 +109,14 @@ PlayerController usePlayer(BuildContext context, Player player) {
     return null;
   }, [duration.value, subTitleIndex.value]);
 
-  void play() {
-    useAppStore().updateAutoPlay(true);
-    player.play();
-  }
-
-  void pause() {
-    // useAppStore().updateAutoPlay(false);
-    player.pause();
-  }
-
-  void previous() {
-    if (currentIndex.value == 0) return;
-    subTitleIndex.value = 0;
-    position.value = Duration.zero;
-    usePlayQueueStore().updateCurrentIndex(currentIndex.value - 1);
-  }
-
-  void next() {
-    if (currentIndex.value == playQueue.value.length - 1) return;
-    subTitleIndex.value = 0;
-    position.value = Duration.zero;
-    usePlayQueueStore().updateCurrentIndex(currentIndex.value + 1);
-  }
-
-  return PlayerController(
+  return PlayerCore(
     player,
+    title,
     playQueue.value,
-    title ?? '',
+    currentIndex.value,
     currentFile,
+    playing.value,
     position.value,
     duration.value,
-    play,
-    pause,
-    previous,
-    next,
   );
 }
