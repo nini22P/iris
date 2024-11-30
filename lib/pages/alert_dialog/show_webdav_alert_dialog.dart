@@ -80,7 +80,9 @@ class WebDAVDialog extends HookWidget {
               password: password.value)
           .test();
       isTested.value = isConnected;
-      showConnectionSnackBar(context, isConnected);
+      if (context.mounted) {
+        showConnectionSnackBar(context, isConnected);
+      }
     }
 
     return AlertDialog(

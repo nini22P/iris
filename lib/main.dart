@@ -7,9 +7,7 @@ import 'package:iris/pages/home_page.dart';
 import 'package:iris/pages/settings/about_page.dart';
 import 'package:iris/pages/settings/libraries_page.dart';
 import 'package:iris/pages/settings/settings_page.dart';
-import 'package:iris/pages/files_page.dart';
 import 'package:iris/utils/is_desktop.dart';
-import 'package:iris/widgets/player/iris_player.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -62,18 +60,6 @@ class MyApp extends HookWidget {
         '/settings': (BuildContext context) => const SettingsPage(),
         '/settings/about': (BuildContext context) => const AboutPage(),
         '/settings/libraries': (BuildContext context) => const LibrariesPage(),
-      },
-      onGenerateRoute: (RouteSettings settings) {
-        switch (settings.name) {
-          case '/files':
-            final args = settings.arguments as FilesPageArguments;
-            return MaterialPageRoute(
-              builder: (BuildContext context) => FilesPage(
-                storage: args.storage,
-              ),
-            );
-        }
-        return null;
       },
     );
   }

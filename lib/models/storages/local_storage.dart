@@ -3,7 +3,7 @@ import 'package:iris/models/storages/storage.dart';
 
 class LocalStorage implements Storage {
   @override
-  String type;
+  String type = 'local';
   @override
   String name;
   @override
@@ -14,6 +14,17 @@ class LocalStorage implements Storage {
     required this.name,
     required this.basePath,
   });
+
+  @override
+  LocalStorage copyWith({
+    String? name,
+    String? basePath,
+  }) =>
+      LocalStorage(
+        type: type,
+        name: name ?? this.name,
+        basePath: basePath ?? this.basePath,
+      );
 
   @override
   Future<List<FileItem>> getFiles(String last) async {

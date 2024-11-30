@@ -4,6 +4,8 @@ import 'package:iris/models/storages/webdav_storage.dart';
 
 class AppState {
   List<Storage> storages;
+  List<Storage> favoriteStorages;
+  Storage? currentStorage;
   bool autoPlay;
   bool loop;
   int volume;
@@ -18,6 +20,8 @@ class AppState {
 
   AppState({
     this.storages = const [],
+    this.favoriteStorages = const [],
+    this.currentStorage,
     this.autoPlay = false,
     this.loop = false,
     this.volume = 100,
@@ -33,6 +37,9 @@ class AppState {
 
   AppState copyWith({
     List<Storage>? storages,
+    List<Storage>? favoriteStorages,
+    Storage? currentStorage,
+    bool clearCurrentStorage = false,
     bool? autoPlay,
     bool? loop,
     int? volume,
@@ -47,6 +54,9 @@ class AppState {
   }) =>
       AppState(
         storages: storages ?? this.storages,
+        favoriteStorages: favoriteStorages ?? this.favoriteStorages,
+        currentStorage:
+            clearCurrentStorage ? null : currentStorage ?? this.currentStorage,
         autoPlay: autoPlay ?? this.autoPlay,
         loop: loop ?? this.loop,
         volume: volume ?? this.volume,
@@ -63,6 +73,8 @@ class AppState {
   Map<String, dynamic> toJson() {
     return {
       'storages': storages.map((s) => s.toJson()).toList(),
+      'favoriteStorages': favoriteStorages.map((s) => s.toJson()).toList(),
+      'currentStorage': currentStorage?.toJson(),
       'autoPlay': autoPlay,
       'loop': loop,
       'volume': volume,
@@ -81,16 +93,42 @@ class AppState {
     return AppState(
       storages: (json['storages'] as List)
           .map((storageJson) {
-            if (storageJson['type'] == 'webdav') {
-              return WebdavStorage.fromJson(storageJson);
-            } else if (storageJson['type'] == 'local') {
-              return LocalStorage.fromJson(storageJson);
-            } else {
-              throw Exception('Unknown storage type');
+            switch (storageJson['type']) {
+              case 'webdav':
+                return WebdavStorage.fromJson(storageJson);
+              case 'local':
+                return LocalStorage.fromJson(storageJson);
+              default:
+                throw Exception('Unknown storage type');
             }
           })
           .toList()
           .cast<Storage>(),
+      favoriteStorages: (json['favoriteStorages'] as List)
+          .map((storageJson) {
+            switch (storageJson['type']) {
+              case 'webdav':
+                return WebdavStorage.fromJson(storageJson);
+              case 'local':
+                return LocalStorage.fromJson(storageJson);
+              default:
+                throw Exception('Unknown storage type');
+            }
+          })
+          .toList()
+          .cast<Storage>(),
+      currentStorage: json['currentStorage'] != null
+          ? (() {
+              switch (json['currentStorage']['type']) {
+                case 'webdav':
+                  return WebdavStorage.fromJson(json['currentStorage']);
+                case 'local':
+                  return LocalStorage.fromJson(json['currentStorage']);
+                default:
+                  return null;
+              }
+            })()
+          : null,
       autoPlay: json['autoPlay'] ?? true,
       loop: json['loop'] ?? false,
       volume: json['volume'] ?? 100,

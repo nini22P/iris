@@ -9,14 +9,8 @@ import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/widgets/custom_app_bar.dart';
 
-class FilesPageArguments {
-  final Storage storage;
-
-  FilesPageArguments(this.storage);
-}
-
-class FilesPage extends HookWidget {
-  const FilesPage({super.key, required this.storage});
+class Files extends HookWidget {
+  const Files({super.key, required this.storage});
 
   final Storage storage;
 
@@ -52,8 +46,48 @@ class FilesPage extends HookWidget {
       await usePlayQueueStore().updatePlayQueue(playQueue, newIndex);
     }
 
+    final refreshState = useState(false);
+
+    final isFavorited = useMemoized(
+        () => useAppStore().state.favoriteStorages.any((favoriteStorage) =>
+            favoriteStorage.basePath == currentPath.value.join('/')),
+        [currentPath.value, refreshState.value]);
+
+    void refresh() => refreshState.value = !refreshState.value;
+
     return Scaffold(
-      appBar: CustomAppBar(title: title),
+      appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.keyboard_arrow_down_rounded),
+          onPressed: () => useAppStore().updateCurrentStorage(null),
+        ),
+        title: title,
+        actions: [
+          (currentPath.value.length > 1)
+              ? IconButton(
+                  icon: Icon(isFavorited
+                      ? Icons.star_rounded
+                      : Icons.star_outline_rounded),
+                  onPressed: () async {
+                    if (isFavorited) {
+                      await useAppStore().removeFavoriteStorage(useAppStore()
+                          .state
+                          .favoriteStorages
+                          .indexWhere((storage) =>
+                              storage.basePath == currentPath.value.join('/')));
+                      refresh();
+                      return;
+                    }
+                    await useAppStore().addFavoriteStorage(storage.copyWith(
+                        name: currentPath.value.last,
+                        basePath: currentPath.value.join('/')));
+                    refresh();
+                  },
+                )
+              : const SizedBox(),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

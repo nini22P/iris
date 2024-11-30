@@ -41,6 +41,43 @@ class AppStore extends PersistentStore<AppState> {
     save(state);
   }
 
+  Future<void> addFavoriteStorage(Storage favoriteStorages) async {
+    set(state.copyWith(
+        favoriteStorages: [...state.favoriteStorages, favoriteStorages]));
+    save(state);
+  }
+
+  Future<void> updateFavoriteStorage(
+      int index, Storage favoriteStorages) async {
+    if (index < 0 || index >= state.favoriteStorages.length) {
+      return;
+    }
+
+    final updatedStorages = state.favoriteStorages
+      ..removeAt(index)
+      ..insert(index, favoriteStorages);
+
+    set(state.copyWith(favoriteStorages: updatedStorages));
+    save(state);
+  }
+
+  Future<void> removeFavoriteStorage(int index) async {
+    if (index < 0 || index >= state.favoriteStorages.length) {
+      return;
+    }
+
+    final updatedStorages = state.favoriteStorages..removeAt(index);
+
+    set(state.copyWith(favoriteStorages: updatedStorages));
+    save(state);
+  }
+
+  Future<void> updateCurrentStorage(Storage? storage) async {
+    set(state.copyWith(
+        currentStorage: storage, clearCurrentStorage: storage == null));
+    save(state);
+  }
+
   Future<void> showPlayer() async => set(state.copyWith(isShowPlayer: true));
 
   Future<void> hidePlayer() async => set(state.copyWith(isShowPlayer: false));
@@ -64,6 +101,7 @@ class AppStore extends PersistentStore<AppState> {
 
       String? appState = await storage.read(key: 'appState');
       if (appState != null) {
+        log('Loaded AppState');
         return AppState.fromJson(json.decode(appState)).copyWith(
           autoPlay: false,
           isFullScreen: false,
@@ -84,6 +122,7 @@ class AppStore extends PersistentStore<AppState> {
       final storage = FlutterSecureStorage(aOptions: getAndroidOptions());
 
       await storage.write(key: 'appState', value: json.encode(state.toJson()));
+      log('Saved AppState');
     } catch (e) {
       log('Error saving AppState: $e');
     }

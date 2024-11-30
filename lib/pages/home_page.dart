@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/info.dart';
 import 'package:iris/pages/alert_dialog/show_webdav_alert_dialog.dart';
+import 'package:iris/store/use_app_store.dart';
+import 'package:iris/widgets/files.dart';
+import 'package:iris/widgets/home.dart';
 import 'package:iris/widgets/player/iris_player.dart';
 import 'package:iris/widgets/storages.dart';
 import 'package:iris/widgets/custom_app_bar.dart';
@@ -9,22 +13,29 @@ import 'package:iris/widgets/custom_app_bar.dart';
 class HomePage extends HookWidget {
   const HomePage({super.key});
 
+  static double paddingBottom = 120;
   @override
   Widget build(BuildContext context) {
     final currentIndex = useState(0);
+    final currentStorage =
+        useAppStore().select(context, (state) => state.currentStorage);
 
     return Scaffold(
       body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 120),
+          // 主界面
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: paddingBottom,
             child: Column(
               children: [
                 CustomAppBar(
                   title: INFO.title,
                   // bgColor: Theme.of(context).colorScheme.inversePrimary,
                   flexibleSpace: SafeArea(
-                    child: Container(
+                    child: SizedBox(
                       width: MediaQuery.of(context).size.width,
                       height: kToolbarHeight,
                       child: Row(
@@ -80,11 +91,13 @@ class HomePage extends HookWidget {
                     ),
                   ),
                   actions: [
-                    IconButton(
-                      onPressed: () => showWebDAVAlertDialog(context),
-                      tooltip: 'Add storage',
-                      icon: const Icon(Icons.add_rounded),
-                    ),
+                    currentIndex.value == 1
+                        ? IconButton(
+                            onPressed: () => showWebDAVAlertDialog(context),
+                            tooltip: 'Add storage',
+                            icon: const Icon(Icons.add_rounded),
+                          )
+                        : const SizedBox(),
                     IconButton(
                       onPressed: () =>
                           Navigator.of(context).pushNamed('/settings'),
@@ -97,12 +110,23 @@ class HomePage extends HookWidget {
                 Expanded(
                   child: IndexedStack(
                     index: currentIndex.value,
-                    children: const [Center(child: Text('HOME')), Storages()],
+                    children: const [Home(), Storages()],
                   ),
                 ),
               ],
             ),
           ),
+          // 文件
+          currentStorage != null
+              ? Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: paddingBottom,
+                  child: Files(storage: currentStorage),
+                )
+              : const SizedBox(),
+          // 播放器
           const IrisPlayer(),
         ],
       ),

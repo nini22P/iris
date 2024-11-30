@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:window_manager/window_manager.dart';
@@ -21,19 +22,10 @@ class CustomAppBar extends HookWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final inHome =
-        useMemoized(() => ModalRoute.of(context)?.settings.name == '/');
-
-    final isMaximized = useState(useAppStore().state.isMaximized);
-    final isFullScreen = useState(useAppStore().state.isFullScreen);
-
-    useEffect(() {
-      final subscription = useAppStore().stream.listen((state) {
-        isMaximized.value = state.isMaximized;
-        isFullScreen.value = state.isFullScreen;
-      });
-      return subscription.cancel;
-    }, []);
+    final isMaximized =
+        useAppStore().select(context, (state) => state.isMaximized);
+    final isFullScreen =
+        useAppStore().select(context, (state) => state.isFullScreen);
 
     return GestureDetector(
       onPanStart: (details) {
@@ -59,12 +51,12 @@ class CustomAppBar extends HookWidget implements PreferredSizeWidget {
               icon: const Icon(Icons.remove_rounded),
             ),
             IconButton(
-              onPressed: () async => isFullScreen.value
+              onPressed: () async => isFullScreen
                   ? useAppStore().toggleFullScreen()
                   : useAppStore().toggleMaximize(),
-              icon: isFullScreen.value == true
+              icon: isFullScreen == true
                   ? const Icon(Icons.close_fullscreen_rounded, size: 20)
-                  : isMaximized.value == true
+                  : isMaximized == true
                       ? const RotatedBox(
                           quarterTurns: 2,
                           child: Icon(

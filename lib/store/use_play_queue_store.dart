@@ -33,6 +33,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
 
       String? appState = await storage.read(key: 'playQueueState');
       if (appState != null) {
+        log('Loaded PlayQueueState');
         return PlayQueueState.fromJson(json.decode(appState));
       }
     } catch (e) {
@@ -51,6 +52,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
 
       await storage.write(
           key: 'playQueueState', value: json.encode(state.toJson()));
+      log('Saved PlayQueueState');
     } catch (e) {
       log('Error saving PlayQueueState: $e');
     }

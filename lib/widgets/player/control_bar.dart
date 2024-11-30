@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -20,19 +22,25 @@ class ControlBar extends HookWidget {
     required this.playerCore,
     required this.playerController,
     this.bgColor,
-    required this.isShowPlayer,
     required this.showControlBar,
   });
 
   final PlayerCore playerCore;
   final PlayerController playerController;
   final Color? bgColor;
-  final ValueNotifier<bool> isShowPlayer;
   final VoidCallback showControlBar;
 
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+    final isShowPlayer =
+        useAppStore().select(context, (state) => state.isShowPlayer);
+    final playQueueLength =
+        usePlayQueueStore().select(context, (state) => state.playQueue.length);
+    final playQueue = useMemoized(
+        () => usePlayQueueStore().state.playQueue, [playQueueLength]);
+    final currentIndex =
+        usePlayQueueStore().select(context, (state) => state.currentIndex);
 
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -133,10 +141,7 @@ class ControlBar extends HookWidget {
                     )),
                     child: Container(
                       padding: EdgeInsets.fromLTRB(
-                          isShowPlayer.value || screenWidth < 600 ? 8 : 128,
-                          8,
-                          8,
-                          8),
+                          isShowPlayer || screenWidth < 600 ? 8 : 128, 8, 8, 8),
                       alignment: Alignment.centerLeft,
                       child: Text(
                         playerCore.title,
@@ -151,11 +156,13 @@ class ControlBar extends HookWidget {
               ),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: playerController.previous,
                 icon: const Icon(
                   Icons.skip_previous_rounded,
                   size: 32,
                 ),
+                onPressed: playQueueLength > 0 && currentIndex > 0
+                    ? playerController.previous
+                    : null,
               ),
               const SizedBox(width: 8),
               IconButton(
@@ -165,27 +172,32 @@ class ControlBar extends HookWidget {
                       : Icons.play_circle_outline_rounded,
                   size: 42,
                 ),
-                onPressed: () {
-                  if (playerCore.playing == true) {
-                    playerController.pause();
-                  } else {
-                    if (isDesktop()) {
-                      windowManager.setTitle(playerCore.title);
-                    }
-                    playerController.play();
-                  }
-                },
+                onPressed: playQueueLength > 0
+                    ? () {
+                        if (playerCore.playing == true) {
+                          playerController.pause();
+                        } else {
+                          if (isDesktop()) {
+                            windowManager.setTitle(playerCore.title);
+                          }
+                          playerController.play();
+                        }
+                      }
+                    : null,
               ),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: playerController.next,
                 icon: const Icon(
                   Icons.skip_next_rounded,
                   size: 32,
                 ),
+                onPressed:
+                    playQueueLength > 0 && currentIndex < playQueueLength - 1
+                        ? playerController.next
+                        : null,
               ),
               const SizedBox(width: 8),
-              screenWidth < 600 && !isShowPlayer.value
+              screenWidth < 600 && !isShowPlayer
                   ? const SizedBox()
                   : const Spacer(),
             ],

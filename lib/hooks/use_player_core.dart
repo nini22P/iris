@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
@@ -14,6 +17,7 @@ class PlayerCore {
   final bool playing;
   final Duration position;
   final Duration duration;
+  final bool completed;
 
   PlayerCore(
     this.player,
@@ -24,55 +28,36 @@ class PlayerCore {
     this.playing,
     this.position,
     this.duration,
+    this.completed,
   );
 }
 
 PlayerCore usePlayerCore(BuildContext context, Player player) {
-  final playQueue = useState<List<FileItem>>([]);
-  final currentIndex = useState(0);
-  final autoPlay = useState(false);
+  final playQueue =
+      usePlayQueueStore().select(context, (state) => state.playQueue);
+  final currentIndex =
+      usePlayQueueStore().select(context, (state) => state.currentIndex);
+  final autoPlay = useAppStore().select(context, (state) => state.autoPlay);
   final currentFile = useMemoized(
-      () =>
-          playQueue.value.isEmpty ? null : playQueue.value[currentIndex.value],
-      [playQueue.value, currentIndex.value]);
+      () => playQueue.isEmpty ? null : playQueue[currentIndex],
+      [playQueue, currentIndex]);
+
+  final sliderisChanging = useState(false);
+  final subTitleIndex = useState(0);
 
   final playing = useState(false);
   final position = useState(Duration.zero);
   final duration = useState(Duration.zero);
-  final sliderisChanging = useState(false);
-  final subTitleIndex = useState(0);
+  final completed = useState(false);
 
   final playingStream = useStream(player.stream.playing);
   final positionStream = useStream(player.stream.position);
   final durationStream = useStream(player.stream.duration);
+  final completedStream = useStream(player.stream.completed);
 
-  useEffect(() {
-    final subscription = useAppStore().stream.listen((state) {
-      autoPlay.value = state.autoPlay;
-    });
-    return subscription.cancel;
-  }, []);
-
-  useEffect(() {
-    final subscription = usePlayQueueStore().stream.listen((state) {
-      playQueue.value = state.playQueue;
-      currentIndex.value = state.currentIndex;
-    });
-    return subscription.cancel;
-  }, []);
-
-  useEffect(() {
-    if (currentFile == null || playQueue.value.isEmpty) return;
-    print('Now playing: ${currentFile.name}, auto play: ${autoPlay.value}');
-    player.open(
-      Media(currentFile.path!,
-          httpHeaders: currentFile.auth!.isNotEmpty
-              ? {'authorization': currentFile.auth!}
-              : {}),
-      play: autoPlay.value,
-    );
-    return null;
-  }, [currentFile]);
+  if (playingStream.hasData) {
+    playing.value = playingStream.data!;
+  }
 
   if (positionStream.hasData) {
     if (!sliderisChanging.value) {
@@ -84,13 +69,26 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     duration.value = durationStream.data!;
   }
 
-  if (playingStream.hasData) {
-    playing.value = playingStream.data!;
+  if (completedStream.hasData) {
+    completed.value = completedStream.data!;
   }
+
+  useEffect(() {
+    if (currentFile == null || playQueue.isEmpty) return;
+    log('Now playing: ${currentFile.name}, auto play: $autoPlay');
+    player.open(
+      Media(currentFile.path!,
+          httpHeaders: currentFile.auth!.isNotEmpty
+              ? {'authorization': currentFile.auth!}
+              : {}),
+      play: autoPlay,
+    );
+    return null;
+  }, [currentFile]);
 
   final title = useMemoized(
       () => currentFile != null
-          ? '[${currentIndex.value + 1}/${playQueue.value.length}] ${currentFile.name}'
+          ? '[${currentIndex + 1}/${playQueue.length}] ${currentFile.name}'
           : '',
       [currentFile]);
 
@@ -99,7 +97,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
 
   useEffect(() {
     if (subTitles!.isEmpty) return null;
-    print('Set subtitle: ${subTitles[subTitleIndex.value].name}');
+    log('Set subtitle: ${subTitles[subTitleIndex.value].name}');
     player.setSubtitleTrack(
       SubtitleTrack.uri(
         subTitles[subTitleIndex.value].path!,
@@ -112,11 +110,12 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   return PlayerCore(
     player,
     title,
-    playQueue.value,
-    currentIndex.value,
+    playQueue,
+    currentIndex,
     currentFile,
     playing.value,
     position.value,
     duration.value,
+    completed.value,
   );
 }

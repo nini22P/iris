@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -39,36 +40,30 @@ class IrisPlayer extends HookWidget {
 
     double screenWidth = MediaQuery.of(context).size.width;
 
-    final isShowPlayer = useState(useAppStore().state.isShowPlayer);
-    final isMaximized = useState(useAppStore().state.isMaximized);
-    final isFullScreen = useState(useAppStore().state.isFullScreen);
-
-    useEffect(() {
-      final subscription = useAppStore().stream.listen((state) {
-        isShowPlayer.value = state.isShowPlayer;
-        isMaximized.value = state.isMaximized;
-        isFullScreen.value = state.isFullScreen;
-      });
-      return subscription.cancel;
-    }, []);
+    final isShowPlayer =
+        useAppStore().select(context, (state) => state.isShowPlayer);
+    final isMaximized =
+        useAppStore().select(context, (state) => state.isMaximized);
+    final isFullScreen =
+        useAppStore().select(context, (state) => state.isFullScreen);
 
     useEffect(() {
       if (isDesktop()) {
-        if (isMaximized.value) {
+        if (isMaximized) {
           windowManager.maximize();
         } else {
           windowManager.unmaximize();
         }
       }
       return;
-    }, [isMaximized.value]);
+    }, [isMaximized]);
 
     useEffect(() {
       if (isDesktop()) {
-        windowManager.setFullScreen(isFullScreen.value);
+        windowManager.setFullScreen(isFullScreen);
       }
       return;
-    }, [isFullScreen.value]);
+    }, [isFullScreen]);
 
     void startHideTimer() {
       hideTimer.value = Timer(const Duration(seconds: 5), () {
@@ -94,13 +89,13 @@ class IrisPlayer extends HookWidget {
     }
 
     useEffect(() {
-      if (!isShowControlBar.value && isShowPlayer.value) {
+      if (!isShowControlBar.value && isShowPlayer) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       } else {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       }
       return null;
-    }, [isShowControlBar.value, isShowPlayer.value]);
+    }, [isShowControlBar.value, isShowPlayer]);
 
     useEffect(() {
       if (isDesktop()) {
@@ -116,11 +111,10 @@ class IrisPlayer extends HookWidget {
           left: 0,
           right: 0,
           child: Visibility(
-            visible: !isShowPlayer.value,
+            visible: !isShowPlayer,
             child: ControlBar(
               playerCore: playerCore,
               playerController: playerController,
-              isShowPlayer: isShowPlayer,
               showControlBar: showControlBar,
             ),
           ),
@@ -128,32 +122,32 @@ class IrisPlayer extends HookWidget {
         AnimatedPositioned(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOutCubicEmphasized,
-          left: isShowPlayer.value
+          left: isShowPlayer
               ? 0
               : screenWidth < 600
                   ? 8
                   : 8,
-          bottom: isShowPlayer.value
+          bottom: isShowPlayer
               ? 0
               : screenWidth < 600
                   ? 128
                   : 8,
-          width: isShowPlayer.value ? MediaQuery.of(context).size.width : 128,
-          height: isShowPlayer.value ? MediaQuery.of(context).size.height : 72,
+          width: isShowPlayer ? MediaQuery.of(context).size.width : 128,
+          height: isShowPlayer ? MediaQuery.of(context).size.height : 72,
           child: IgnorePointer(
-            ignoring: !isShowPlayer.value && !(screenWidth < 600),
+            ignoring: !isShowPlayer && !(screenWidth < 600),
             child: MouseRegion(
               onEnter: (_) {
-                if (!isShowPlayer.value) return;
+                if (!isShowPlayer) return;
                 isShowControlBar.value = true;
                 resetHideTimer();
               },
               onExit: (_) {
-                if (!isShowPlayer.value) return;
+                if (!isShowPlayer) return;
                 isShowControlBar.value = false;
               },
               onHover: (PointerHoverEvent event) {
-                if (!isShowPlayer.value) return;
+                if (!isShowPlayer) return;
                 if (event.kind == PointerDeviceKind.mouse) {
                   isShowControlBar.value = true;
                   resetHideTimer();
@@ -161,7 +155,7 @@ class IrisPlayer extends HookWidget {
               },
               child: GestureDetector(
                   onTap: () {
-                    if (!isShowPlayer.value) {
+                    if (!isShowPlayer) {
                       useAppStore().showPlayer();
                       isShowControlBar.value = true;
                       resetHideTimer();
@@ -180,12 +174,11 @@ class IrisPlayer extends HookWidget {
                           ? player.pause()
                           : player.play(),
                   onPanUpdate: (DragUpdateDetails details) {
-                    if (!isShowPlayer.value) return;
+                    if (!isShowPlayer) return;
                     if (isDesktop()) windowManager.startDragging();
                   },
                   child: ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(isShowPlayer.value ? 0 : 8),
+                    borderRadius: BorderRadius.circular(isShowPlayer ? 0 : 8),
                     child: Video(
                       controller: controller,
                       controls: NoVideoControls,
@@ -210,7 +203,7 @@ class IrisPlayer extends HookWidget {
                           0,
                           0,
                           0,
-                          isShowPlayer.value
+                          isShowPlayer
                               ? isShowControlBar.value
                                   ? 128
                                   : 24
@@ -227,7 +220,7 @@ class IrisPlayer extends HookWidget {
           left: 0,
           right: 0,
           child: Visibility(
-            visible: isShowPlayer.value && isShowControlBar.value,
+            visible: isShowPlayer && isShowControlBar.value,
             child: MouseRegion(
               onEnter: (_) {
                 isShowControlBar.value = true;
@@ -252,9 +245,7 @@ class IrisPlayer extends HookWidget {
                   child: CustomAppBar(
                     leading: IconButton(
                       icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                      onPressed: () {
-                        useAppStore().toggleIsShowPlayer();
-                      },
+                      onPressed: () => useAppStore().toggleIsShowPlayer(),
                     ),
                     // title: playerCore.title,
                     bgColor: bgColor,
@@ -269,7 +260,7 @@ class IrisPlayer extends HookWidget {
           left: 0,
           right: 0,
           child: Visibility(
-            visible: isShowPlayer.value && isShowControlBar.value,
+            visible: isShowPlayer && isShowControlBar.value,
             child: MouseRegion(
               onEnter: (_) {
                 isShowControlBar.value = true;
@@ -295,7 +286,6 @@ class IrisPlayer extends HookWidget {
                     playerCore: playerCore,
                     playerController: playerController,
                     bgColor: bgColor,
-                    isShowPlayer: isShowPlayer,
                     showControlBar: showControlBar,
                   ),
                 ),

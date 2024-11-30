@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:iris/utils/check_file_type.dart';
 import 'package:iris/utils/find_sub_title.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
@@ -7,7 +8,7 @@ import 'package:iris/models/storages/storage.dart';
 
 class WebdavStorage implements Storage {
   @override
-  String type;
+  String type = 'webdav';
   @override
   String name;
   String url;
@@ -27,6 +28,25 @@ class WebdavStorage implements Storage {
     required this.password,
   });
 
+  @override
+  WebdavStorage copyWith({
+    String? name,
+    String? url,
+    String? basePath,
+    String? port,
+    String? username,
+    String? password,
+  }) =>
+      WebdavStorage(
+        type: type,
+        name: name ?? this.name,
+        url: url ?? this.url,
+        basePath: basePath ?? this.basePath,
+        port: port ?? this.port,
+        username: username ?? this.username,
+        password: password ?? this.password,
+      );
+
   Future<bool> test() async {
     try {
       var client = webdav.newClient(
@@ -45,7 +65,7 @@ class WebdavStorage implements Storage {
       await client.readDir(basePath);
       return true;
     } catch (e) {
-      print(e);
+      log(e.toString());
       return false;
     }
   }

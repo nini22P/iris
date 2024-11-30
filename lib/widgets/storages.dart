@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:iris/models/storages/storage.dart';
+import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/webdav_storage.dart';
 import 'package:iris/pages/alert_dialog/show_webdav_alert_dialog.dart';
-import 'package:iris/pages/files_page.dart';
 import 'package:iris/store/use_app_store.dart';
 
 class Storages extends HookWidget {
@@ -11,45 +10,30 @@ class Storages extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final refresh = useState(false);
-    final storages = useState<List<Storage>>([]);
-
-    useEffect(
-      () {
-        final subscription = useAppStore().stream.listen((state) {
-          storages.value = state.storages;
-        });
-        return subscription.cancel;
-      },
-      [refresh.value],
-    );
-
-    refreshStorages() => refresh.value = !refresh.value;
+    final storageLength =
+        useAppStore().select(context, (state) => state.storages.length);
+    final storages =
+        useMemoized(() => useAppStore().state.storages, [storageLength]);
 
     return ListView.builder(
-      itemCount: storages.value.length,
+      itemCount: storages.length,
       itemBuilder: (context, index) => ListTile(
         contentPadding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
-        title: Text(storages.value[index].name),
-        subtitle: storages.value[index] is WebdavStorage
-            ? const Text('WebDav')
-            : null,
-        onTap: () => Navigator.of(context).pushNamed('/files',
-            arguments: FilesPageArguments(storages.value[index])),
+        title: Text(storages[index].name),
+        subtitle:
+            storages[index] is WebdavStorage ? const Text('WebDav') : null,
+        onTap: () => useAppStore().updateCurrentStorage(storages[index]),
         trailing: PopupMenuButton<String>(
           onSelected: (value) {
             switch (value) {
               case 'edit':
-                if (storages.value[index] is WebdavStorage) {
+                if (storages[index] is WebdavStorage) {
                   showWebDAVAlertDialog(context,
-                          webdavStorage: storages.value[index] as WebdavStorage)
-                      .then((_) => refreshStorages());
+                      webdavStorage: storages[index] as WebdavStorage);
                 }
                 break;
-              case 'delete':
-                useAppStore()
-                    .removeStorage(index)
-                    .then((_) => refreshStorages());
+              case 'remove':
+                useAppStore().removeStorage(index);
                 break;
             }
           },
@@ -60,8 +44,8 @@ class Storages extends HookWidget {
                 child: Text('Edit'),
               ),
               const PopupMenuItem<String>(
-                value: 'delete',
-                child: Text('Delete'),
+                value: 'remove',
+                child: Text('Remove'),
               ),
             ];
           },

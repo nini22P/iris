@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
@@ -41,6 +42,13 @@ PlayerController usePlayerController(
     if (currentIndex == playQueue.length - 1) return;
     usePlayQueueStore().updateCurrentIndex(currentIndex + 1);
   }
+
+  useEffect(() {
+    if (playerCore.completed) {
+      next();
+    }
+    return null;
+  }, [playerCore.completed]);
 
   return PlayerController(
     play,
