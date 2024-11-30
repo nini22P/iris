@@ -19,7 +19,8 @@ class LocalDialog extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isEdit = useAppStore().state.storages.contains(localStorage!);
+    final bool isEdit = localStorage != null &&
+        useAppStore().state.storages.contains(localStorage!);
 
     final storageIndex =
         isEdit ? useAppStore().state.storages.indexOf(localStorage!) : -1;

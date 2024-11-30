@@ -19,7 +19,8 @@ class WebDAVDialog extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isEdit = useAppStore().state.storages.contains(webdavStorage!);
+    final bool isEdit = webdavStorage != null &&
+        useAppStore().state.storages.contains(webdavStorage!);
 
     final storageIndex =
         isEdit ? useAppStore().state.storages.indexOf(webdavStorage!) : -1;
