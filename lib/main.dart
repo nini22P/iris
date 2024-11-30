@@ -75,15 +75,6 @@ class MyApp extends HookWidget {
         }
         return null;
       },
-      builder: (context, child) {
-        return Overlay(
-          initialEntries: [
-            OverlayEntry(builder: (context) {
-              return IrisPlayer(child: child);
-            })
-          ],
-        );
-      },
     );
   }
 }

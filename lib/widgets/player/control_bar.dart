@@ -118,41 +118,37 @@ class ControlBar extends HookWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              !isShowPlayer.value
-                  ? Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(4, 4, 0, 4),
-                        height: double.infinity,
-                        child: TextButton(
-                          onPressed: () {
-                            useAppStore().toggleIsShowPlayer();
-                            showControlBar();
-                          },
-                          style: TextButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          )),
-                          child: Container(
-                            padding: EdgeInsets.fromLTRB(
-                                isShowPlayer.value || screenWidth < 600
-                                    ? 8
-                                    : 128,
-                                8,
-                                8,
-                                8),
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              playerCore.title,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                          ),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(4, 4, 0, 4),
+                  height: double.infinity,
+                  child: TextButton(
+                    onPressed: () {
+                      useAppStore().toggleIsShowPlayer();
+                      showControlBar();
+                    },
+                    style: TextButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    )),
+                    child: Container(
+                      padding: EdgeInsets.fromLTRB(
+                          isShowPlayer.value || screenWidth < 600 ? 8 : 128,
+                          8,
+                          8,
+                          8),
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        playerCore.title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                    )
-                  : const Spacer(),
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(width: 8),
               IconButton(
                 onPressed: playerController.previous,

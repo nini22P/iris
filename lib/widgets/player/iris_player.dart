@@ -16,9 +16,7 @@ import 'package:window_manager/window_manager.dart';
 class IrisPlayer extends HookWidget {
   const IrisPlayer({
     super.key,
-    this.child,
   });
-  final Widget? child;
 
   static const bgColor = Colors.black45;
   static const iconColor = Colors.white;
@@ -111,13 +109,8 @@ class IrisPlayer extends HookWidget {
       return;
     }, [playerCore.title]);
 
-    return Scaffold(
-        body: Stack(
+    return Stack(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 0, 0, 120),
-          child: child!,
-        ),
         Positioned(
           bottom: 0,
           left: 0,
@@ -263,7 +256,7 @@ class IrisPlayer extends HookWidget {
                         useAppStore().toggleIsShowPlayer();
                       },
                     ),
-                    title: playerCore.title,
+                    // title: playerCore.title,
                     bgColor: bgColor,
                   ),
                 ),
@@ -311,6 +304,6 @@ class IrisPlayer extends HookWidget {
           ),
         )
       ],
-    ));
+    );
   }
 }

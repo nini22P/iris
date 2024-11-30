@@ -8,12 +8,14 @@ class CustomAppBar extends HookWidget implements PreferredSizeWidget {
   const CustomAppBar({
     super.key,
     this.leading,
-    required this.title,
+    this.title,
+    this.flexibleSpace,
     this.actions,
     this.bgColor,
   });
-  final String title;
   final Widget? leading;
+  final String? title;
+  final Widget? flexibleSpace;
   final List<Widget>? actions;
   final Color? bgColor;
 
@@ -45,17 +47,10 @@ class CustomAppBar extends HookWidget implements PreferredSizeWidget {
         }
       },
       child: AppBar(
-        leading: inHome
-            ? null
-            : leading ??
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-        title: Text(title),
+        leading: leading,
+        title: title == null ? null : Text(title!),
         backgroundColor: bgColor,
+        flexibleSpace: flexibleSpace,
         actions: [
           ...actions ?? [],
           if (isDesktop()) ...[
