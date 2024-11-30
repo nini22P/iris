@@ -78,7 +78,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     log('Now playing: ${currentFile.name}, auto play: $autoPlay');
     player.open(
       Media(currentFile.path!,
-          httpHeaders: currentFile.auth!.isNotEmpty
+          httpHeaders: currentFile.auth != null
               ? {'authorization': currentFile.auth!}
               : {}),
       play: autoPlay,

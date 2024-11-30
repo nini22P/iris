@@ -1,7 +1,10 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/info.dart';
+import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/pages/alert_dialog/show_local_alert_dialog.dart';
 import 'package:iris/pages/alert_dialog/show_webdav_alert_dialog.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/widgets/files.dart';
@@ -92,10 +95,48 @@ class HomePage extends HookWidget {
                   ),
                   actions: [
                     currentIndex.value == 1
-                        ? IconButton(
-                            onPressed: () => showWebDAVAlertDialog(context),
-                            tooltip: 'Add storage',
+                        ? PopupMenuButton<String>(
                             icon: const Icon(Icons.add_rounded),
+                            onSelected: (String value) {
+                              switch (value) {
+                                case 'local':
+                                  () async {
+                                    String? selectedDirectory = await FilePicker
+                                        .platform
+                                        .getDirectoryPath();
+                                    if (selectedDirectory != null &&
+                                        context.mounted) {
+                                      showLocalAlertDialog(context,
+                                          localStorage: LocalStorage(
+                                              type: 'local',
+                                              name: selectedDirectory
+                                                  .replaceAll('\\', '/')
+                                                  .split('/')
+                                                  .last,
+                                              basePath: selectedDirectory
+                                                  .replaceAll('\\', '/')));
+                                    }
+                                  }();
+                                  break;
+                                case 'webdav':
+                                  showWebDAVAlertDialog(context);
+                                  break;
+                                default:
+                                  break;
+                              }
+                            },
+                            itemBuilder: (BuildContext context) {
+                              return [
+                                const PopupMenuItem<String>(
+                                  value: 'local',
+                                  child: Text('Local Storage'),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'webdav',
+                                  child: Text('WebDAV'),
+                                ),
+                              ];
+                            },
                           )
                         : const SizedBox(),
                     IconButton(

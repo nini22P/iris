@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
-import 'package:iris/models/storages/webdav_storage.dart';
 import 'package:iris/store/use_app_store.dart';
 
 class Home extends HookWidget {
@@ -19,9 +18,14 @@ class Home extends HookWidget {
       itemBuilder: (context, index) => ListTile(
         contentPadding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
         title: Text(favoriteStorages[index].name),
-        subtitle: favoriteStorages[index] is WebdavStorage
-            ? const Text('WebDav')
-            : null,
+        subtitle: () {
+          switch (favoriteStorages[index].type) {
+            case 'local':
+              return const Text('Local Storage');
+            case 'webdav':
+              return const Text('WebDAV');
+          }
+        }(),
         onTap: () =>
             useAppStore().updateCurrentStorage(favoriteStorages[index]),
         trailing: PopupMenuButton<String>(
@@ -29,7 +33,6 @@ class Home extends HookWidget {
             switch (value) {
               case 'remove':
                 useAppStore().removeFavoriteStorage(index);
-                // .then((_) => refreshStorages());
                 break;
             }
           },

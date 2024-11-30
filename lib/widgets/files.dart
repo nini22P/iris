@@ -63,28 +63,27 @@ class Files extends HookWidget {
         ),
         title: title,
         actions: [
-          (currentPath.value.length > 1)
-              ? IconButton(
-                  icon: Icon(isFavorited
-                      ? Icons.star_rounded
-                      : Icons.star_outline_rounded),
-                  onPressed: () async {
-                    if (isFavorited) {
-                      await useAppStore().removeFavoriteStorage(useAppStore()
-                          .state
-                          .favoriteStorages
-                          .indexWhere((storage) =>
-                              storage.basePath == currentPath.value.join('/')));
-                      refresh();
-                      return;
-                    }
-                    await useAppStore().addFavoriteStorage(storage.copyWith(
-                        name: currentPath.value.last,
-                        basePath: currentPath.value.join('/')));
-                    refresh();
-                  },
-                )
-              : const SizedBox(),
+          IconButton(
+            icon: Icon(
+                isFavorited ? Icons.star_rounded : Icons.star_outline_rounded),
+            onPressed: () async {
+              if (isFavorited) {
+                await useAppStore().removeFavoriteStorage(useAppStore()
+                    .state
+                    .favoriteStorages
+                    .indexWhere((storage) =>
+                        storage.basePath == currentPath.value.join('/')));
+                refresh();
+                return;
+              }
+              await useAppStore().addFavoriteStorage(storage.copyWith(
+                  name: currentPath.value.length == 1
+                      ? title
+                      : currentPath.value.last,
+                  basePath: currentPath.value.join('/')));
+              refresh();
+            },
+          ),
           const SizedBox(width: 8),
         ],
       ),

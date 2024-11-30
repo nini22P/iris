@@ -38,6 +38,7 @@ dependencies:
   media_kit: ^1.1.11
   media_kit_video: ^1.2.5
   media_kit_libs_video: ^1.0.5
+  file_picker: ^8.1.4
   flutter_breadcrumb: ^1.0.1
   flutter_hooks: ^0.20.5
   flutter_secure_storage: ^9.2.2

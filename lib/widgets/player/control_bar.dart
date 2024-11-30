@@ -155,14 +155,17 @@ class ControlBar extends HookWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(
-                  Icons.skip_previous_rounded,
-                  size: 32,
+              Visibility(
+                visible: playQueueLength > 1,
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.skip_previous_rounded,
+                    size: 32,
+                  ),
+                  onPressed: playQueueLength > 0 && currentIndex > 0
+                      ? playerController.previous
+                      : null,
                 ),
-                onPressed: playQueueLength > 0 && currentIndex > 0
-                    ? playerController.previous
-                    : null,
               ),
               const SizedBox(width: 8),
               IconButton(
@@ -186,15 +189,18 @@ class ControlBar extends HookWidget {
                     : null,
               ),
               const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(
-                  Icons.skip_next_rounded,
-                  size: 32,
+              Visibility(
+                visible: playQueueLength > 1,
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.skip_next_rounded,
+                    size: 32,
+                  ),
+                  onPressed:
+                      playQueueLength > 0 && currentIndex < playQueueLength - 1
+                          ? playerController.next
+                          : null,
                 ),
-                onPressed:
-                    playQueueLength > 0 && currentIndex < playQueueLength - 1
-                        ? playerController.next
-                        : null,
               ),
               const SizedBox(width: 8),
               screenWidth < 600 && !isShowPlayer
