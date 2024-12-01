@@ -42,7 +42,7 @@ class LocalStorage implements Storage {
               isDir: entity is Directory,
               size: entity is File ? entity.lengthSync() : null,
               type: checkFileType(p.basename(entity.path)),
-              subTitles: findSubTitle(
+              subtitles: findSubTitle(
                   directory
                       .listSync()
                       .map((entity) => p.basename(entity.path))

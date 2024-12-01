@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
@@ -6,6 +7,7 @@ import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/is_desktop.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
 String formatDurationToMinutes(Duration duration) {
@@ -33,6 +35,9 @@ class ControlBar extends HookWidget {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+
+    final isFullScreen =
+        useAppStore().select(context, (state) => state.isFullScreen);
     final isShowPlayer =
         useAppStore().select(context, (state) => state.isShowPlayer);
     final playQueueLength =
@@ -41,6 +46,10 @@ class ControlBar extends HookWidget {
         () => usePlayQueueStore().state.playQueue, [playQueueLength]);
     final currentIndex =
         usePlayQueueStore().select(context, (state) => state.currentIndex);
+    final externalSubtitles = useMemoized(
+        () => [...playerCore.externalSubtitles]..removeWhere((subtitle) =>
+            playerCore.subtitles.any((item) => item.title == subtitle.name)),
+        [playerCore.externalSubtitles, playerCore.subtitles]);
 
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -123,7 +132,7 @@ class ControlBar extends HookWidget {
         SizedBox(
           height: 88,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
@@ -154,58 +163,191 @@ class ControlBar extends HookWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Visibility(
-                visible: playQueueLength > 1,
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.skip_previous_rounded,
-                    size: 32,
+              Row(
+                children: [
+                  const SizedBox(width: 8),
+                  Visibility(
+                    visible: playQueueLength > 1,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.skip_previous_rounded,
+                        size: 32,
+                      ),
+                      onPressed: playQueueLength > 0 && currentIndex > 0
+                          ? playerController.previous
+                          : null,
+                    ),
                   ),
-                  onPressed: playQueueLength > 0 && currentIndex > 0
-                      ? playerController.previous
-                      : null,
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: Icon(
-                  playerCore.playing == true
-                      ? Icons.pause_circle_outline_rounded
-                      : Icons.play_circle_outline_rounded,
-                  size: 42,
-                ),
-                onPressed: playQueueLength > 0
-                    ? () {
-                        if (playerCore.playing == true) {
-                          playerController.pause();
-                        } else {
-                          if (isDesktop()) {
-                            windowManager.setTitle(playerCore.title);
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(
+                      playerCore.playing == true
+                          ? Icons.pause_circle_outline_rounded
+                          : Icons.play_circle_outline_rounded,
+                      size: 42,
+                    ),
+                    onPressed: playQueueLength > 0
+                        ? () {
+                            if (playerCore.playing == true) {
+                              playerController.pause();
+                            } else {
+                              if (isDesktop()) {
+                                windowManager.setTitle(playerCore.title);
+                              }
+                              playerController.play();
+                            }
                           }
-                          playerController.play();
-                        }
-                      }
-                    : null,
-              ),
-              const SizedBox(width: 8),
-              Visibility(
-                visible: playQueueLength > 1,
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.skip_next_rounded,
-                    size: 32,
+                        : null,
                   ),
-                  onPressed:
-                      playQueueLength > 0 && currentIndex < playQueueLength - 1
+                  const SizedBox(width: 8),
+                  Visibility(
+                    visible: playQueueLength > 1,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.skip_next_rounded,
+                        size: 32,
+                      ),
+                      onPressed: playQueueLength > 0 &&
+                              currentIndex < playQueueLength - 1
                           ? playerController.next
                           : null,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    playerCore.subtitles.length + externalSubtitles.length > 0
+                        ? PopupMenuButton(
+                            tooltip: 'Subtitles',
+                            icon: Icon(
+                              playerCore.subtitle == SubtitleTrack.no()
+                                  ? Icons.subtitles_off_rounded
+                                  : Icons.subtitles_rounded,
+                              size: 20,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withAlpha(222),
+                            ),
+                            itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    child: Text(
+                                      'No Subtitle',
+                                      style: TextStyle(
+                                          color: playerCore.subtitle ==
+                                                  SubtitleTrack.no()
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withAlpha(222)),
+                                    ),
+                                    onTap: () => playerCore.player
+                                        .setSubtitleTrack(SubtitleTrack.no()),
+                                  ),
+                                  ...playerCore.subtitles
+                                      .map((subtitle) => PopupMenuItem(
+                                            onTap: () async => playerCore.player
+                                                .setSubtitleTrack(subtitle),
+                                            child: Text(
+                                              '${subtitle.title}',
+                                              style: TextStyle(
+                                                  color: playerCore
+                                                              .subtitle.title ==
+                                                          subtitle.title
+                                                      ? Theme.of(context)
+                                                          .colorScheme
+                                                          .primary
+                                                      : Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurface
+                                                          .withAlpha(222)),
+                                            ),
+                                          )),
+                                  ...externalSubtitles
+                                      .map((subtitle) => PopupMenuItem(
+                                            onTap: () {
+                                              log('Set external subtitle: ${subtitle.name}');
+                                              playerCore.player
+                                                  .setSubtitleTrack(
+                                                      SubtitleTrack.uri(
+                                                subtitle.path,
+                                                title: subtitle.name,
+                                              ));
+                                            },
+                                            child: Text(
+                                              subtitle.name,
+                                              style: TextStyle(
+                                                  color: playerCore
+                                                              .subtitle.title ==
+                                                          subtitle.name
+                                                      ? Theme.of(context)
+                                                          .colorScheme
+                                                          .primary
+                                                      : Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurface
+                                                          .withAlpha(222)),
+                                            ),
+                                          )),
+                                ])
+                        : const SizedBox(),
+                    playQueueLength > 0
+                        ? PopupMenuButton(
+                            tooltip: 'Play Queue',
+                            icon: Icon(
+                              Icons.playlist_play_rounded,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withAlpha(222),
+                            ),
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width / 2,
+                            ),
+                            itemBuilder: (context) => playQueue
+                                .map((item) => PopupMenuItem(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          16, 8, 16, 8),
+                                      onTap: () => usePlayQueueStore()
+                                          .updateCurrentIndex(
+                                              playQueue.indexOf(item)),
+                                      child: Text(
+                                          '${playQueue.indexOf(item) + 1} - ${item.name}',
+                                          style: TextStyle(
+                                            color: currentIndex ==
+                                                    playQueue.indexOf(item)
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withAlpha(222),
+                                          )),
+                                    ))
+                                .toList(),
+                          )
+                        : const SizedBox(),
+                    IconButton(
+                      icon: Icon(
+                        isFullScreen
+                            ? Icons.close_fullscreen_rounded
+                            : Icons.open_in_full_rounded,
+                        size: 20,
+                      ),
+                      onPressed: () => useAppStore().toggleFullScreen(),
+                    ),
+                    const SizedBox(width: 16),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              screenWidth < 600 && !isShowPlayer
-                  ? const SizedBox()
-                  : const Spacer(),
             ],
           ),
         ),

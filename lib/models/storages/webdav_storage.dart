@@ -101,7 +101,7 @@ class WebdavStorage implements Storage {
                 size: file.size,
                 type: checkFileType(file.name!),
                 auth: auth,
-                subTitles: findSubTitle(
+                subtitles: findSubTitle(
                     files.map((file) => file.name as String).toList(),
                     file.name as String,
                     dirPath),

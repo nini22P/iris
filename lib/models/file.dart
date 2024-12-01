@@ -5,7 +5,7 @@ class FileItem {
   final int? size;
   final String? type;
   final String? auth;
-  final List<SubTitle>? subTitles;
+  final List<Subtitle>? subtitles;
 
   FileItem({
     this.name,
@@ -14,7 +14,7 @@ class FileItem {
     this.size,
     this.type,
     this.auth,
-    this.subTitles,
+    this.subtitles,
   });
 
   Map<String, dynamic> toJson() {
@@ -25,8 +25,8 @@ class FileItem {
       'size': size,
       'type': type,
       'auth': auth,
-      'subTitles':
-          subTitles != null ? subTitles!.map((s) => s.toJson()).toList() : [],
+      'subtitles':
+          subtitles != null ? subtitles!.map((s) => s.toJson()).toList() : [],
     };
   }
 
@@ -38,20 +38,20 @@ class FileItem {
       size: json['size'],
       type: json['type'],
       auth: json['auth'],
-      subTitles: (json['subTitles'] as List)
-          .map((subTitleJson) => SubTitle.fromJson(subTitleJson))
+      subtitles: (json['subtitles'] as List)
+          .map((subTitleJson) => Subtitle.fromJson(subTitleJson))
           .toList(),
     );
   }
 }
 
-class SubTitle {
-  final String? name;
-  final String? path;
+class Subtitle {
+  final String name;
+  final String path;
 
-  SubTitle({
-    this.name,
-    this.path,
+  Subtitle({
+    required this.name,
+    required this.path,
   });
 
   Map<String, dynamic> toJson() {
@@ -61,8 +61,8 @@ class SubTitle {
     };
   }
 
-  factory SubTitle.fromJson(Map<String, dynamic> json) {
-    return SubTitle(
+  factory Subtitle.fromJson(Map<String, dynamic> json) {
+    return Subtitle(
       name: json['name'],
       path: json['path'],
     );

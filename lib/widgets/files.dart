@@ -139,9 +139,9 @@ class Files extends HookWidget {
                                         const Spacer(),
                                         const SizedBox(width: 16),
                                         ...filteredFileList[index]
-                                            .subTitles!
-                                            .map((subTitle) => subTitle.path
-                                                ?.split('.')
+                                            .subtitles!
+                                            .map((subtitle) => subtitle.path
+                                                .split('.')
                                                 .last
                                                 .toUpperCase())
                                             .toSet()
@@ -164,7 +164,7 @@ class Files extends HookWidget {
                                                       padding: const EdgeInsets
                                                           .fromLTRB(8, 4, 8, 4),
                                                       child: Text(
-                                                        '$subTitleType',
+                                                        subTitleType,
                                                         style: const TextStyle(
                                                           fontSize: 12,
                                                           fontWeight:

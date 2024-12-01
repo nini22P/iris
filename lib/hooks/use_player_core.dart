@@ -14,6 +14,9 @@ class PlayerCore {
   final List<FileItem> playQueue;
   final int currentIndex;
   final FileItem? currentFile;
+  final SubtitleTrack subtitle;
+  final List<SubtitleTrack> subtitles;
+  final List<Subtitle> externalSubtitles;
   final bool playing;
   final Duration position;
   final Duration duration;
@@ -25,6 +28,9 @@ class PlayerCore {
     this.playQueue,
     this.currentIndex,
     this.currentFile,
+    this.subtitle,
+    this.subtitles,
+    this.externalSubtitles,
     this.playing,
     this.position,
     this.duration,
@@ -42,13 +48,25 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       () => playQueue.isEmpty ? null : playQueue[currentIndex],
       [playQueue, currentIndex]);
 
+  final title = useMemoized(
+      () => currentFile != null
+          ? '[${currentIndex + 1}/${playQueue.length}] ${currentFile.name}'
+          : '',
+      [currentFile]);
+
   final sliderisChanging = useState(false);
-  final subTitleIndex = useState(0);
 
   final playing = useState(false);
   final position = useState(Duration.zero);
   final duration = useState(Duration.zero);
   final completed = useState(false);
+
+  final subtitle = useState(player.state.track.subtitle);
+  final subtitles = useState(player.state.tracks.subtitle);
+
+  final subtitleIndex = useState(0);
+  final List<Subtitle>? externalSubtitles =
+      useMemoized(() => currentFile?.subtitles ?? [], [currentFile]);
 
   final playingStream = useStream(player.stream.playing);
   final positionStream = useStream(player.stream.position);
@@ -74,6 +92,21 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   }
 
   useEffect(() {
+    final subscription = player.stream.track.listen((event) {
+      subtitle.value = event.subtitle;
+    });
+    return subscription.cancel;
+  }, []);
+
+  useEffect(() {
+    final subscription = player.stream.tracks.listen((event) {
+      subtitles.value = [...event.subtitle]..removeWhere((subtitle) =>
+          [SubtitleTrack.auto(), SubtitleTrack.no()].contains(subtitle));
+    });
+    return subscription.cancel;
+  }, []);
+
+  useEffect(() {
     if (currentFile == null || playQueue.isEmpty) return;
     log('Now playing: ${currentFile.name}, auto play: $autoPlay');
     player.open(
@@ -86,26 +119,24 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     return null;
   }, [currentFile]);
 
-  final title = useMemoized(
-      () => currentFile != null
-          ? '[${currentIndex + 1}/${playQueue.length}] ${currentFile.name}'
-          : '',
-      [currentFile]);
-
-  final List<SubTitle>? subTitles =
-      useMemoized(() => currentFile?.subTitles ?? [], [currentFile]);
-
   useEffect(() {
-    if (subTitles!.isEmpty) return null;
-    log('Set subtitle: ${subTitles[subTitleIndex.value].name}');
-    player.setSubtitleTrack(
-      SubtitleTrack.uri(
-        subTitles[subTitleIndex.value].path!,
-        title: subTitles[subTitleIndex.value].name,
-      ),
-    );
+    if (duration.value == Duration.zero) return;
+    if (externalSubtitles!.isNotEmpty) {
+      log('Set external subtitle: ${externalSubtitles[subtitleIndex.value].name}');
+      player.setSubtitleTrack(
+        SubtitleTrack.uri(
+          externalSubtitles[subtitleIndex.value].path,
+          title: externalSubtitles[subtitleIndex.value].name,
+        ),
+      );
+    } else if (subtitles.value.isNotEmpty) {
+      log('Set subtitle: ${subtitles.value[0].title}');
+      player.setSubtitleTrack(subtitles.value[0]);
+    } else {
+      player.setSubtitleTrack(SubtitleTrack.no());
+    }
     return null;
-  }, [duration.value, subTitleIndex.value]);
+  }, [duration.value]);
 
   return PlayerCore(
     player,
@@ -113,6 +144,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     playQueue,
     currentIndex,
     currentFile,
+    subtitle.value,
+    subtitles.value,
+    externalSubtitles ?? [],
     playing.value,
     position.value,
     duration.value,

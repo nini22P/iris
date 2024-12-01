@@ -78,15 +78,25 @@ class AppStore extends PersistentStore<AppState> {
     save(state);
   }
 
-  Future<void> showPlayer() async => set(state.copyWith(isShowPlayer: true));
+  Future<void> showPlayer() async {
+    set(state.copyWith(isShowPlayer: true));
+    save(state);
+  }
 
-  Future<void> hidePlayer() async => set(state.copyWith(isShowPlayer: false));
+  Future<void> hidePlayer() async {
+    set(state.copyWith(isShowPlayer: false));
+    save(state);
+  }
 
-  Future<void> toggleIsShowPlayer() async =>
-      set(state.copyWith(isShowPlayer: !state.isShowPlayer));
+  Future<void> toggleIsShowPlayer() async {
+    set(state.copyWith(isShowPlayer: !state.isShowPlayer));
+    save(state);
+  }
 
-  Future<void> toggleMaximize() async =>
-      set(state.copyWith(isMaximized: !state.isMaximized));
+  Future<void> toggleMaximize() async {
+    set(state.copyWith(isMaximized: !state.isMaximized));
+    save(state);
+  }
 
   Future<void> toggleFullScreen() async =>
       set(state.copyWith(isFullScreen: !state.isFullScreen));
