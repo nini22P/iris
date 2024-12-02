@@ -50,6 +50,7 @@ dependencies:
   webdav_client: ^1.2.2
   window_manager: ^0.4.3
   url_launcher: ^6.3.1
+  scrollable_positioned_list: ^0.3.8
 
 dev_dependencies:
   flutter_test:

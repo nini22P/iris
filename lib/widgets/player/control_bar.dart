@@ -7,6 +7,7 @@ import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/is_desktop.dart';
+import 'package:iris/widgets/player/show_play_queue.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -42,8 +43,6 @@ class ControlBar extends HookWidget {
         useAppStore().select(context, (state) => state.isShowPlayer);
     final playQueueLength =
         usePlayQueueStore().select(context, (state) => state.playQueue.length);
-    final playQueue = useMemoized(
-        () => usePlayQueueStore().state.playQueue, [playQueueLength]);
     final currentIndex =
         usePlayQueueStore().select(context, (state) => state.currentIndex);
     final externalSubtitles = useMemoized(
@@ -260,11 +259,10 @@ class ControlBar extends HookWidget {
                                             onTap: () async => playerCore.player
                                                 .setSubtitleTrack(subtitle),
                                             child: Text(
-                                              '${subtitle.title}',
+                                              '${subtitle.title ?? subtitle.language}',
                                               style: TextStyle(
-                                                  color: playerCore
-                                                              .subtitle.title ==
-                                                          subtitle.title
+                                                  color: playerCore.subtitle ==
+                                                          subtitle
                                                       ? Theme.of(context)
                                                           .colorScheme
                                                           .primary
@@ -290,57 +288,19 @@ class ControlBar extends HookWidget {
                                             child: Text(
                                               subtitle.name,
                                               style: TextStyle(
-                                                  color: playerCore
-                                                              .subtitle.title ==
-                                                          subtitle.name
-                                                      ? Theme.of(context)
-                                                          .colorScheme
-                                                          .primary
-                                                      : Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurface
-                                                          .withAlpha(222)),
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface
+                                                      .withAlpha(222)),
                                             ),
                                           )),
                                 ])
                         : const SizedBox(),
-                    playQueueLength > 0
-                        ? PopupMenuButton(
-                            tooltip: 'Play Queue',
-                            icon: Icon(
-                              Icons.playlist_play_rounded,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withAlpha(222),
-                            ),
-                            constraints: BoxConstraints(
-                              maxWidth: MediaQuery.of(context).size.width / 2,
-                            ),
-                            itemBuilder: (context) => playQueue
-                                .map((item) => PopupMenuItem(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          16, 8, 0, 8),
-                                      onTap: () => usePlayQueueStore()
-                                          .updateCurrentIndex(
-                                              playQueue.indexOf(item)),
-                                      child: Text(
-                                          '${playQueue.indexOf(item) + 1} - ${item.name}',
-                                          style: TextStyle(
-                                            color: currentIndex ==
-                                                    playQueue.indexOf(item)
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withAlpha(222),
-                                          )),
-                                    ))
-                                .toList(),
-                          )
-                        : const SizedBox(),
+                    IconButton(
+                      icon: const Icon(Icons.playlist_play_rounded),
+                      onPressed: () => showPlayQueue(context,
+                          Theme.of(context).brightness == Brightness.dark),
+                    ),
                     IconButton(
                       icon: Icon(
                         isFullScreen

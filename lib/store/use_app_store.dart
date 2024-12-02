@@ -95,7 +95,6 @@ class AppStore extends PersistentStore<AppState> {
 
   Future<void> toggleMaximize() async {
     set(state.copyWith(isMaximized: !state.isMaximized));
-    save(state);
   }
 
   Future<void> toggleFullScreen() async =>
@@ -115,6 +114,7 @@ class AppStore extends PersistentStore<AppState> {
         return AppState.fromJson(json.decode(appState)).copyWith(
           autoPlay: false,
           isFullScreen: false,
+          isMaximized: false,
         );
       }
     } catch (e) {

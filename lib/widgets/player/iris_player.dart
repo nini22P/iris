@@ -284,7 +284,7 @@ class IrisPlayer extends HookWidget {
               ),
             ),
           ),
-        )
+        ),
       ],
     );
   }
