@@ -61,10 +61,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final duration = useState(Duration.zero);
   final completed = useState(false);
 
-  final subtitle = useState(player.state.track.subtitle);
-  final subtitles = useState(player.state.tracks.subtitle);
+  final subtitle = useState(SubtitleTrack.no());
+  final subtitles = useState<List<SubtitleTrack>>([]);
 
-  final subtitleIndex = useState(0);
   final List<Subtitle>? externalSubtitles =
       useMemoized(() => currentFile?.subtitles ?? [], [currentFile]);
 
@@ -122,11 +121,11 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   useEffect(() {
     if (duration.value == Duration.zero) return;
     if (externalSubtitles!.isNotEmpty) {
-      log('Set external subtitle: ${externalSubtitles[subtitleIndex.value].name}');
+      log('Set external subtitle: ${externalSubtitles[0].name}');
       player.setSubtitleTrack(
         SubtitleTrack.uri(
-          externalSubtitles[subtitleIndex.value].path,
-          title: externalSubtitles[subtitleIndex.value].name,
+          externalSubtitles[0].path,
+          title: externalSubtitles[0].name,
         ),
       );
     } else if (subtitles.value.isNotEmpty) {

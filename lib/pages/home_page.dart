@@ -96,6 +96,7 @@ class HomePage extends HookWidget {
                   actions: [
                     currentIndex.value == 1
                         ? PopupMenuButton<String>(
+                            tooltip: 'Add Storage',
                             icon: const Icon(Icons.add_rounded),
                             onSelected: (String value) {
                               switch (value) {

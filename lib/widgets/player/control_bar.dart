@@ -235,8 +235,10 @@ class ControlBar extends HookWidget {
                             ),
                             itemBuilder: (context) => [
                                   PopupMenuItem(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(16, 8, 0, 8),
                                     child: Text(
-                                      'No Subtitle',
+                                      'Off',
                                       style: TextStyle(
                                           color: playerCore.subtitle ==
                                                   SubtitleTrack.no()
@@ -253,6 +255,8 @@ class ControlBar extends HookWidget {
                                   ),
                                   ...playerCore.subtitles
                                       .map((subtitle) => PopupMenuItem(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                16, 8, 0, 8),
                                             onTap: () async => playerCore.player
                                                 .setSubtitleTrack(subtitle),
                                             child: Text(
@@ -272,6 +276,8 @@ class ControlBar extends HookWidget {
                                           )),
                                   ...externalSubtitles
                                       .map((subtitle) => PopupMenuItem(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                16, 8, 0, 8),
                                             onTap: () {
                                               log('Set external subtitle: ${subtitle.name}');
                                               playerCore.player
@@ -314,7 +320,7 @@ class ControlBar extends HookWidget {
                             itemBuilder: (context) => playQueue
                                 .map((item) => PopupMenuItem(
                                       padding: const EdgeInsets.fromLTRB(
-                                          16, 8, 16, 8),
+                                          16, 8, 0, 8),
                                       onTap: () => usePlayQueueStore()
                                           .updateCurrentIndex(
                                               playQueue.indexOf(item)),

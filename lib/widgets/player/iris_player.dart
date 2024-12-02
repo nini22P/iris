@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
+import 'package:iris/info.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/widgets/custom_app_bar.dart';
@@ -99,7 +100,8 @@ class IrisPlayer extends HookWidget {
 
     useEffect(() {
       if (isDesktop()) {
-        windowManager.setTitle(playerCore.title);
+        windowManager
+            .setTitle(playerCore.title.isEmpty ? INFO.title : playerCore.title);
       }
       return;
     }, [playerCore.title]);
@@ -141,10 +143,6 @@ class IrisPlayer extends HookWidget {
                 if (!isShowPlayer) return;
                 isShowControlBar.value = true;
                 resetHideTimer();
-              },
-              onExit: (_) {
-                if (!isShowPlayer) return;
-                isShowControlBar.value = false;
               },
               onHover: (PointerHoverEvent event) {
                 if (!isShowPlayer) return;
@@ -226,9 +224,6 @@ class IrisPlayer extends HookWidget {
                 isShowControlBar.value = true;
                 resetHideTimer();
               },
-              onExit: (_) {
-                isShowControlBar.value = false;
-              },
               onHover: (PointerHoverEvent event) {
                 if (event.kind == PointerDeviceKind.mouse) {
                   isShowControlBar.value = true;
@@ -265,9 +260,6 @@ class IrisPlayer extends HookWidget {
               onEnter: (_) {
                 isShowControlBar.value = true;
                 resetHideTimer();
-              },
-              onExit: (_) {
-                isShowControlBar.value = false;
               },
               onHover: (PointerHoverEvent event) {
                 if (event.kind == PointerDeviceKind.mouse) {
