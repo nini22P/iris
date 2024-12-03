@@ -1,18 +1,20 @@
 class FileItem {
-  final String? name;
-  final String? path;
-  final bool? isDir;
-  final int? size;
-  final String? type;
+  final String name;
+  final String uri;
+  final List<String> path;
+  final bool isDir;
+  final int size;
+  final String type;
   final String? auth;
   final List<Subtitle>? subtitles;
 
   FileItem({
-    this.name,
-    this.path,
-    this.isDir,
-    this.size,
-    this.type,
+    required this.name,
+    required this.uri,
+    required this.path,
+    required this.isDir,
+    required this.size,
+    required this.type,
     this.auth,
     this.subtitles,
   });
@@ -20,6 +22,7 @@ class FileItem {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
+      'uri': uri,
       'path': path,
       'isDir': isDir,
       'size': size,
@@ -33,7 +36,8 @@ class FileItem {
   factory FileItem.fromJson(Map<String, dynamic> json) {
     return FileItem(
       name: json['name'],
-      path: json['path'],
+      uri: json['uri'],
+      path: List<String>.from(json['path']),
       isDir: json['isDir'],
       size: json['size'],
       type: json['type'],
@@ -47,24 +51,24 @@ class FileItem {
 
 class Subtitle {
   final String name;
-  final String path;
+  final String uri;
 
   Subtitle({
     required this.name,
-    required this.path,
+    required this.uri,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      'path': path,
+      'uri': uri,
     };
   }
 
   factory Subtitle.fromJson(Map<String, dynamic> json) {
     return Subtitle(
       name: json['name'],
-      path: json['path'],
+      uri: json['uri'],
     );
   }
 }

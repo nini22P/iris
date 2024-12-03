@@ -110,7 +110,6 @@ class AppStore extends PersistentStore<AppState> {
 
       String? appState = await storage.read(key: 'appState');
       if (appState != null) {
-        log('Loaded AppState');
         return AppState.fromJson(json.decode(appState)).copyWith(
           autoPlay: false,
           isFullScreen: false,
@@ -132,7 +131,6 @@ class AppStore extends PersistentStore<AppState> {
       final storage = FlutterSecureStorage(aOptions: getAndroidOptions());
 
       await storage.write(key: 'appState', value: json.encode(state.toJson()));
-      log('Saved AppState');
     } catch (e) {
       log('Error saving AppState: $e');
     }

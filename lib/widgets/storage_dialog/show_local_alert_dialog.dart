@@ -26,7 +26,7 @@ class LocalDialog extends HookWidget {
         isEdit ? useAppStore().state.storages.indexOf(localStorage!) : -1;
 
     final name = useState(localStorage?.name ?? '');
-    final basePath = useState(localStorage?.basePath ?? '');
+    final basePath = useState(localStorage?.basePath ?? []);
 
     final isTested = useState(true);
 
@@ -71,8 +71,9 @@ class LocalDialog extends HookWidget {
                     border: OutlineInputBorder(),
                     labelText: 'Path',
                   ),
-                  initialValue: basePath.value,
-                  onChanged: (value) => basePath.value = value.trim(),
+                  initialValue: basePath.value.join('/'),
+                  onChanged: (value) =>
+                      basePath.value = value.trim().split('/'),
                 ),
                 const SizedBox(height: 16.0),
               ],

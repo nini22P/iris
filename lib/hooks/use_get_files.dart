@@ -1,7 +1,8 @@
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/models/get_result.dart';
 
-GetResult<T> useGet<T>(String argument, Future<T> Function(String) function) {
+GetResult<T> useGetFiles<T>(
+    List<String> path, Future<T> Function(List<String>) function) {
   final isLoading = useState(true);
   final data = useState<T?>(null);
   final error = useState(false);
@@ -10,7 +11,7 @@ GetResult<T> useGet<T>(String argument, Future<T> Function(String) function) {
     isLoading.value = true;
     error.value = false;
 
-    function(argument).then((result) {
+    function(path).then((result) {
       data.value = result;
       isLoading.value = false;
     }).catchError((e) {
@@ -19,7 +20,7 @@ GetResult<T> useGet<T>(String argument, Future<T> Function(String) function) {
     });
 
     return () {};
-  }, [argument]);
+  }, [path.join('/')]);
 
   return GetResult(
     data: data.value,

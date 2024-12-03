@@ -3,14 +3,14 @@ import 'package:iris/models/file.dart';
 abstract class Storage {
   String get type;
   String get name;
-  String get basePath;
+  List<String> get basePath;
 
   Storage copyWith({
     String? name,
-    String? basePath,
+    List<String>? basePath,
   });
 
-  Future<List<FileItem>> getFiles(String last);
+  Future<List<FileItem>> getFiles(List<String> path);
 
   Map<String, dynamic> toJson();
 }

@@ -12,7 +12,7 @@ class LocalStorage implements Storage {
   @override
   String name;
   @override
-  String basePath;
+  List<String> basePath;
 
   LocalStorage({
     required this.type,
@@ -23,7 +23,7 @@ class LocalStorage implements Storage {
   @override
   LocalStorage copyWith({
     String? name,
-    String? basePath,
+    List<String>? basePath,
   }) =>
       LocalStorage(
         type: type,
@@ -32,15 +32,16 @@ class LocalStorage implements Storage {
       );
 
   @override
-  Future<List<FileItem>> getFiles(String path) async {
-    final directory = Directory(path);
+  Future<List<FileItem>> getFiles(List<String> path) async {
+    final directory = Directory(path.join('/'));
     final files = directory
         .listSync()
         .map((entity) => FileItem(
               name: p.basename(entity.path),
-              path: entity.path,
+              uri: entity.path,
+              path: path,
               isDir: entity is Directory,
-              size: entity is File ? entity.lengthSync() : null,
+              size: entity is File ? entity.lengthSync() : 0,
               type: checkFileType(p.basename(entity.path)),
               subtitles: findSubTitle(
                   directory
@@ -48,7 +49,7 @@ class LocalStorage implements Storage {
                       .map((entity) => p.basename(entity.path))
                       .toList(),
                   p.basename(entity.path),
-                  path),
+                  entity.path),
             ))
         .toList();
     return fileSort(files, true);
@@ -65,9 +66,8 @@ class LocalStorage implements Storage {
 
   factory LocalStorage.fromJson(Map<String, dynamic> json) {
     return LocalStorage(
-      type: json['type'],
-      name: json['name'],
-      basePath: json['basePath'],
-    );
+        type: json['type'],
+        name: json['name'],
+        basePath: List<String>.from(json['basePath']));
   }
 }

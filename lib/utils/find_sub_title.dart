@@ -4,7 +4,7 @@ import 'package:iris/utils/check_file_type.dart';
 List<Subtitle> findSubTitle(
   List<String> files,
   String name,
-  String basePath,
+  String baseUri,
 ) {
   if (checkFileType(name) == 'video') {
     List<Subtitle> foundSubTitles = [];
@@ -21,7 +21,7 @@ List<Subtitle> findSubTitle(
             file.split('.').sublist(1, file.split('.').length - 1).join('.');
         foundSubTitles.add(Subtitle(
           name: subTitleName.isEmpty ? file : subTitleName,
-          path: '$basePath/$file',
+          uri: '$baseUri/$file',
         ));
       }
     }

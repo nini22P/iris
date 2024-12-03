@@ -4,8 +4,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/info.dart';
 import 'package:iris/models/storages/local_storage.dart';
-import 'package:iris/pages/alert_dialog/show_local_alert_dialog.dart';
-import 'package:iris/pages/alert_dialog/show_webdav_alert_dialog.dart';
+import 'package:iris/widgets/storage_dialog/show_local_alert_dialog.dart';
+import 'package:iris/widgets/storage_dialog/show_webdav_alert_dialog.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/widgets/files.dart';
 import 'package:iris/widgets/home.dart';
@@ -115,7 +115,8 @@ class HomePage extends HookWidget {
                                                   .split('/')
                                                   .last,
                                               basePath: selectedDirectory
-                                                  .replaceAll('\\', '/')));
+                                                  .replaceAll('\\', '/')
+                                                  .split('/')));
                                     }
                                   }();
                                   break;

@@ -124,16 +124,8 @@ class IrisPlayer extends HookWidget {
         AnimatedPositioned(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOutCubicEmphasized,
-          left: isShowPlayer
-              ? 0
-              : screenWidth < 600
-                  ? 8
-                  : 8,
-          bottom: isShowPlayer
-              ? 0
-              : screenWidth < 600
-                  ? 128
-                  : 8,
+          left: isShowPlayer ? 0 : 12,
+          bottom: isShowPlayer ? 0 : 12,
           width: isShowPlayer ? MediaQuery.of(context).size.width : 128,
           height: isShowPlayer ? MediaQuery.of(context).size.height : 72,
           child: IgnorePointer(
@@ -213,73 +205,71 @@ class IrisPlayer extends HookWidget {
             ),
           ),
         ),
-        Positioned(
-          top: 0,
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOutCubicEmphasized,
+          top: isShowPlayer && isShowControlBar.value ? 0 : -kToolbarHeight,
           left: 0,
           right: 0,
-          child: Visibility(
-            visible: isShowPlayer && isShowControlBar.value,
-            child: MouseRegion(
-              onEnter: (_) {
+          child: MouseRegion(
+            onEnter: (_) {
+              isShowControlBar.value = true;
+              resetHideTimer();
+            },
+            onHover: (PointerHoverEvent event) {
+              if (event.kind == PointerDeviceKind.mouse) {
+                isShowControlBar.value = true;
+                resetHideTimer();
+              }
+            },
+            child: GestureDetector(
+              onTap: () {
                 isShowControlBar.value = true;
                 resetHideTimer();
               },
-              onHover: (PointerHoverEvent event) {
-                if (event.kind == PointerDeviceKind.mouse) {
-                  isShowControlBar.value = true;
-                  resetHideTimer();
-                }
-              },
-              child: GestureDetector(
-                onTap: () {
-                  isShowControlBar.value = true;
-                  resetHideTimer();
-                },
-                child: Theme(
-                  data: ThemeData.dark(),
-                  child: CustomAppBar(
-                    leading: IconButton(
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                      onPressed: () => useAppStore().toggleIsShowPlayer(),
-                    ),
-                    // title: playerCore.title,
-                    bgColor: bgColor,
+              child: Theme(
+                data: ThemeData.dark(),
+                child: CustomAppBar(
+                  leading: IconButton(
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                    onPressed: () => useAppStore().toggleIsShowPlayer(),
                   ),
+                  // title: playerCore.title,
+                  bgColor: bgColor,
                 ),
               ),
             ),
           ),
         ),
-        Positioned(
-          bottom: 0,
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOutCubicEmphasized,
+          bottom: isShowPlayer && isShowControlBar.value ? 0 : -124,
           left: 0,
           right: 0,
-          child: Visibility(
-            visible: isShowPlayer && isShowControlBar.value,
-            child: MouseRegion(
-              onEnter: (_) {
+          child: MouseRegion(
+            onEnter: (_) {
+              isShowControlBar.value = true;
+              resetHideTimer();
+            },
+            onHover: (PointerHoverEvent event) {
+              if (event.kind == PointerDeviceKind.mouse) {
+                isShowControlBar.value = true;
+                resetHideTimer();
+              }
+            },
+            child: GestureDetector(
+              onTap: () {
                 isShowControlBar.value = true;
                 resetHideTimer();
               },
-              onHover: (PointerHoverEvent event) {
-                if (event.kind == PointerDeviceKind.mouse) {
-                  isShowControlBar.value = true;
-                  resetHideTimer();
-                }
-              },
-              child: GestureDetector(
-                onTap: () {
-                  isShowControlBar.value = true;
-                  resetHideTimer();
-                },
-                child: Theme(
-                  data: ThemeData.dark(),
-                  child: ControlBar(
-                    playerCore: playerCore,
-                    playerController: playerController,
-                    bgColor: bgColor,
-                    showControlBar: showControlBar,
-                  ),
+              child: Theme(
+                data: ThemeData.dark(),
+                child: ControlBar(
+                  playerCore: playerCore,
+                  playerController: playerController,
+                  bgColor: bgColor,
+                  showControlBar: showControlBar,
                 ),
               ),
             ),

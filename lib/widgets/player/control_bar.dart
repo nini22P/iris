@@ -50,8 +50,63 @@ class ControlBar extends HookWidget {
             playerCore.subtitles.any((item) => item.title == subtitle.name)),
         [playerCore.externalSubtitles, playerCore.subtitles]);
 
+    Widget subtitlesMenuButton = PopupMenuButton(
+      tooltip: 'Subtitles',
+      icon: Icon(
+        playerCore.subtitle == SubtitleTrack.no()
+            ? Icons.subtitles_off_rounded
+            : Icons.subtitles_rounded,
+        size: 20,
+        color: Theme.of(context).colorScheme.onSurface.withAlpha(222),
+      ),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
+          child: Text(
+            'Off',
+            style: TextStyle(
+                color: playerCore.subtitle == SubtitleTrack.no()
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurface.withAlpha(222)),
+          ),
+          onTap: () => playerCore.player.setSubtitleTrack(SubtitleTrack.no()),
+        ),
+        ...playerCore.subtitles.map((subtitle) => PopupMenuItem(
+              padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
+              onTap: () async => playerCore.player.setSubtitleTrack(subtitle),
+              child: Text(
+                '${subtitle.title ?? subtitle.language}',
+                style: TextStyle(
+                    color: playerCore.subtitle == subtitle
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withAlpha(222)),
+              ),
+            )),
+        ...externalSubtitles.map((subtitle) => PopupMenuItem(
+              padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
+              onTap: () {
+                log('Set external subtitle: ${subtitle.name}');
+                playerCore.player.setSubtitleTrack(SubtitleTrack.uri(
+                  subtitle.uri,
+                  title: subtitle.name,
+                ));
+              },
+              child: Text(
+                subtitle.name,
+                style: TextStyle(
+                    color:
+                        Theme.of(context).colorScheme.onSurface.withAlpha(222)),
+              ),
+            )),
+      ],
+    );
+
     return Container(
       width: MediaQuery.of(context).size.width,
+      height: 124,
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
       decoration: BoxDecoration(
         color: bgColor ?? Theme.of(context).colorScheme.surface,
@@ -66,7 +121,7 @@ class ControlBar extends HookWidget {
       ),
       child: Column(children: [
         Container(
-            padding: const EdgeInsets.fromLTRB(12, 2, 12, 2),
+            padding: const EdgeInsets.fromLTRB(12, 2, 12, 0),
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -108,14 +163,16 @@ class ControlBar extends HookWidget {
                         min: 0,
                         max: playerCore.duration.inSeconds.toDouble(),
                         onChanged: (value) {
-                          // sliderisChanging.value = true;
-                          // position.value = Duration(seconds: value.toInt());
+                          playerCore.updateSliderChanging(true);
+                          playerCore
+                              .updatePosition(Duration(seconds: value.toInt()));
                         },
-                        onChangeEnd: (value) {
-                          // sliderisChanging.value = false;
-                          // position.value = Duration(seconds: value.toInt());
-                          playerCore.player
+                        onChangeEnd: (value) async {
+                          playerCore
+                              .updatePosition(Duration(seconds: value.toInt()));
+                          await playerCore.player
                               .seek(Duration(seconds: value.toInt()));
+                          playerCore.updateSliderChanging(false);
                         },
                       ),
                     ),
@@ -129,45 +186,46 @@ class ControlBar extends HookWidget {
                   ),
                 ])),
         SizedBox(
-          height: 88,
+          height: 96,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(4, 4, 0, 4),
-                  height: double.infinity,
-                  child: TextButton(
-                    onPressed: () {
-                      useAppStore().toggleIsShowPlayer();
-                      showControlBar();
-                    },
-                    style: TextButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    )),
-                    child: Container(
-                      padding: EdgeInsets.fromLTRB(
-                          isShowPlayer || screenWidth < 600 ? 8 : 128, 8, 8, 8),
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        playerCore.title,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                  child: Container(
+                padding: const EdgeInsets.fromLTRB(4, 4, 0, 4),
+                height: double.infinity,
+                child: TextButton(
+                  onPressed: () {
+                    useAppStore().toggleIsShowPlayer();
+                    showControlBar();
+                  },
+                  style: TextButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  )),
+                  child: Container(
+                    padding:
+                        EdgeInsets.fromLTRB(isShowPlayer ? 4 : 132, 4, 4, 4),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      playerCore.title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        overflow: TextOverflow.fade,
                       ),
                     ),
                   ),
                 ),
-              ),
+              )),
               Row(
                 children: [
                   const SizedBox(width: 8),
                   Visibility(
                     visible: playQueueLength > 1,
                     child: IconButton(
+                      tooltip: 'Previous',
                       icon: const Icon(
                         Icons.skip_previous_rounded,
                         size: 32,
@@ -179,6 +237,7 @@ class ControlBar extends HookWidget {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
+                    tooltip: playerCore.playing == true ? 'Pause' : 'Play',
                     icon: Icon(
                       playerCore.playing == true
                           ? Icons.pause_circle_outline_rounded
@@ -202,6 +261,7 @@ class ControlBar extends HookWidget {
                   Visibility(
                     visible: playQueueLength > 1,
                     child: IconButton(
+                      tooltip: 'Next',
                       icon: const Icon(
                         Icons.skip_next_rounded,
                         size: 32,
@@ -215,103 +275,37 @@ class ControlBar extends HookWidget {
                   const SizedBox(width: 8),
                 ],
               ),
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    playerCore.subtitles.length + externalSubtitles.length > 0
-                        ? PopupMenuButton(
-                            tooltip: 'Subtitles',
-                            icon: Icon(
-                              playerCore.subtitle == SubtitleTrack.no()
-                                  ? Icons.subtitles_off_rounded
-                                  : Icons.subtitles_rounded,
-                              size: 20,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withAlpha(222),
-                            ),
-                            itemBuilder: (context) => [
-                                  PopupMenuItem(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(16, 8, 0, 8),
-                                    child: Text(
-                                      'Off',
-                                      style: TextStyle(
-                                          color: playerCore.subtitle ==
-                                                  SubtitleTrack.no()
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withAlpha(222)),
-                                    ),
-                                    onTap: () => playerCore.player
-                                        .setSubtitleTrack(SubtitleTrack.no()),
-                                  ),
-                                  ...playerCore.subtitles
-                                      .map((subtitle) => PopupMenuItem(
-                                            padding: const EdgeInsets.fromLTRB(
-                                                16, 8, 0, 8),
-                                            onTap: () async => playerCore.player
-                                                .setSubtitleTrack(subtitle),
-                                            child: Text(
-                                              '${subtitle.title ?? subtitle.language}',
-                                              style: TextStyle(
-                                                  color: playerCore.subtitle ==
-                                                          subtitle
-                                                      ? Theme.of(context)
-                                                          .colorScheme
-                                                          .primary
-                                                      : Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurface
-                                                          .withAlpha(222)),
-                                            ),
-                                          )),
-                                  ...externalSubtitles
-                                      .map((subtitle) => PopupMenuItem(
-                                            padding: const EdgeInsets.fromLTRB(
-                                                16, 8, 0, 8),
-                                            onTap: () {
-                                              log('Set external subtitle: ${subtitle.name}');
-                                              playerCore.player
-                                                  .setSubtitleTrack(
-                                                      SubtitleTrack.uri(
-                                                subtitle.path,
-                                                title: subtitle.name,
-                                              ));
-                                            },
-                                            child: Text(
-                                              subtitle.name,
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurface
-                                                      .withAlpha(222)),
-                                            ),
-                                          )),
-                                ])
-                        : const SizedBox(),
-                    IconButton(
-                      icon: const Icon(Icons.playlist_play_rounded),
-                      onPressed: () => showPlayQueue(context,
-                          Theme.of(context).brightness == Brightness.dark),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        isFullScreen
-                            ? Icons.close_fullscreen_rounded
-                            : Icons.open_in_full_rounded,
-                        size: 20,
+              Visibility(
+                visible: screenWidth > 600 || isShowPlayer,
+                child: Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      subtitlesMenuButton,
+                      IconButton(
+                        tooltip: 'Play Queue',
+                        icon: const Icon(Icons.playlist_play_rounded),
+                        onPressed: () => showPlayQueue(context,
+                            Theme.of(context).brightness == Brightness.dark),
                       ),
-                      onPressed: () => useAppStore().toggleFullScreen(),
-                    ),
-                    const SizedBox(width: 16),
-                  ],
+                      Visibility(
+                        visible: isDesktop(),
+                        child: IconButton(
+                          tooltip: isFullScreen
+                              ? 'Exit Fullscreen'
+                              : 'Enter Fullscreen',
+                          icon: Icon(
+                            isFullScreen
+                                ? Icons.close_fullscreen_rounded
+                                : Icons.open_in_full_rounded,
+                            size: 20,
+                          ),
+                          onPressed: () => useAppStore().toggleFullScreen(),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                    ],
+                  ),
                 ),
               ),
             ],

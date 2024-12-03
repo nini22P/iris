@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:iris/hooks/use_get.dart';
+import 'package:iris/hooks/use_get_files.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -18,21 +18,18 @@ class Files extends HookWidget {
   Widget build(BuildContext context) {
     final basePath = storage.basePath;
 
-    final currentPath = useState([basePath]);
-
-    final currentPathString =
-        useMemoized(() => currentPath.value.join('/'), [currentPath.value]);
+    final currentPath = useState(basePath);
 
     final title = storage.name;
 
-    final result = useGet(currentPathString, storage.getFiles);
+    final result = useGetFiles(currentPath.value, storage.getFiles);
     final List<FileItem> fileList = result.data ?? [];
     final isLoading = result.isLoading;
     final error = result.error;
 
     final filteredFileList = useMemoized(
         () => fileList
-            .where((file) => file.isDir! || file.type == 'video')
+            .where((file) => file.isDir || file.type == 'video')
             .toList(),
         [fileList]);
 
@@ -50,7 +47,7 @@ class Files extends HookWidget {
 
     final isFavorited = useMemoized(
         () => useAppStore().state.favoriteStorages.any((favoriteStorage) =>
-            favoriteStorage.basePath == currentPath.value.join('/')),
+            favoriteStorage.basePath.join('/') == currentPath.value.join('/')),
         [currentPath.value, refreshState.value]);
 
     void refresh() => refreshState.value = !refreshState.value;
@@ -72,7 +69,8 @@ class Files extends HookWidget {
                     .state
                     .favoriteStorages
                     .indexWhere((storage) =>
-                        storage.basePath == currentPath.value.join('/')));
+                        storage.basePath.join('/') ==
+                        currentPath.value.join('/')));
                 refresh();
                 return;
               }
@@ -80,7 +78,7 @@ class Files extends HookWidget {
                   name: currentPath.value.length == 1
                       ? title
                       : currentPath.value.last,
-                  basePath: currentPath.value.join('/')));
+                  basePath: currentPath.value));
               refresh();
             },
           ),
@@ -93,14 +91,17 @@ class Files extends HookWidget {
           Container(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
             child: BreadCrumb.builder(
-              itemCount: currentPath.value.length,
+              itemCount: currentPath.value.length - basePath.length + 1,
               builder: (index) {
                 return BreadCrumbItem(
                   content: TextButton(
-                    child: Text(['/', ...currentPath.value.sublist(1)][index]),
+                    child: Text([
+                      '/',
+                      ...currentPath.value.sublist(basePath.length)
+                    ][index]),
                     onPressed: () {
                       currentPath.value =
-                          currentPath.value.sublist(0, index + 1);
+                          currentPath.value.sublist(0, index + basePath.length);
                     },
                   ),
                 );
@@ -124,23 +125,22 @@ class Files extends HookWidget {
                                   ? const Icon(Icons.folder_rounded)
                                   : const Icon(Icons.video_file_rounded),
                               title: Text(
-                                filteredFileList[index].name ?? '',
+                                filteredFileList[index].name,
                                 // style: const TextStyle(
                                 //   fontWeight: FontWeight.w500,
                                 // ),
                               ),
-                              subtitle: filteredFileList[index].size != null &&
-                                      filteredFileList[index].size != 0
+                              subtitle: filteredFileList[index].size != 0
                                   ? Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                            "${fileSizeConvert(filteredFileList[index].size!)} MB"),
+                                            "${fileSizeConvert(filteredFileList[index].size)} MB"),
                                         const Spacer(),
                                         const SizedBox(width: 16),
                                         ...filteredFileList[index]
                                             .subtitles!
-                                            .map((subtitle) => subtitle.path
+                                            .map((subtitle) => subtitle.uri
                                                 .split('.')
                                                 .last
                                                 .toUpperCase())
@@ -179,10 +179,10 @@ class Files extends HookWidget {
                                   : null,
                               onTap: () {
                                 if (filteredFileList[index].isDir == true &&
-                                    filteredFileList[index].name!.isNotEmpty) {
+                                    filteredFileList[index].name.isNotEmpty) {
                                   currentPath.value = [
                                     ...currentPath.value,
-                                    filteredFileList[index].name!
+                                    filteredFileList[index].name
                                   ];
                                 } else {
                                   play(filteredFileList, index);

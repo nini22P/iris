@@ -13,7 +13,7 @@ class WebdavStorage implements Storage {
   String name;
   String url;
   @override
-  String basePath;
+  List<String> basePath;
   String port;
   String username;
   String password;
@@ -32,7 +32,7 @@ class WebdavStorage implements Storage {
   WebdavStorage copyWith({
     String? name,
     String? url,
-    String? basePath,
+    List<String>? basePath,
     String? port,
     String? username,
     String? password,
@@ -62,7 +62,7 @@ class WebdavStorage implements Storage {
       client.setReceiveTimeout(4000);
 
       await client.ping();
-      await client.readDir(basePath);
+      await client.readDir(basePath.join('/'));
       return true;
     } catch (e) {
       log(e.toString());
@@ -71,7 +71,7 @@ class WebdavStorage implements Storage {
   }
 
   @override
-  Future<List<FileItem>> getFiles(String path) async {
+  Future<List<FileItem>> getFiles(List<String> path) async {
     try {
       var client = webdav.newClient(
         "http://$url:$port",
@@ -88,23 +88,23 @@ class WebdavStorage implements Storage {
       client.setSendTimeout(8000);
       client.setReceiveTimeout(8000);
 
-      var files = await client.readDir(path);
+      var files = await client.readDir(path.join('/'));
 
-      final String dirPath =
-          'http://$url:$port/${path.replaceFirst(RegExp(r'^/+'), '')}';
+      final String baseUri = 'http://$url:$port/${path.join('/')}';
 
       return files
           .map((file) => FileItem(
-                name: file.name,
-                path: '$dirPath/${file.name}',
-                isDir: file.isDir,
-                size: file.size,
+                name: '${file.name}',
+                uri: '$baseUri/${file.name}',
+                path: [...path, '${file.name}'],
+                isDir: file.isDir ?? false,
+                size: file.size ?? 0,
                 type: checkFileType(file.name!),
                 auth: auth,
                 subtitles: findSubTitle(
                     files.map((file) => file.name as String).toList(),
                     file.name as String,
-                    dirPath),
+                    baseUri),
               ))
           .toList();
     } catch (e) {
@@ -130,7 +130,7 @@ class WebdavStorage implements Storage {
       type: json['type'],
       name: json['name'],
       url: json['url'],
-      basePath: json['basePath'],
+      basePath: List<String>.from(json['basePath']),
       port: json['port'],
       username: json['username'],
       password: json['password'],

@@ -20,7 +20,10 @@ class PlayerCore {
   final bool playing;
   final Duration position;
   final Duration duration;
+  final bool sliderChanging;
   final bool completed;
+  final void Function(Duration) updatePosition;
+  final void Function(bool) updateSliderChanging;
 
   PlayerCore(
     this.player,
@@ -34,7 +37,10 @@ class PlayerCore {
     this.playing,
     this.position,
     this.duration,
+    this.sliderChanging,
     this.completed,
+    this.updatePosition,
+    this.updateSliderChanging,
   );
 }
 
@@ -54,7 +60,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           : '',
       [currentFile]);
 
-  final sliderisChanging = useState(false);
+  final sliderChanging = useState(false);
 
   final playing = useState(false);
   final position = useState(Duration.zero);
@@ -77,7 +83,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   }
 
   if (positionStream.hasData) {
-    if (!sliderisChanging.value) {
+    if (!sliderChanging.value) {
       position.value = positionStream.data!;
     }
   }
@@ -109,7 +115,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     if (currentFile == null || playQueue.isEmpty) return;
     log('Now playing: ${currentFile.name}, auto play: $autoPlay');
     player.open(
-      Media(currentFile.path!,
+      Media(currentFile.uri,
           httpHeaders: currentFile.auth != null
               ? {'authorization': currentFile.auth!}
               : {}),
@@ -124,7 +130,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       log('Set external subtitle: ${externalSubtitles[0].name}');
       player.setSubtitleTrack(
         SubtitleTrack.uri(
-          externalSubtitles[0].path,
+          externalSubtitles[0].uri,
           title: externalSubtitles[0].name,
         ),
       );
@@ -136,6 +142,10 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     }
     return null;
   }, [duration.value]);
+
+  void updatePosition(Duration newPosition) => position.value = newPosition;
+
+  void updateSliderChanging(bool value) => sliderChanging.value = value;
 
   return PlayerCore(
     player,
@@ -149,6 +159,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     playing.value,
     position.value,
     duration.value,
+    sliderChanging.value,
     completed.value,
+    updatePosition,
+    updateSliderChanging,
   );
 }

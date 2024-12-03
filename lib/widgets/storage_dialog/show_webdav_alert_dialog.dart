@@ -27,7 +27,7 @@ class WebDAVDialog extends HookWidget {
 
     final name = useState(webdavStorage?.name ?? '');
     final url = useState(webdavStorage?.url ?? '');
-    final basePath = useState(webdavStorage?.basePath ?? '');
+    final basePath = useState(webdavStorage?.basePath ?? []);
     final port = useState(webdavStorage?.port ?? '');
     final username = useState(webdavStorage?.username ?? '');
     final password = useState(webdavStorage?.password ?? '');
@@ -39,7 +39,7 @@ class WebDAVDialog extends HookWidget {
         type: 'webdav',
         name: name.value,
         url: url.value,
-        basePath: '/${basePath.value.replaceFirst(RegExp(r'^/+'), '')}',
+        basePath: basePath.value,
         port: port.value,
         username: username.value,
         password: password.value,
@@ -53,7 +53,7 @@ class WebDAVDialog extends HookWidget {
             type: 'webdav',
             name: name.value,
             url: url.value,
-            basePath: '/${basePath.value.replaceFirst(RegExp(r'^/+'), '')}',
+            basePath: basePath.value,
             port: port.value,
             username: username.value,
             password: password.value,
@@ -118,8 +118,9 @@ class WebDAVDialog extends HookWidget {
                     border: OutlineInputBorder(),
                     labelText: 'Path',
                   ),
-                  initialValue: basePath.value,
-                  onChanged: (value) => basePath.value = value.trim(),
+                  initialValue: basePath.value.join('/'),
+                  onChanged: (value) => basePath.value = value.trim().split('/')
+                    ..removeWhere((s) => s.isEmpty),
                 ),
                 const SizedBox(height: 16.0),
                 TextFormField(
