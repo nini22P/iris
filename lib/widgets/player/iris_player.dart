@@ -208,7 +208,7 @@ class IrisPlayer extends HookWidget {
         AnimatedPositioned(
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeInOutCubicEmphasized,
-          top: isShowPlayer && isShowControlBar.value ? 0 : -kToolbarHeight,
+          top: isShowPlayer && isShowControlBar.value ? 0 : -96,
           left: 0,
           right: 0,
           child: MouseRegion(
