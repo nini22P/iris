@@ -11,7 +11,7 @@ import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/widgets/show_popup.dart';
-import 'package:iris/widgets/storages.dart';
+import 'package:iris/pages/storages/storages.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -35,7 +35,7 @@ class ControlBar extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
+    double width = MediaQuery.of(context).size.width;
 
     final isFullScreen =
         useAppStore().select(context, (state) => state.isFullScreen);
@@ -266,14 +266,17 @@ class ControlBar extends HookWidget {
                       const SizedBox(width: 8),
                     ],
                   ),
-                  Visibility(
-                    visible: screenWidth > 600,
-                    child: Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          subtitlesMenuButton,
-                          IconButton(
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Visibility(
+                          visible: width > 600,
+                          child: subtitlesMenuButton,
+                        ),
+                        Visibility(
+                          visible: width > 600,
+                          child: IconButton(
                             tooltip: 'Play Queue',
                             icon: const Icon(Icons.playlist_play_rounded),
                             onPressed: () => showPopup(
@@ -282,32 +285,32 @@ class ControlBar extends HookWidget {
                               direction: PopupDirection.right,
                             ),
                           ),
-                          Visibility(
-                            visible: isDesktop(),
-                            child: IconButton(
-                              tooltip: isFullScreen
-                                  ? 'Exit Fullscreen'
-                                  : 'Enter Fullscreen',
-                              icon: Icon(
-                                isFullScreen
-                                    ? Icons.close_fullscreen_rounded
-                                    : Icons.open_in_full_rounded,
-                                size: 20,
-                              ),
-                              onPressed: () => useAppStore().toggleFullScreen(),
+                        ),
+                        Visibility(
+                          visible: isDesktop(),
+                          child: IconButton(
+                            tooltip: isFullScreen
+                                ? 'Exit Fullscreen'
+                                : 'Enter Fullscreen',
+                            icon: Icon(
+                              isFullScreen
+                                  ? Icons.close_fullscreen_rounded
+                                  : Icons.open_in_full_rounded,
+                              size: 20,
                             ),
+                            onPressed: () => useAppStore().toggleFullScreen(),
                           ),
-                          IconButton(
-                            tooltip: 'Settings',
-                            icon: const Icon(Icons.settings_rounded),
-                            onPressed: () => showPopup(
-                              context: context,
-                              child: const Settings(),
-                              direction: PopupDirection.right,
-                            ),
+                        ),
+                        IconButton(
+                          tooltip: 'Settings',
+                          icon: const Icon(Icons.settings_rounded),
+                          onPressed: () => showPopup(
+                            context: context,
+                            child: const Settings(),
+                            direction: PopupDirection.right,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

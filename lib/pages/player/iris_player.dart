@@ -94,11 +94,11 @@ class IrisPlayer extends HookWidget {
     }
 
     useEffect(() {
-      if (!isShowControlBar.value) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-      } else {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      }
+      // if (!isShowControlBar.value) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      // } else {
+      //   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      // }
       return null;
     }, [isShowControlBar.value]);
 

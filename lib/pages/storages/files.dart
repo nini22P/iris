@@ -59,7 +59,7 @@ class Files extends HookWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
           child: Row(
             children: [
               IconButton(
@@ -96,9 +96,14 @@ class Files extends HookWidget {
               const SizedBox(width: 8),
               Text(title,
                   style: const TextStyle(
-                    fontWeight: FontWeight.w500,
                     fontSize: 20,
                   )),
+              const Spacer(),
+              IconButton(
+                tooltip: 'Close',
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
             ],
           ),
         ),
@@ -140,6 +145,8 @@ class Files extends HookWidget {
                                 : const Icon(Icons.video_file_rounded),
                             title: Text(
                               filteredFileList[index].name,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
                               // style: const TextStyle(
                               //   fontWeight: FontWeight.w500,
                               // ),

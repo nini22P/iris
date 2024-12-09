@@ -30,30 +30,56 @@ class PlayQueue extends HookWidget {
       return;
     }, []);
 
-    return ScrollablePositionedList.builder(
-      itemCount: playQueue.length,
-      itemBuilder: (context, index) => ListTile(
-        title: Text(
-          playQueue[index].name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: currentIndex == index
-                ? Theme.of(context).colorScheme.primary
-                : null,
-            fontWeight:
-                currentIndex == index ? FontWeight.bold : FontWeight.normal,
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+          child: Row(
+            children: [
+              const Text(
+                'Play Queue',
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                tooltip: 'Close',
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
           ),
         ),
-        onTap: () {
-          usePlayQueueStore().updateCurrentIndex(index);
-          Navigator.of(context).pop();
-        },
-      ),
-      itemScrollController: itemScrollController,
-      scrollOffsetController: scrollOffsetController,
-      itemPositionsListener: itemPositionsListener,
-      scrollOffsetListener: scrollOffsetListener,
+        Expanded(
+          child: ScrollablePositionedList.builder(
+            itemCount: playQueue.length,
+            itemBuilder: (context, index) => ListTile(
+              title: Text(
+                playQueue[index].name,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: currentIndex == index
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
+                  fontWeight: currentIndex == index
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                ),
+              ),
+              onTap: () {
+                usePlayQueueStore().updateCurrentIndex(index);
+                Navigator.of(context).pop();
+              },
+            ),
+            itemScrollController: itemScrollController,
+            scrollOffsetController: scrollOffsetController,
+            itemPositionsListener: itemPositionsListener,
+            scrollOffsetListener: scrollOffsetListener,
+          ),
+        ),
+      ],
     );
   }
 }
