@@ -20,10 +20,10 @@ class PlayerCore {
   final bool playing;
   final Duration position;
   final Duration duration;
-  final bool sliderChanging;
+  final bool seeking;
   final bool completed;
   final void Function(Duration) updatePosition;
-  final void Function(bool) updateSliderChanging;
+  final void Function(bool) updateSeeking;
 
   PlayerCore(
     this.player,
@@ -37,10 +37,10 @@ class PlayerCore {
     this.playing,
     this.position,
     this.duration,
-    this.sliderChanging,
+    this.seeking,
     this.completed,
     this.updatePosition,
-    this.updateSliderChanging,
+    this.updateSeeking,
   );
 }
 
@@ -60,7 +60,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           : '',
       [currentFile]);
 
-  final sliderChanging = useState(false);
+  final seeking = useState(false);
 
   final playing = useState(false);
   final position = useState(Duration.zero);
@@ -83,7 +83,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   }
 
   if (positionStream.hasData) {
-    if (!sliderChanging.value) {
+    if (!seeking.value) {
       position.value = positionStream.data!;
     }
   }
@@ -145,7 +145,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
 
   void updatePosition(Duration newPosition) => position.value = newPosition;
 
-  void updateSliderChanging(bool value) => sliderChanging.value = value;
+  void updateSeeking(bool value) => seeking.value = value;
 
   return PlayerCore(
     player,
@@ -159,9 +159,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     playing.value,
     position.value,
     duration.value,
-    sliderChanging.value,
+    seeking.value,
     completed.value,
     updatePosition,
-    updateSliderChanging,
+    updateSeeking,
   );
 }

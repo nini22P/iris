@@ -12,13 +12,11 @@ class CustomAppBar extends HookWidget implements PreferredSizeWidget {
     this.title,
     this.flexibleSpace,
     this.actions,
-    this.bgColor,
   });
   final Widget? leading;
   final String? title;
   final Widget? flexibleSpace;
   final List<Widget>? actions;
-  final Color? bgColor;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +39,8 @@ class CustomAppBar extends HookWidget implements PreferredSizeWidget {
       child: AppBar(
         leading: leading,
         title: title == null ? null : Text(title!),
-        backgroundColor: bgColor,
+        backgroundColor:
+            Theme.of(context).colorScheme.surface.withOpacity(0.75),
         flexibleSpace: flexibleSpace,
         actions: [
           ...actions ?? [],

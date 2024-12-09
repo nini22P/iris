@@ -3,8 +3,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/store/use_app_store.dart';
 
-class Home extends HookWidget {
-  const Home({super.key});
+class FavoriteStoragesList extends HookWidget {
+  const FavoriteStoragesList({super.key});
 
   @override
   Widget build(BuildContext context) {

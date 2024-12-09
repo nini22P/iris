@@ -9,7 +9,6 @@ class AppState {
   bool autoPlay;
   bool loop;
   int volume;
-  bool isShowPlayer;
   bool isMaximized;
   bool isFullScreen;
   bool isMuted;
@@ -25,7 +24,6 @@ class AppState {
     this.autoPlay = false,
     this.loop = false,
     this.volume = 100,
-    this.isShowPlayer = false,
     this.isMaximized = false,
     this.isFullScreen = false,
     this.isMuted = false,
@@ -43,7 +41,6 @@ class AppState {
     bool? autoPlay,
     bool? loop,
     int? volume,
-    bool? isShowPlayer,
     bool? isMaximized,
     bool? isFullScreen,
     bool? isMuted,
@@ -60,7 +57,6 @@ class AppState {
         autoPlay: autoPlay ?? this.autoPlay,
         loop: loop ?? this.loop,
         volume: volume ?? this.volume,
-        isShowPlayer: isShowPlayer ?? this.isShowPlayer,
         isMaximized: isMaximized ?? this.isMaximized,
         isFullScreen: isFullScreen ?? this.isFullScreen,
         isMuted: isMuted ?? this.isMuted,
@@ -78,7 +74,6 @@ class AppState {
       'autoPlay': autoPlay,
       'loop': loop,
       'volume': volume,
-      'isShowPlayer': isShowPlayer,
       'isMaximized': isMaximized,
       'isFullScreen': isFullScreen,
       'isMuted': isMuted,
@@ -132,7 +127,6 @@ class AppState {
       autoPlay: json['autoPlay'] ?? true,
       loop: json['loop'] ?? false,
       volume: json['volume'] ?? 100,
-      isShowPlayer: json['isShowPlayer'] ?? false,
       isMaximized: json['isMaximized'] ?? false,
       isFullScreen: json['isFullScreen'] ?? false,
       isMuted: json['isMuted'] ?? false,

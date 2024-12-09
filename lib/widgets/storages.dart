@@ -1,75 +1,104 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/local_storage.dart';
-import 'package:iris/models/storages/webdav_storage.dart';
+import 'package:iris/widgets/favorite_storages_list.dart';
+import 'package:iris/widgets/files.dart';
 import 'package:iris/widgets/storage_dialog/show_local_alert_dialog.dart';
 import 'package:iris/widgets/storage_dialog/show_webdav_alert_dialog.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/widgets/storages_list.dart';
 
 class Storages extends HookWidget {
   const Storages({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final refresh = useState(false);
-    final storagesLength =
-        useAppStore().select(context, (state) => state.storages.length);
-    final storages = useMemoized(
-        () => useAppStore().state.storages, [storagesLength, refresh.value]);
+    final currentStorage =
+        useAppStore().select(context, (state) => state.currentStorage);
 
-    return ListView.builder(
-      itemCount: storages.length,
-      itemBuilder: (context, index) => ListTile(
-        contentPadding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
-        title: Text(storages[index].name),
-        subtitle: () {
-          switch (storages[index].type) {
-            case 'local':
-              return const Text('Local Storage');
-            case 'webdav':
-              return const Text('WebDAV');
-          }
-        }(),
-        onTap: () => useAppStore().updateCurrentStorage(storages[index]),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) {
-            switch (value) {
-              case 'edit':
-                () {
-                  switch (storages[index].type) {
-                    case 'local':
-                      showLocalAlertDialog(context,
-                              localStorage: storages[index] as LocalStorage)
-                          .then((_) => refresh.value = !refresh.value);
-                      break;
-                    case 'webdav':
-                      showWebDAVAlertDialog(context,
-                              webdavStorage: storages[index] as WebdavStorage)
-                          .then((_) => refresh.value = !refresh.value);
-                      break;
-                  }
-                }();
-                break;
-              case 'remove':
-                useAppStore().removeStorage(index);
-                break;
-            }
-          },
-          itemBuilder: (BuildContext context) {
-            return [
-              const PopupMenuItem<String>(
-                value: 'edit',
-                child: Text('Edit'),
+    final tabController = useTabController(initialLength: 2);
+
+    return currentStorage != null
+        ? Files(storage: currentStorage)
+        : Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TabBar(
+                        controller: tabController,
+                        isScrollable: true,
+                        tabAlignment: TabAlignment.start,
+                        dividerColor: Colors.transparent,
+                        tabs: const [
+                          Tab(text: 'Storages'),
+                          Tab(text: 'Favorites'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuButton<String>(
+                      tooltip: 'Add Storage',
+                      icon: const Icon(Icons.add_rounded),
+                      onSelected: (String value) {
+                        switch (value) {
+                          case 'local':
+                            () async {
+                              String? selectedDirectory =
+                                  await FilePicker.platform.getDirectoryPath();
+                              if (selectedDirectory != null &&
+                                  context.mounted) {
+                                showLocalAlertDialog(context,
+                                    localStorage: LocalStorage(
+                                        type: 'local',
+                                        name: selectedDirectory
+                                            .replaceAll('\\', '/')
+                                            .split('/')
+                                            .last,
+                                        basePath: selectedDirectory
+                                            .replaceAll('\\', '/')
+                                            .split('/')));
+                              }
+                            }();
+                            break;
+                          case 'webdav':
+                            showWebDAVAlertDialog(context);
+                            break;
+                          default:
+                            break;
+                        }
+                      },
+                      itemBuilder: (BuildContext context) {
+                        return [
+                          const PopupMenuItem<String>(
+                            value: 'local',
+                            child: Text('Local Storage'),
+                          ),
+                          const PopupMenuItem<String>(
+                            value: 'webdav',
+                            child: Text('WebDAV'),
+                          ),
+                        ];
+                      },
+                    ),
+                  ],
+                ),
               ),
-              const PopupMenuItem<String>(
-                value: 'remove',
-                child: Text('Remove'),
+              const Divider(height: 0),
+              Expanded(
+                child: TabBarView(
+                  controller: tabController,
+                  children: const [
+                    StoragesList(),
+                    FavoriteStoragesList(),
+                  ],
+                ),
               ),
-            ];
-          },
-        ),
-      ),
-    );
+            ],
+          );
   }
 }
