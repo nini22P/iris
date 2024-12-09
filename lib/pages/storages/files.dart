@@ -59,7 +59,7 @@ class Files extends HookWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+          padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
           child: Row(
             children: [
               IconButton(

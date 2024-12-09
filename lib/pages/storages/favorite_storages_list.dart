@@ -16,7 +16,7 @@ class FavoriteStoragesList extends HookWidget {
     return ListView.builder(
       itemCount: favoriteStorages.length,
       itemBuilder: (context, index) => ListTile(
-        contentPadding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
+        contentPadding: const EdgeInsets.fromLTRB(16, 0, 4, 0),
         title: Text(favoriteStorages[index].name),
         subtitle: () {
           switch (favoriteStorages[index].type) {

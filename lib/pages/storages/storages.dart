@@ -25,7 +25,7 @@ class Storages extends HookWidget {
         : Column(
             children: [
               Container(
-                padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
+                padding: const EdgeInsets.fromLTRB(0, 0, 4, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -93,7 +93,7 @@ class Storages extends HookWidget {
                   ],
                 ),
               ),
-              const Divider(height: 0),
+              Divider(color: Theme.of(context).colorScheme.primary, height: 0),
               Expanded(
                 child: TabBarView(
                   controller: tabController,

@@ -5,7 +5,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
-import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/is_desktop.dart';
@@ -270,20 +269,14 @@ class ControlBar extends HookWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Visibility(
-                          visible: width > 600,
-                          child: subtitlesMenuButton,
-                        ),
-                        Visibility(
-                          visible: width > 600,
-                          child: IconButton(
-                            tooltip: 'Play Queue',
-                            icon: const Icon(Icons.playlist_play_rounded),
-                            onPressed: () => showPopup(
-                              context: context,
-                              child: const PlayQueue(),
-                              direction: PopupDirection.right,
-                            ),
+                        subtitlesMenuButton,
+                        IconButton(
+                          tooltip: 'Play Queue',
+                          icon: const Icon(Icons.playlist_play_rounded),
+                          onPressed: () => showPopup(
+                            context: context,
+                            child: const PlayQueue(),
+                            direction: PopupDirection.right,
                           ),
                         ),
                         Visibility(
@@ -299,15 +292,6 @@ class ControlBar extends HookWidget {
                               size: 20,
                             ),
                             onPressed: () => useAppStore().toggleFullScreen(),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Settings',
-                          icon: const Icon(Icons.settings_rounded),
-                          onPressed: () => showPopup(
-                            context: context,
-                            child: const Settings(),
-                            direction: PopupDirection.right,
                           ),
                         ),
                       ],

@@ -7,10 +7,12 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
+import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/widgets/custom_app_bar.dart';
 import 'package:iris/pages/player/control_bar.dart';
+import 'package:iris/widgets/show_popup.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:window_manager/window_manager.dart';
@@ -121,9 +123,9 @@ class IrisPlayer extends HookWidget {
       children: [
         Positioned(
           left: 0,
+          top: 0,
+          right: 0,
           bottom: 0,
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
           child: MouseRegion(
             onEnter: (_) => showControlBar(),
             onHover: (PointerHoverEvent event) {
@@ -186,6 +188,18 @@ class IrisPlayer extends HookWidget {
               onTap: () => showControlBar(),
               child: CustomAppBar(
                 title: playerCore.title,
+                actions: [
+                  IconButton(
+                    tooltip: 'Settings',
+                    icon: const Icon(Icons.settings_rounded),
+                    onPressed: () => showPopup(
+                      context: context,
+                      child: const Settings(),
+                      direction: PopupDirection.right,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
               ),
             ),
           ),

@@ -16,29 +16,32 @@ class Settings extends HookWidget {
       children: [
         Container(
           padding: EdgeInsets.zero,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              TabBar(
-                  controller: tabController,
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.start,
-                  dividerColor: Colors.transparent,
-                  tabs: const [
-                    Tab(text: 'General'),
-                    Tab(text: 'About'),
-                    Tab(text: 'Libraries'),
-                  ]),
-              const Spacer(),
-              IconButton(
-                tooltip: 'Close',
-                icon: const Icon(Icons.close_rounded),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(0, 0, 4, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                TabBar(
+                    controller: tabController,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    dividerColor: Colors.transparent,
+                    tabs: const [
+                      Tab(text: 'General'),
+                      Tab(text: 'About'),
+                      Tab(text: 'Libraries'),
+                    ]),
+                const Spacer(),
+                IconButton(
+                  tooltip: 'Close',
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
           ),
         ),
-        const Divider(height: 0),
+        Divider(color: Theme.of(context).colorScheme.primary, height: 0),
         Expanded(
           child: TabBarView(
             controller: tabController,

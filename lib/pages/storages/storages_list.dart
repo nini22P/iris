@@ -21,7 +21,7 @@ class StoragesList extends HookWidget {
     return ListView.builder(
       itemCount: storages.length,
       itemBuilder: (context, index) => ListTile(
-        contentPadding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
+        contentPadding: const EdgeInsets.fromLTRB(16, 0, 4, 0),
         title: Text(storages[index].name),
         subtitle: () {
           switch (storages[index].type) {

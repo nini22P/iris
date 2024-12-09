@@ -33,7 +33,7 @@ class PlayQueue extends HookWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+          padding: const EdgeInsets.fromLTRB(16, 4, 4, 4),
           child: Row(
             children: [
               const Text(
@@ -63,9 +63,9 @@ class PlayQueue extends HookWidget {
                   color: currentIndex == index
                       ? Theme.of(context).colorScheme.primary
                       : null,
-                  fontWeight: currentIndex == index
-                      ? FontWeight.bold
-                      : FontWeight.normal,
+                  // fontWeight: currentIndex == index
+                  //     ? FontWeight.bold
+                  //     : FontWeight.normal,
                 ),
               ),
               onTap: () {

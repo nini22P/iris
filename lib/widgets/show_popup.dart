@@ -61,7 +61,7 @@ class Popup<T> extends PopupRoute<T> {
           ),
         ),
         Positioned(
-          top: 16,
+          top: 72,
           left: direction == PopupDirection.left ? 16 : null,
           right: direction == PopupDirection.right ? 16 : null,
           bottom: 16,

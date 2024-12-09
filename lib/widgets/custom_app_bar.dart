@@ -8,14 +8,10 @@ import 'package:window_manager/window_manager.dart';
 class CustomAppBar extends HookWidget implements PreferredSizeWidget {
   const CustomAppBar({
     super.key,
-    this.leading,
     this.title,
-    this.flexibleSpace,
     this.actions,
   });
-  final Widget? leading;
   final String? title;
-  final Widget? flexibleSpace;
   final List<Widget>? actions;
 
   @override
@@ -37,11 +33,9 @@ class CustomAppBar extends HookWidget implements PreferredSizeWidget {
         }
       },
       child: AppBar(
-        leading: leading,
         title: title == null ? null : Text(title!),
         backgroundColor:
             Theme.of(context).colorScheme.surface.withOpacity(0.75),
-        flexibleSpace: flexibleSpace,
         actions: [
           ...actions ?? [],
           if (isDesktop()) ...[
