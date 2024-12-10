@@ -16,6 +16,7 @@ const allDependencies = <Package>[
   _clock,
   _collection,
   _convert,
+  _cross_file,
   _crypto,
   _cupertino_icons,
   _dart_pubspec_licenses,
@@ -24,12 +25,14 @@ const allDependencies = <Package>[
   _dio_web_adapter,
   _fake_async,
   _ffi,
+  _file_picker,
   _fixnum,
   _flutter,
   _flutter_breadcrumb,
   _flutter_hooks,
   _flutter_lints,
   _flutter_oss_licenses,
+  _flutter_plugin_android_lifecycle,
   _flutter_secure_storage,
   _flutter_secure_storage_linux,
   _flutter_secure_storage_macos,
@@ -85,6 +88,7 @@ const allDependencies = <Package>[
   _screen_retriever_macos,
   _screen_retriever_platform_interface,
   _screen_retriever_windows,
+  _scrollable_positioned_list,
   _source_span,
   _sprintf,
   _stack_trace,
@@ -123,6 +127,7 @@ const allDependencies = <Package>[
 /// Direct `dependencies`.
 const dependencies = <Package>[
   _cupertino_icons,
+  _file_picker,
   _flutter,
   _flutter_breadcrumb,
   _flutter_hooks,
@@ -135,6 +140,7 @@ const dependencies = <Package>[
   _path,
   _path_provider,
   _provider,
+  _scrollable_positioned_list,
   _url_launcher,
   _webdav_client,
   _window_manager
@@ -670,6 +676,43 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
     isMarkdown: false,
     isSdk: false,
     dependencies: [PackageRef('typed_data')]
+  );
+
+/// cross_file 0.3.4+2
+const _cross_file = Package(
+    name: 'cross_file',
+    description: 'An abstraction to allow working with files across multiple platforms.',
+    repository: 'https://github.com/flutter/packages/tree/main/packages/cross_file',
+    authors: [],
+    version: '0.3.4+2',
+    license: '''Copyright 2013 The Flutter Authors. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+    * Neither the name of Google Inc. nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('meta'), PackageRef('web')]
   );
 
 /// crypto 3.0.6
@@ -1488,6 +1531,40 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
     dependencies: []
   );
 
+/// file_picker 8.1.4
+const _file_picker = Package(
+    name: 'file_picker',
+    description: 'A package that allows you to use a native file explorer to pick single or multiple absolute file paths, with extension filtering support.',
+    homepage: 'https://github.com/miguelpruivo/plugins_flutter_file_picker',
+    repository: 'https://github.com/miguelpruivo/flutter_file_picker',
+    authors: [],
+    version: '8.1.4',
+    license: '''MIT License
+
+Copyright (c) 2018 Miguel Ruivo
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.''',
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('flutter'), PackageRef('flutter_plugin_android_lifecycle'), PackageRef('plugin_platform_interface'), PackageRef('ffi'), PackageRef('path'), PackageRef('win32'), PackageRef('cross_file'), PackageRef('web')]
+  );
+
 /// fixnum 1.1.1
 const _fixnum = Package(
     name: 'fixnum',
@@ -1709,6 +1786,43 @@ SOFTWARE.''',
     isMarkdown: false,
     isSdk: false,
     dependencies: [PackageRef('path'), PackageRef('meta'), PackageRef('yaml'), PackageRef('dart_pubspec_licenses'), PackageRef('args')]
+  );
+
+/// flutter_plugin_android_lifecycle 2.0.23
+const _flutter_plugin_android_lifecycle = Package(
+    name: 'flutter_plugin_android_lifecycle',
+    description: 'Flutter plugin for accessing an Android Lifecycle within other plugins.',
+    repository: 'https://github.com/flutter/packages/tree/main/packages/flutter_plugin_android_lifecycle',
+    authors: [],
+    version: '2.0.23',
+    license: '''Copyright 2013 The Flutter Authors. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+    * Neither the name of Google Inc. nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('flutter')]
   );
 
 /// flutter_secure_storage 9.2.2
@@ -3890,6 +4004,45 @@ SOFTWARE.''',
     isMarkdown: false,
     isSdk: false,
     dependencies: [PackageRef('flutter'), PackageRef('screen_retriever_platform_interface')]
+  );
+
+/// scrollable_positioned_list 0.3.8
+const _scrollable_positioned_list = Package(
+    name: 'scrollable_positioned_list',
+    description: '''A list with helper methods to programmatically scroll to an item.
+''',
+    homepage: 'https://github.com/google/flutter.widgets/tree/master/packages/scrollable_positioned_list',
+    authors: [],
+    version: '0.3.8',
+    license: '''Copyright 2018 the Dart project authors, Inc. All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+    * Neither the name of Google Inc. nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('flutter'), PackageRef('collection')]
   );
 
 /// source_span 1.10.0
