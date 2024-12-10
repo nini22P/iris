@@ -18,6 +18,11 @@ class AppStore extends PersistentStore<AppState> {
   Future<void> toggleFullScreen() async =>
       set(state.copyWith(isFullScreen: !state.isFullScreen));
 
+  Future<void> updateTheme(String theme) async {
+    set(state.copyWith(theme: theme));
+    save(state);
+  }
+
   @override
   Future<AppState?> load() async {
     try {

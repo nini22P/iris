@@ -4,14 +4,13 @@ import 'package:iris/models/storages/webdav_storage.dart';
 import 'package:iris/store/use_storage_store.dart';
 
 Future<void> showWebDAVAlertDialog(BuildContext context,
-    {WebdavStorage? webdavStorage}) async {
-  await showDialog<void>(
-    context: context,
-    builder: (BuildContext context) {
-      return WebDAVDialog(webdavStorage: webdavStorage);
-    },
-  );
-}
+        {WebdavStorage? webdavStorage}) async =>
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return WebDAVDialog(webdavStorage: webdavStorage);
+      },
+    );
 
 class WebDAVDialog extends HookWidget {
   const WebDAVDialog({super.key, this.webdavStorage});

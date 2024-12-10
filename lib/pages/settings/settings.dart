@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/pages/settings/about.dart';
+import 'package:iris/pages/settings/general.dart';
 import 'package:iris/pages/settings/libraries.dart';
 
 class Settings extends HookWidget {
@@ -18,7 +19,9 @@ class Settings extends HookWidget {
           child: TabBarView(
             controller: tabController,
             children: const [
-              Center(child: Text('General')),
+              SingleChildScrollView(
+                child: General(),
+              ),
               SingleChildScrollView(
                 child: About(),
               ),

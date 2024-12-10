@@ -4,14 +4,11 @@ import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/store/use_storage_store.dart';
 
 Future<void> showLocalAlertDialog(BuildContext context,
-    {LocalStorage? localStorage}) async {
-  await showDialog<void>(
-    context: context,
-    builder: (BuildContext context) {
-      return LocalDialog(localStorage: localStorage);
-    },
-  );
-}
+        {LocalStorage? localStorage}) async =>
+    await showDialog<void>(
+        context: context,
+        builder: (BuildContext context) =>
+            LocalDialog(localStorage: localStorage));
 
 class LocalDialog extends HookWidget {
   const LocalDialog({super.key, this.localStorage});

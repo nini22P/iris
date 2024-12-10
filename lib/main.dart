@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/info.dart';
 import 'package:iris/pages/home_page.dart';
+import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
@@ -37,6 +38,18 @@ class MyApp extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    String theme = useAppStore().select(context, (state) => state.theme);
+
+    ThemeMode themeMode = useMemoized(
+        () =>
+            {
+              'auto': ThemeMode.system,
+              'light': ThemeMode.light,
+              'dark': ThemeMode.dark,
+            }[theme] ??
+            ThemeMode.system,
+        [theme]);
+
     return MaterialApp(
       title: INFO.title,
       theme: ThemeData(
@@ -44,7 +57,7 @@ class MyApp extends HookWidget {
         useMaterial3: true,
       ),
       darkTheme: ThemeData.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       home: const HomePage(),
     );
   }
