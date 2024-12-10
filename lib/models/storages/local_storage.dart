@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:iris/utils/file_sort.dart';
 import 'package:iris/utils/find_sub_title.dart';
+import 'package:iris/utils/path_converter.dart';
 import 'package:path/path.dart' as p;
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart';
@@ -38,7 +39,7 @@ class LocalStorage implements Storage {
         .listSync()
         .map((entity) => FileItem(
               name: p.basename(entity.path),
-              uri: entity.path,
+              uri: pathConverter(entity.path).join('/'),
               path: path,
               isDir: entity is Directory,
               size: entity is File ? entity.lengthSync() : 0,

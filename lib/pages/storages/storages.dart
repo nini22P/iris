@@ -5,6 +5,7 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/pages/storages/favorite_storages_list.dart';
 import 'package:iris/pages/storages/files.dart';
+import 'package:iris/utils/path_converter.dart';
 import 'package:iris/widgets/storage_dialog/show_local_alert_dialog.dart';
 import 'package:iris/widgets/storage_dialog/show_webdav_alert_dialog.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -24,6 +25,19 @@ class Storages extends HookWidget {
         ? Files(storage: currentStorage)
         : Column(
             children: [
+              Expanded(
+                child: TabBarView(
+                  controller: tabController,
+                  children: const [
+                    StoragesList(),
+                    FavoriteStoragesList(),
+                  ],
+                ),
+              ),
+              Divider(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.25),
+                height: 0,
+              ),
               Container(
                 padding: const EdgeInsets.fromLTRB(0, 0, 4, 0),
                 child: Row(
@@ -52,16 +66,14 @@ class Storages extends HookWidget {
                                   await FilePicker.platform.getDirectoryPath();
                               if (selectedDirectory != null &&
                                   context.mounted) {
-                                showLocalAlertDialog(context,
-                                    localStorage: LocalStorage(
-                                        type: 'local',
-                                        name: selectedDirectory
-                                            .replaceAll('\\', '/')
-                                            .split('/')
-                                            .last,
-                                        basePath: selectedDirectory
-                                            .replaceAll('\\', '/')
-                                            .split('/')));
+                                showLocalAlertDialog(
+                                  context,
+                                  localStorage: LocalStorage(
+                                    type: 'local',
+                                    name: pathConverter(selectedDirectory).last,
+                                    basePath: pathConverter(selectedDirectory),
+                                  ),
+                                );
                               }
                             }();
                             break;
@@ -90,16 +102,6 @@ class Storages extends HookWidget {
                       icon: const Icon(Icons.close_rounded),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
-                  ],
-                ),
-              ),
-              Divider(color: Theme.of(context).colorScheme.primary, height: 0),
-              Expanded(
-                child: TabBarView(
-                  controller: tabController,
-                  children: const [
-                    StoragesList(),
-                    FavoriteStoragesList(),
                   ],
                 ),
               ),

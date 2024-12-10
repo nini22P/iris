@@ -14,6 +14,7 @@ class FavoriteStoragesList extends HookWidget {
         () => useAppStore().state.favoriteStorages, [favoriteStoragesLength]);
 
     return ListView.builder(
+      padding: EdgeInsets.zero,
       itemCount: favoriteStorages.length,
       itemBuilder: (context, index) => ListTile(
         contentPadding: const EdgeInsets.fromLTRB(16, 0, 4, 0),

@@ -32,25 +32,6 @@ class PlayQueue extends HookWidget {
 
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(16, 4, 4, 4),
-          child: Row(
-            children: [
-              const Text(
-                'Play Queue',
-                style: TextStyle(
-                  fontSize: 20,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                tooltip: 'Close',
-                icon: const Icon(Icons.close_rounded),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        ),
         Expanded(
           child: ScrollablePositionedList.builder(
             itemCount: playQueue.length,
@@ -63,11 +44,11 @@ class PlayQueue extends HookWidget {
                   color: currentIndex == index
                       ? Theme.of(context).colorScheme.primary
                       : null,
-                  // fontWeight: currentIndex == index
-                  //     ? FontWeight.bold
-                  //     : FontWeight.normal,
                 ),
               ),
+              tileColor: currentIndex == index
+                  ? Theme.of(context).colorScheme.onSurface.withAlpha(20)
+                  : null,
               onTap: () {
                 usePlayQueueStore().updateCurrentIndex(index);
                 Navigator.of(context).pop();
@@ -77,6 +58,27 @@ class PlayQueue extends HookWidget {
             scrollOffsetController: scrollOffsetController,
             itemPositionsListener: itemPositionsListener,
             scrollOffsetListener: scrollOffsetListener,
+          ),
+        ),
+        Divider(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.25),
+          height: 0,
+        ),
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 4, 4, 4),
+          child: Row(
+            children: [
+              const Text(
+                'Play Queue',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              const Spacer(),
+              IconButton(
+                tooltip: 'Close',
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
           ),
         ),
       ],

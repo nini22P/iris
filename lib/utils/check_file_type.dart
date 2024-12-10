@@ -1,82 +1,76 @@
-const List<String> audioFormats = [
-  'wav',
-  'mp3',
-  'aac',
-  'ogg',
-  'flac',
-  'm4a',
-  'opus',
-  'wma',
-  'aiff',
-  'alac',
-  'dsd',
-  'cda',
-  'midi',
-  'mka',
-];
+class Formats {
+  static const List<String> audio = [
+    'aac',
+    'aiff',
+    'alac',
+    'cda',
+    'dsd',
+    'flac',
+    'm4a',
+    'midi',
+    'mp3',
+    'ogg',
+    'opus',
+    'raw',
+    'wav',
+    'wma',
+  ];
 
-const List<String> videoFormats = [
-  'mp4',
-  'mkv',
-  'avi',
-  'mov',
-  'rmvb',
-  'webm',
-  'flv',
-  'f4v',
-  'wmv',
-  'mpeg',
-  'mpg',
-  '3gp',
-  'hevc',
-  'vob',
-  'ts',
-];
+  static const List<String> video = [
+    '3gp',
+    'avi',
+    'dpx',
+    'dv',
+    'f4v',
+    'flv',
+    'he264',
+    'hevc',
+    'h265',
+    'mkv',
+    'mp4',
+    'mpeg',
+    'mpg',
+    'mov',
+    'nsv',
+    'rm',
+    'rmvb',
+    'ts',
+    'vob',
+    'webm',
+    'wmv',
+  ];
 
-const List<String> pictureFormats = [
-  'jpg',
-  'jpeg',
-  'png',
-  'bmp',
-  'webp',
-  'avif',
-  'tiff',
-  'gif',
-  'svg',
-  'ico',
-  'raw',
-  'heif',
-  'exif',
-  'dng',
-  'pbm',
-  'pgm',
-  'ppm',
-];
+  static const List<String> picture = [
+    'avif',
+    'bmp',
+    'exif',
+    'gif',
+    'heif',
+    'ico',
+    'jpeg',
+    'jpg',
+    'pbm',
+    'pgm',
+    'ppm',
+    'raw',
+    'svg',
+    'tiff',
+    'webp',
+  ];
+}
 
 String checkFileType(String name) {
-  bool isAudio(String name) {
-    return audioFormats
-        .any((format) => name.toLowerCase().endsWith('.$format'));
+  final fileTypeMap = {
+    'audio': Formats.audio,
+    'video': Formats.video,
+    'picture': Formats.picture,
+  };
+
+  for (var entry in fileTypeMap.entries) {
+    if (entry.value.any((format) => name.toLowerCase().endsWith('.$format'))) {
+      return entry.key;
+    }
   }
 
-  bool isVideo(String name) {
-    return videoFormats
-        .any((format) => name.toLowerCase().endsWith('.$format'));
-  }
-
-  bool isPicture(String name) {
-    return pictureFormats
-        .any((format) => name.toLowerCase().endsWith('.$format'));
-  }
-
-  if (isAudio(name)) {
-    return 'audio';
-  }
-  if (isVideo(name)) {
-    return 'video';
-  }
-  if (isPicture(name)) {
-    return 'picture';
-  }
   return 'other';
 }

@@ -1,14 +1,19 @@
 import 'dart:developer';
 import 'dart:ui';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
+import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
+import 'package:iris/utils/check_file_type.dart';
+import 'package:iris/utils/file_filter.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/pages/player/play_queue.dart';
+import 'package:iris/utils/path_converter.dart';
 import 'package:iris/widgets/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
 import 'package:media_kit/media_kit.dart';
@@ -34,8 +39,6 @@ class ControlBar extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-
     final isFullScreen =
         useAppStore().select(context, (state) => state.isFullScreen);
     final playQueueLength =
@@ -53,7 +56,7 @@ class ControlBar extends HookWidget {
         playerCore.subtitle == SubtitleTrack.no()
             ? Icons.subtitles_off_rounded
             : Icons.subtitles_rounded,
-        size: 20,
+        size: 18,
         color: Theme.of(context).colorScheme.onSurface.withAlpha(222),
       ),
       itemBuilder: (context) => [
@@ -101,30 +104,43 @@ class ControlBar extends HookWidget {
       ],
     );
 
+    void pickFile() async {
+      FilePickerResult? result = await FilePicker.platform
+          .pickFiles(type: FileType.custom, allowedExtensions: Formats.video);
+
+      if (result != null) {
+        final filePath = pathConverter(result.files.first.path!);
+        final basePath = filePath.sublist(0, filePath.length - 1);
+        final files = await LocalStorage(
+          type: 'local',
+          name: result.files.first.name,
+          basePath: basePath,
+        ).getFiles(basePath);
+
+        final playQueue = fileFilter(files, 'video');
+        final clickedFile = playQueue
+            .where((file) => file.uri == filePath.join('/').toString())
+            .first;
+        final index = playQueue.indexOf(clickedFile);
+
+        if (playQueue.isEmpty || index < 0) return;
+
+        await useAppStore().updateAutoPlay(true);
+        await usePlayQueueStore().updatePlayQueue(playQueue, index);
+      }
+    }
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: 8,
-          sigmaY: 8,
-        ),
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          width: MediaQuery.of(context).size.width,
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface.withOpacity(0.75),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                offset: const Offset(0, -1),
-                blurRadius: 2.0,
-                spreadRadius: 0,
-              ),
-            ],
           ),
           child: Column(children: [
             Container(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -188,7 +204,8 @@ class ControlBar extends HookWidget {
                             decoration: TextDecoration.none),
                       ),
                     ])),
-            SizedBox(
+            Container(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -198,8 +215,15 @@ class ControlBar extends HookWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         IconButton(
+                          tooltip: 'Open file',
+                          icon: const Icon(Icons.file_open_rounded),
+                          iconSize: 18,
+                          onPressed: () => pickFile(),
+                        ),
+                        IconButton(
                           tooltip: 'Storages',
                           icon: const Icon(Icons.storage_rounded),
+                          iconSize: 18,
                           onPressed: () => showPopup(
                             context: context,
                             child: const Storages(),
@@ -211,7 +235,6 @@ class ControlBar extends HookWidget {
                   ),
                   Row(
                     children: [
-                      const SizedBox(width: 8),
                       Visibility(
                         visible: playQueueLength > 1,
                         child: IconButton(
@@ -225,7 +248,6 @@ class ControlBar extends HookWidget {
                               : null,
                         ),
                       ),
-                      const SizedBox(width: 8),
                       IconButton(
                         tooltip: playerCore.playing == true ? 'Pause' : 'Play',
                         icon: Icon(
@@ -247,7 +269,6 @@ class ControlBar extends HookWidget {
                               }
                             : null,
                       ),
-                      const SizedBox(width: 8),
                       Visibility(
                         visible: playQueueLength > 1,
                         child: IconButton(
@@ -262,7 +283,6 @@ class ControlBar extends HookWidget {
                               : null,
                         ),
                       ),
-                      const SizedBox(width: 8),
                     ],
                   ),
                   Expanded(
@@ -289,7 +309,7 @@ class ControlBar extends HookWidget {
                               isFullScreen
                                   ? Icons.close_fullscreen_rounded
                                   : Icons.open_in_full_rounded,
-                              size: 20,
+                              size: 18,
                             ),
                             onPressed: () => useAppStore().toggleFullScreen(),
                           ),

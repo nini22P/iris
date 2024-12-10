@@ -95,16 +95,17 @@ class IrisPlayer extends HookWidget {
       }
     }
 
-    useEffect(() {
-      // if (!isShowControlBar.value) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-      // } else {
-      //   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      // }
-      return null;
-    }, [isShowControlBar.value]);
+    final appLifecycleState = useAppLifecycleState();
 
     useEffect(() {
+      if (appLifecycleState == AppLifecycleState.resumed) {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      }
+      return null;
+    }, [appLifecycleState]);
+
+    useEffect(() {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         systemNavigationBarColor: Colors.transparent,
       ));
@@ -127,6 +128,9 @@ class IrisPlayer extends HookWidget {
           right: 0,
           bottom: 0,
           child: MouseRegion(
+            cursor: isShowControlBar.value || !playerCore.playing
+                ? SystemMouseCursors.basic
+                : SystemMouseCursors.none,
             onEnter: (_) => showControlBar(),
             onHover: (PointerHoverEvent event) {
               if (event.kind == PointerDeviceKind.mouse) {
@@ -174,7 +178,7 @@ class IrisPlayer extends HookWidget {
         AnimatedPositioned(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOutCubicEmphasized,
-          top: isShowControlBar.value || !playerCore.playing ? 0 : -96,
+          top: isShowControlBar.value || !playerCore.playing ? 0 : -64,
           left: 0,
           right: 0,
           child: MouseRegion(
@@ -207,7 +211,7 @@ class IrisPlayer extends HookWidget {
         AnimatedPositioned(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOutCubicEmphasized,
-          bottom: isShowControlBar.value || !playerCore.playing ? 16 : -124,
+          bottom: isShowControlBar.value || !playerCore.playing ? 16 : -96,
           left: 0,
           right: 0,
           child: Align(

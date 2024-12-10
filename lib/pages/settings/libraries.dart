@@ -13,6 +13,7 @@ class Libraries extends HookWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      padding: EdgeInsets.zero,
       itemCount: dependencies.length,
       itemBuilder: (context, index) => ListTile(
         leading: const Icon(Icons.code_rounded),

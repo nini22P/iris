@@ -14,6 +14,22 @@ class Settings extends HookWidget {
 
     return Column(
       children: [
+        Expanded(
+          child: TabBarView(
+            controller: tabController,
+            children: const [
+              Center(child: Text('General')),
+              SingleChildScrollView(
+                child: About(),
+              ),
+              Libraries(),
+            ],
+          ),
+        ),
+        Divider(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.25),
+          height: 0,
+        ),
         Container(
           padding: EdgeInsets.zero,
           child: Container(
@@ -39,17 +55,6 @@ class Settings extends HookWidget {
                 ),
               ],
             ),
-          ),
-        ),
-        Divider(color: Theme.of(context).colorScheme.primary, height: 0),
-        Expanded(
-          child: TabBarView(
-            controller: tabController,
-            children: const [
-              Center(child: Text('General')),
-              About(),
-              Libraries(),
-            ],
           ),
         ),
       ],

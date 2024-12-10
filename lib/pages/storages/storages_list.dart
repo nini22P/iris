@@ -19,6 +19,7 @@ class StoragesList extends HookWidget {
         () => useAppStore().state.storages, [storagesLength, refresh.value]);
 
     return ListView.builder(
+      padding: EdgeInsets.zero,
       itemCount: storages.length,
       itemBuilder: (context, index) => ListTile(
         contentPadding: const EdgeInsets.fromLTRB(16, 0, 4, 0),

@@ -61,7 +61,7 @@ class Popup<T> extends PopupRoute<T> {
           ),
         ),
         Positioned(
-          top: 72,
+          top: isDesktop() ? 64 : 16,
           left: direction == PopupDirection.left ? 16 : null,
           right: direction == PopupDirection.right ? 16 : null,
           bottom: 16,
@@ -84,32 +84,19 @@ class Popup<T> extends PopupRoute<T> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: 8,
-                  sigmaY: 8,
-                ),
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Material(
                   color:
                       Theme.of(context).colorScheme.surface.withOpacity(0.75),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      maxWidth: screenWidth / size - 48,
+                      maxWidth: screenWidth / size - 32,
                     ),
                     child: Column(
                       children: [
                         Expanded(
                           child: child,
                         ),
-                        // Container(
-                        //   alignment: Alignment.center,
-                        //   padding: const EdgeInsets.all(8),
-                        //   child: IconButton(
-                        //     tooltip: 'Close',
-                        //     icon: const Icon(Icons.close_rounded),
-                        //     // iconSize: 32,
-                        //     onPressed: () => Navigator.of(context).pop(),
-                        //   ),
-                        // ),
                       ],
                     ),
                   ),
