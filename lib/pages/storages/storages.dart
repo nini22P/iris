@@ -5,10 +5,10 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/pages/storages/favorite_storages_list.dart';
 import 'package:iris/pages/storages/files.dart';
+import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/path_converter.dart';
 import 'package:iris/widgets/storage_dialog/show_local_alert_dialog.dart';
 import 'package:iris/widgets/storage_dialog/show_webdav_alert_dialog.dart';
-import 'package:iris/store/use_app_store.dart';
 import 'package:iris/pages/storages/storages_list.dart';
 
 class Storages extends HookWidget {
@@ -17,7 +17,7 @@ class Storages extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final currentStorage =
-        useAppStore().select(context, (state) => state.currentStorage);
+        useStorageStore().select(context, (state) => state.currentStorage);
 
     final tabController = useTabController(initialLength: 2);
 

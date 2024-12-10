@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_get_files.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
+import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -18,11 +20,19 @@ class Files extends HookWidget {
   Widget build(BuildContext context) {
     final basePath = storage.basePath;
 
-    final currentPath = useState(basePath);
+    final currentPath =
+        useStorageStore().select(context, (state) => state.currentPath);
+
+    useEffect(() {
+      if (currentPath.isEmpty) {
+        useStorageStore().updateCurrentPath(basePath);
+      }
+      return null;
+    }, []);
 
     final title = storage.name;
 
-    final result = useGetFiles(currentPath.value, storage.getFiles);
+    final result = useGetFiles(currentPath, storage.getFiles);
     final List<FileItem> files = result.data ?? [];
     final isLoading = result.isLoading;
     final error = result.error;
@@ -50,16 +60,21 @@ class Files extends HookWidget {
     final refreshState = useState(false);
 
     final isFavorited = useMemoized(
-        () => useAppStore().state.favoriteStorages.any((favoriteStorage) =>
-            favoriteStorage.basePath.join('/') == currentPath.value.join('/')),
-        [currentPath.value, refreshState.value]);
+        () => useStorageStore().state.favoriteStorages.any((favoriteStorage) =>
+            favoriteStorage.basePath.join('/') == currentPath.join('/')),
+        [currentPath, refreshState.value]);
 
     void refresh() => refreshState.value = !refreshState.value;
 
-    void back() => currentPath.value.length > basePath.length
-        ? currentPath.value =
-            currentPath.value.sublist(0, currentPath.value.length - 1)
-        : useAppStore().updateCurrentStorage(null);
+    void back() {
+      if (currentPath.length > basePath.length) {
+        useStorageStore()
+            .updateCurrentPath(currentPath.sublist(0, currentPath.length - 1));
+      } else {
+        useStorageStore().updateCurrentStorage(null);
+        useStorageStore().updateCurrentPath([]);
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,10 +154,10 @@ class Files extends HookWidget {
                             onTap: () {
                               if (filteredFiles[index].isDir == true &&
                                   filteredFiles[index].name.isNotEmpty) {
-                                currentPath.value = [
-                                  ...currentPath.value,
+                                useStorageStore().updateCurrentPath([
+                                  ...currentPath,
                                   filteredFiles[index].name
-                                ];
+                                ]);
                               } else {
                                 play(filteredFiles, index);
                                 Navigator.pop(context);
@@ -154,17 +169,15 @@ class Files extends HookWidget {
         Container(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
           child: BreadCrumb.builder(
-            itemCount: currentPath.value.length - basePath.length + 1,
+            itemCount: currentPath.length - basePath.length + 1,
             builder: (index) {
               return BreadCrumbItem(
                 content: TextButton(
-                  child: Text([
-                    '/',
-                    ...currentPath.value.sublist(basePath.length)
-                  ][index]),
+                  child: Text(
+                      ['/', ...currentPath.sublist(basePath.length)][index]),
                   onPressed: () {
-                    currentPath.value =
-                        currentPath.value.sublist(0, index + basePath.length);
+                    useStorageStore().updateCurrentPath(
+                        currentPath.sublist(0, index + basePath.length));
                   },
                 ),
               );
@@ -186,7 +199,10 @@ class Files extends HookWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.home_rounded),
-                onPressed: () => useAppStore().updateCurrentStorage(null),
+                onPressed: () {
+                  useStorageStore().updateCurrentStorage(null);
+                  useStorageStore().updateCurrentPath([]);
+                },
               ),
               IconButton(
                 icon: Icon(isFavorited
@@ -194,26 +210,32 @@ class Files extends HookWidget {
                     : Icons.star_outline_rounded),
                 onPressed: () async {
                   if (isFavorited) {
-                    await useAppStore().removeFavoriteStorage(useAppStore()
-                        .state
-                        .favoriteStorages
-                        .indexWhere((storage) =>
-                            storage.basePath.join('/') ==
-                            currentPath.value.join('/')));
+                    await useStorageStore().removeFavoriteStorage(
+                        useStorageStore().state.favoriteStorages.indexWhere(
+                            (storage) =>
+                                storage.basePath.join('/') ==
+                                currentPath.join('/')));
                     refresh();
                     return;
                   }
-                  await useAppStore().addFavoriteStorage(storage.copyWith(
-                      name: currentPath.value.length == 1
-                          ? title
-                          : currentPath.value.last,
-                      basePath: currentPath.value));
+                  await useStorageStore().addFavoriteStorage(storage.copyWith(
+                      name: currentPath.length == 1 ? title : currentPath.last,
+                      basePath: currentPath));
                   refresh();
                 },
               ),
               const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-              const Spacer(),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
               IconButton(
                 tooltip: 'Close',
                 icon: const Icon(Icons.close_rounded),

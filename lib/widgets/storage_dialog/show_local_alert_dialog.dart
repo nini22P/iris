@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/models/storages/local_storage.dart';
-import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_storage_store.dart';
 
 Future<void> showLocalAlertDialog(BuildContext context,
     {LocalStorage? localStorage}) async {
@@ -20,10 +20,10 @@ class LocalDialog extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final bool isEdit = localStorage != null &&
-        useAppStore().state.storages.contains(localStorage!);
+        useStorageStore().state.storages.contains(localStorage!);
 
     final storageIndex =
-        isEdit ? useAppStore().state.storages.indexOf(localStorage!) : -1;
+        isEdit ? useStorageStore().state.storages.indexOf(localStorage!) : -1;
 
     final name = useState(localStorage?.name ?? '');
     final basePath = useState(localStorage?.basePath ?? []);
@@ -31,7 +31,7 @@ class LocalDialog extends HookWidget {
     final isTested = useState(true);
 
     void add() async {
-      await useAppStore().addStorage(LocalStorage(
+      await useStorageStore().addStorage(LocalStorage(
         type: 'local',
         name: name.value,
         basePath: basePath.value,
@@ -39,7 +39,7 @@ class LocalDialog extends HookWidget {
     }
 
     void update() async {
-      await useAppStore().updateStorage(
+      await useStorageStore().updateStorage(
           storageIndex,
           LocalStorage(
             type: 'local',

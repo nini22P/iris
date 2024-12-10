@@ -3,7 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/models/storages/webdav_storage.dart';
-import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/widgets/storage_dialog/show_local_alert_dialog.dart';
 import 'package:iris/widgets/storage_dialog/show_webdav_alert_dialog.dart';
 
@@ -14,9 +14,9 @@ class StoragesList extends HookWidget {
   Widget build(BuildContext context) {
     final refresh = useState(false);
     final storagesLength =
-        useAppStore().select(context, (state) => state.storages.length);
-    final storages = useMemoized(
-        () => useAppStore().state.storages, [storagesLength, refresh.value]);
+        useStorageStore().select(context, (state) => state.storages.length);
+    final storages = useMemoized(() => useStorageStore().state.storages,
+        [storagesLength, refresh.value]);
 
     return ListView.builder(
       padding: EdgeInsets.zero,
@@ -33,7 +33,8 @@ class StoragesList extends HookWidget {
           }
         }(),
         onTap: () {
-          useAppStore().updateCurrentStorage(storages[index]);
+          useStorageStore().updateCurrentPath(storages[index].basePath);
+          useStorageStore().updateCurrentStorage(storages[index]);
         },
         trailing: PopupMenuButton<String>(
           onSelected: (value) {
@@ -55,7 +56,7 @@ class StoragesList extends HookWidget {
                 }();
                 break;
               case 'remove':
-                useAppStore().removeStorage(index);
+                useStorageStore().removeStorage(index);
                 break;
             }
           },

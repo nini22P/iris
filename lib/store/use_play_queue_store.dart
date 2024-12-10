@@ -31,7 +31,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
           );
       final storage = FlutterSecureStorage(aOptions: getAndroidOptions());
 
-      String? appState = await storage.read(key: 'playQueueState');
+      String? appState = await storage.read(key: 'playQueue_state');
       if (appState != null) {
         return PlayQueueState.fromJson(json.decode(appState));
       }
@@ -50,7 +50,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
       final storage = FlutterSecureStorage(aOptions: getAndroidOptions());
 
       await storage.write(
-          key: 'playQueueState', value: json.encode(state.toJson()));
+          key: 'playQueue_state', value: json.encode(state.toJson()));
     } catch (e) {
       log('Error saving PlayQueueState: $e');
     }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/models/storages/webdav_storage.dart';
-import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_storage_store.dart';
 
 Future<void> showWebDAVAlertDialog(BuildContext context,
     {WebdavStorage? webdavStorage}) async {
@@ -20,10 +20,10 @@ class WebDAVDialog extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final bool isEdit = webdavStorage != null &&
-        useAppStore().state.storages.contains(webdavStorage!);
+        useStorageStore().state.storages.contains(webdavStorage!);
 
     final storageIndex =
-        isEdit ? useAppStore().state.storages.indexOf(webdavStorage!) : -1;
+        isEdit ? useStorageStore().state.storages.indexOf(webdavStorage!) : -1;
 
     final name = useState(webdavStorage?.name ?? '');
     final url = useState(webdavStorage?.url ?? '');
@@ -35,7 +35,7 @@ class WebDAVDialog extends HookWidget {
     final isTested = useState(false);
 
     void add() async {
-      await useAppStore().addStorage(WebdavStorage(
+      await useStorageStore().addStorage(WebdavStorage(
         type: 'webdav',
         name: name.value,
         url: url.value,
@@ -47,7 +47,7 @@ class WebDAVDialog extends HookWidget {
     }
 
     void update() async {
-      await useAppStore().updateStorage(
+      await useStorageStore().updateStorage(
           storageIndex,
           WebdavStorage(
             type: 'webdav',
