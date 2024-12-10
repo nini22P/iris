@@ -24,7 +24,7 @@ class PlayQueue extends HookWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (itemScrollController.isAttached && playQueue.isNotEmpty) {
           itemScrollController.jumpTo(
-              index: currentIndex - 3 < 0 ? 0 : currentIndex - 3);
+              index: currentIndex - 3 < 0 ? 0 : currentIndex - 1);
         }
       });
       return;
