@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/pages/settings/about.dart';
 import 'package:iris/pages/settings/general.dart';
 import 'package:iris/pages/settings/libraries.dart';
+import 'package:iris/utils/get_localizations.dart';
 
 class Settings extends HookWidget {
   const Settings({super.key});
@@ -11,6 +12,7 @@ class Settings extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = getLocalizations(context);
     final tabController = useTabController(initialLength: 3);
 
     return Column(
@@ -45,14 +47,14 @@ class Settings extends HookWidget {
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
                     dividerColor: Colors.transparent,
-                    tabs: const [
-                      Tab(text: 'General'),
-                      Tab(text: 'About'),
-                      Tab(text: 'Libraries'),
+                    tabs: [
+                      Tab(text: t.general),
+                      Tab(text: t.about),
+                      Tab(text: t.libraries),
                     ]),
                 const Spacer(),
                 IconButton(
-                  tooltip: 'Close',
+                  tooltip: t.close,
                   icon: const Icon(Icons.close_rounded),
                   onPressed: () => Navigator.of(context).pop(),
                 ),

@@ -6,9 +6,10 @@ import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/pages/storages/favorite_storages_list.dart';
 import 'package:iris/pages/storages/files.dart';
 import 'package:iris/store/use_storage_store.dart';
+import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/path_converter.dart';
-import 'package:iris/widgets/storage_dialog/show_local_alert_dialog.dart';
-import 'package:iris/widgets/storage_dialog/show_webdav_alert_dialog.dart';
+import 'package:iris/widgets/dialog/show_local_dialog.dart';
+import 'package:iris/widgets/dialog/show_webdav_dialog.dart';
 import 'package:iris/pages/storages/storages_list.dart';
 
 class Storages extends HookWidget {
@@ -16,6 +17,7 @@ class Storages extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = getLocalizations(context);
     final currentStorage =
         useStorageStore().select(context, (state) => state.currentStorage);
 
@@ -49,14 +51,14 @@ class Storages extends HookWidget {
                         isScrollable: true,
                         tabAlignment: TabAlignment.start,
                         dividerColor: Colors.transparent,
-                        tabs: const [
-                          Tab(text: 'Storages'),
-                          Tab(text: 'Favorites'),
+                        tabs: [
+                          Tab(text: t.storages),
+                          Tab(text: t.favorites),
                         ],
                       ),
                     ),
                     PopupMenuButton<String>(
-                      tooltip: 'Add Storage',
+                      tooltip: t.add_storage,
                       icon: const Icon(Icons.add_rounded),
                       onSelected: (String value) {
                         switch (value) {
@@ -66,7 +68,7 @@ class Storages extends HookWidget {
                                   await FilePicker.platform.getDirectoryPath();
                               if (selectedDirectory != null &&
                                   context.mounted) {
-                                showLocalAlertDialog(
+                                showLocalDialog(
                                   context,
                                   localStorage: LocalStorage(
                                     type: 'local',
@@ -78,7 +80,7 @@ class Storages extends HookWidget {
                             }();
                             break;
                           case 'webdav':
-                            showWebDAVAlertDialog(context);
+                            showWebDAVDialog(context);
                             break;
                           default:
                             break;
@@ -86,9 +88,9 @@ class Storages extends HookWidget {
                       },
                       itemBuilder: (BuildContext context) {
                         return [
-                          const PopupMenuItem<String>(
+                          PopupMenuItem<String>(
                             value: 'local',
-                            child: Text('Local Storage'),
+                            child: Text(t.local_storage),
                           ),
                           const PopupMenuItem<String>(
                             value: 'webdav',
@@ -98,7 +100,7 @@ class Storages extends HookWidget {
                       },
                     ),
                     IconButton(
-                      tooltip: 'Close',
+                      tooltip: t.close,
                       icon: const Icon(Icons.close_rounded),
                       onPressed: () => Navigator.of(context).pop(),
                     ),

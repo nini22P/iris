@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:iris/info.dart';
 import 'package:iris/pages/home_page.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -17,7 +18,7 @@ void main() async {
 
     WindowOptions windowOptions = const WindowOptions(
       size: Size(1280, 720),
-      minimumSize: Size(480, 320),
+      minimumSize: Size(480, 270),
       center: true,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
@@ -39,6 +40,7 @@ class MyApp extends HookWidget {
   @override
   Widget build(BuildContext context) {
     String theme = useAppStore().select(context, (state) => state.theme);
+    String language = useAppStore().select(context, (state) => state.language);
 
     ThemeMode themeMode = useMemoized(
         () =>
@@ -59,6 +61,15 @@ class MyApp extends HookWidget {
       darkTheme: ThemeData.dark(),
       themeMode: themeMode,
       home: const HomePage(),
+      locale: language == 'auto' ? null : Locale(language),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localeResolutionCallback: (locale, supportedLocales) => supportedLocales
+              .map((e) => e.languageCode)
+              .toList()
+              .contains(locale!.languageCode)
+          ? null
+          : const Locale('en'),
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }

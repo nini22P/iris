@@ -23,6 +23,7 @@ class Libraries extends HookWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         onTap: () => showModalBottomSheet(
           context: context,
           // isScrollControlled: true,

@@ -51,6 +51,9 @@ dependencies:
   window_manager: ^0.4.3
   url_launcher: ^6.3.1
   scrollable_positioned_list: ^0.3.8
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +72,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

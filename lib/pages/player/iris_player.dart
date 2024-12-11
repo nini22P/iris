@@ -9,6 +9,7 @@ import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/widgets/custom_app_bar.dart';
 import 'package:iris/pages/player/control_bar.dart';
@@ -24,6 +25,7 @@ class IrisPlayer extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = getLocalizations(context);
     final player = useMemoized(() => Player());
     final controller = useMemoized(() => VideoController(player));
     PlayerCore playerCore = usePlayerCore(context, player);
@@ -194,7 +196,7 @@ class IrisPlayer extends HookWidget {
                 title: playerCore.title,
                 actions: [
                   IconButton(
-                    tooltip: 'Settings',
+                    tooltip: t.settings,
                     icon: const Icon(Icons.settings_rounded),
                     onPressed: () => showPopup(
                       context: context,

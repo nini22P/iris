@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/store/use_play_queue_store.dart';
+import 'package:iris/utils/get_localizations.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class PlayQueue extends HookWidget {
@@ -9,6 +10,7 @@ class PlayQueue extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = getLocalizations(context);
     final playQueue =
         usePlayQueueStore().select(context, (state) => state.playQueue);
     final currentIndex =
@@ -46,6 +48,8 @@ class PlayQueue extends HookWidget {
                       : null,
                 ),
               ),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               tileColor: currentIndex == index
                   ? Theme.of(context).colorScheme.onSurface.withAlpha(20)
                   : null,
@@ -68,13 +72,13 @@ class PlayQueue extends HookWidget {
           padding: const EdgeInsets.fromLTRB(16, 4, 4, 4),
           child: Row(
             children: [
-              const Text(
-                'Play Queue',
-                style: TextStyle(fontWeight: FontWeight.w500),
+              Text(
+                t.play_queue,
+                style: const TextStyle(fontWeight: FontWeight.w500),
               ),
               const Spacer(),
               IconButton(
-                tooltip: 'Close',
+                tooltip: t.close,
                 icon: const Icon(Icons.close_rounded),
                 onPressed: () => Navigator.of(context).pop(),
               ),

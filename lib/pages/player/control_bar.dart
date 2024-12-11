@@ -11,6 +11,7 @@ import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/check_file_type.dart';
 import 'package:iris/utils/file_filter.dart';
+import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/utils/path_converter.dart';
@@ -39,6 +40,7 @@ class ControlBar extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = getLocalizations(context);
     final isFullScreen =
         useAppStore().select(context, (state) => state.isFullScreen);
     final playQueueLength =
@@ -49,9 +51,8 @@ class ControlBar extends HookWidget {
         () => [...playerCore.externalSubtitles]..removeWhere((subtitle) =>
             playerCore.subtitles.any((item) => item.title == subtitle.name)),
         [playerCore.externalSubtitles, playerCore.subtitles]);
-
     Widget subtitlesMenuButton = PopupMenuButton(
-      tooltip: 'Subtitles',
+      tooltip: t.subtitles,
       icon: Icon(
         playerCore.subtitle == SubtitleTrack.no()
             ? Icons.subtitles_off_rounded
@@ -63,7 +64,7 @@ class ControlBar extends HookWidget {
         PopupMenuItem(
           padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
           child: Text(
-            'Off',
+            t.off,
             style: TextStyle(
                 color: playerCore.subtitle == SubtitleTrack.no()
                     ? Theme.of(context).colorScheme.primary
@@ -155,7 +156,10 @@ class ControlBar extends HookWidget {
                       Expanded(
                         child: SliderTheme(
                           data: SliderTheme.of(context).copyWith(
-                            thumbColor: Theme.of(context).colorScheme.onSurface,
+                            thumbColor: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withAlpha(222),
                             thumbShape: const RoundSliderThumbShape(
                               enabledThumbRadius: 6,
                               disabledThumbRadius: 6,
@@ -168,7 +172,7 @@ class ControlBar extends HookWidget {
                             activeTrackColor: Theme.of(context)
                                 .colorScheme
                                 .onSurface
-                                .withOpacity(0.8),
+                                .withOpacity(0.75),
                             inactiveTrackColor: Theme.of(context)
                                 .colorScheme
                                 .onSurface
@@ -215,13 +219,13 @@ class ControlBar extends HookWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         IconButton(
-                          tooltip: 'Open file',
+                          tooltip: t.open_file,
                           icon: const Icon(Icons.file_open_rounded),
                           iconSize: 18,
                           onPressed: () => pickFile(),
                         ),
                         IconButton(
-                          tooltip: 'Storages',
+                          tooltip: t.storages,
                           icon: const Icon(Icons.storage_rounded),
                           iconSize: 18,
                           onPressed: () => showPopup(
@@ -238,7 +242,7 @@ class ControlBar extends HookWidget {
                       Visibility(
                         visible: playQueueLength > 1,
                         child: IconButton(
-                          tooltip: 'Previous',
+                          tooltip: t.previous,
                           icon: const Icon(
                             Icons.skip_previous_rounded,
                             size: 32,
@@ -249,7 +253,7 @@ class ControlBar extends HookWidget {
                         ),
                       ),
                       IconButton(
-                        tooltip: playerCore.playing == true ? 'Pause' : 'Play',
+                        tooltip: playerCore.playing == true ? t.pause : t.play,
                         icon: Icon(
                           playerCore.playing == true
                               ? Icons.pause_circle_outline_rounded
@@ -272,7 +276,7 @@ class ControlBar extends HookWidget {
                       Visibility(
                         visible: playQueueLength > 1,
                         child: IconButton(
-                          tooltip: 'Next',
+                          tooltip: t.next,
                           icon: const Icon(
                             Icons.skip_next_rounded,
                             size: 32,
@@ -291,7 +295,7 @@ class ControlBar extends HookWidget {
                       children: [
                         subtitlesMenuButton,
                         IconButton(
-                          tooltip: 'Play Queue',
+                          tooltip: t.play_queue,
                           icon: const Icon(Icons.playlist_play_rounded),
                           onPressed: () => showPopup(
                             context: context,
@@ -303,8 +307,8 @@ class ControlBar extends HookWidget {
                           visible: isDesktop(),
                           child: IconButton(
                             tooltip: isFullScreen
-                                ? 'Exit Fullscreen'
-                                : 'Enter Fullscreen',
+                                ? t.exit_fullscreen
+                                : t.enter_fullscreen,
                             icon: Icon(
                               isFullScreen
                                   ? Icons.close_fullscreen_rounded

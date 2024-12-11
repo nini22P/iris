@@ -4,14 +4,16 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/models/storages/webdav_storage.dart';
 import 'package:iris/store/use_storage_store.dart';
-import 'package:iris/widgets/storage_dialog/show_local_alert_dialog.dart';
-import 'package:iris/widgets/storage_dialog/show_webdav_alert_dialog.dart';
+import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/widgets/dialog/show_local_dialog.dart';
+import 'package:iris/widgets/dialog/show_webdav_dialog.dart';
 
 class StoragesList extends HookWidget {
   const StoragesList({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final t = getLocalizations(context);
     final refresh = useState(false);
     final storagesLength =
         useStorageStore().select(context, (state) => state.storages.length);
@@ -27,28 +29,30 @@ class StoragesList extends HookWidget {
         subtitle: () {
           switch (storages[index].type) {
             case 'local':
-              return const Text('Local Storage');
+              return Text(storages[index].basePath.join('/'));
             case 'webdav':
               return const Text('WebDAV');
           }
         }(),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         onTap: () {
           useStorageStore().updateCurrentPath(storages[index].basePath);
           useStorageStore().updateCurrentStorage(storages[index]);
         },
         trailing: PopupMenuButton<String>(
+          tooltip: t.menu,
           onSelected: (value) {
             switch (value) {
               case 'edit':
                 () {
                   switch (storages[index].type) {
                     case 'local':
-                      showLocalAlertDialog(context,
+                      showLocalDialog(context,
                               localStorage: storages[index] as LocalStorage)
                           .then((_) => refresh.value = !refresh.value);
                       break;
                     case 'webdav':
-                      showWebDAVAlertDialog(context,
+                      showWebDAVDialog(context,
                               webdavStorage: storages[index] as WebdavStorage)
                           .then((_) => refresh.value = !refresh.value);
                       break;
@@ -62,13 +66,13 @@ class StoragesList extends HookWidget {
           },
           itemBuilder: (BuildContext context) {
             return [
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'edit',
-                child: Text('Edit'),
+                child: Text(t.edit),
               ),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'remove',
-                child: Text('Remove'),
+                child: Text(t.remove),
               ),
             ];
           },

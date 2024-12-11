@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/utils/get_localizations.dart';
 
 Future<void> showThemeColorDialog(BuildContext context) async =>
     await showDialog<void>(
@@ -14,63 +15,61 @@ class ThemeColorDialog extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = getLocalizations(context);
     final theme = useAppStore().select(context, (state) => state.theme);
+
+    void updateThemeColor(String theme) {
+      useAppStore().updateTheme(theme);
+      Navigator.pop(context);
+    }
+
     return AlertDialog(
-      title: const Text('Theme color'),
+      title: Text(t.theme_color),
       content: SingleChildScrollView(
           child: Column(
         children: [
           ListTile(
-            title: const Text('Auto'),
+            title: Text(t.auto),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
               value: 'auto',
               groupValue: theme,
-              onChanged: (_) {
-                useAppStore().updateTheme('auto');
-                Navigator.pop(context);
-              },
+              onChanged: (_) => updateThemeColor('auto'),
             ),
-            onTap: () {
-              useAppStore().updateTheme('auto');
-              Navigator.pop(context);
-            },
+            onTap: () => updateThemeColor('auto'),
           ),
           ListTile(
-            title: const Text('Light'),
+            title: Text(t.light),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
               value: 'light',
               groupValue: theme,
-              onChanged: (_) {
-                useAppStore().updateTheme('light');
-                Navigator.pop(context);
-              },
+              onChanged: (_) => updateThemeColor('light'),
             ),
-            onTap: () {
-              useAppStore().updateTheme('light');
-              Navigator.pop(context);
-            },
+            onTap: () => updateThemeColor('light'),
           ),
           ListTile(
-            title: const Text('Dark'),
+            title: Text(t.dark),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
               value: 'dark',
               groupValue: theme,
-              onChanged: (_) {
-                useAppStore().updateTheme('dark');
-                Navigator.pop(context);
-              },
+              onChanged: (_) => updateThemeColor('dark'),
             ),
-            onTap: () {
-              useAppStore().updateTheme('dark');
-              Navigator.pop(context);
-            },
+            onTap: () => updateThemeColor('dark'),
           ),
         ],
       )),
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.pop(context, 'Cancel'),
-          child: const Text('Cancel'),
+          child: Text(t.cancel),
         ),
       ],
     );

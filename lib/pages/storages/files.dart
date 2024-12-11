@@ -9,6 +9,7 @@ import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
+import 'package:iris/utils/get_localizations.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class Files extends HookWidget {
@@ -18,6 +19,7 @@ class Files extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = getLocalizations(context);
     final basePath = storage.basePath;
 
     final currentPath =
@@ -83,9 +85,9 @@ class Files extends HookWidget {
           child: isLoading
               ? const Center(child: CircularProgressIndicator())
               : error
-                  ? const Center(child: Text('Error fetching files.'))
+                  ? Center(child: Text(t.unable_to_fetch_files))
                   : filteredFiles.isEmpty
-                      ? const Center(child: Text('No files found.'))
+                      ? const Center()
                       : ScrollablePositionedList.builder(
                           itemScrollController: itemScrollController,
                           scrollOffsetController: scrollOffsetController,
@@ -102,9 +104,6 @@ class Files extends HookWidget {
                               filteredFiles[index].name,
                               maxLines: 3,
                               overflow: TextOverflow.ellipsis,
-                              // style: const TextStyle(
-                              //   fontWeight: FontWeight.w500,
-                              // ),
                             ),
                             subtitle: filteredFiles[index].size != 0
                                 ? Row(
@@ -133,16 +132,16 @@ class Files extends HookWidget {
                                                           .inversePrimary,
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              8.0),
+                                                              8),
                                                     ),
                                                     padding: const EdgeInsets
                                                         .fromLTRB(8, 4, 8, 4),
                                                     child: Text(
                                                       subTitleType,
                                                       style: const TextStyle(
-                                                        fontSize: 12,
+                                                        fontSize: 10,
                                                         fontWeight:
-                                                            FontWeight.w600,
+                                                            FontWeight.bold,
                                                       ),
                                                     ),
                                                   )
@@ -151,6 +150,8 @@ class Files extends HookWidget {
                                     ],
                                   )
                                 : null,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
                             onTap: () {
                               if (filteredFiles[index].isDir == true &&
                                   filteredFiles[index].name.isNotEmpty) {
@@ -194,10 +195,12 @@ class Files extends HookWidget {
           child: Row(
             children: [
               IconButton(
+                tooltip: t.back,
                 icon: const Icon(Icons.arrow_back_rounded),
                 onPressed: back,
               ),
               IconButton(
+                tooltip: t.home,
                 icon: const Icon(Icons.home_rounded),
                 onPressed: () {
                   useStorageStore().updateCurrentStorage(null);
@@ -205,6 +208,7 @@ class Files extends HookWidget {
                 },
               ),
               IconButton(
+                tooltip: isFavorited ? t.remove_favorite : t.add_favorite,
                 icon: Icon(isFavorited
                     ? Icons.star_rounded
                     : Icons.star_outline_rounded),
@@ -237,7 +241,7 @@ class Files extends HookWidget {
               ),
               const SizedBox(width: 4),
               IconButton(
-                tooltip: 'Close',
+                tooltip: t.close,
                 icon: const Icon(Icons.close_rounded),
                 onPressed: () => Navigator.of(context).pop(),
               ),

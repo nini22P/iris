@@ -23,6 +23,11 @@ class AppStore extends PersistentStore<AppState> {
     save(state);
   }
 
+  Future<void> updateLanguage(String language) async {
+    set(state.copyWith(language: language));
+    save(state);
+  }
+
   @override
   Future<AppState?> load() async {
     try {

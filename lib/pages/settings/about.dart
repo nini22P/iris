@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/info.dart';
+import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/url.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -11,6 +12,7 @@ class About extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = getLocalizations(context);
     final packageInfo = useState<PackageInfo?>(null);
 
     useEffect(() {
@@ -23,28 +25,36 @@ class About extends HookWidget {
 
     return Column(
       children: [
-        const ListTile(
-          leading: Icon(null),
-          title: Text(INFO.title),
-          subtitle: Text(INFO.description),
+        ListTile(
+          leading: const Icon(null),
+          title: const Text(INFO.title),
+          subtitle: const Text(INFO.description),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         ListTile(
           leading: const Icon(Icons.info_rounded),
-          title: const Text('Version'),
+          title: Text(t.version),
           subtitle:
               Text(packageInfo.value != null ? packageInfo.value!.version : ''),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         ListTile(
           leading: const Icon(Icons.code_rounded),
-          title: const Text('Source Code'),
+          title: Text(t.source_code),
           subtitle: const Text(INFO.githubUrl),
           onTap: () => launchURL(INFO.githubUrl),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         ListTile(
           leading: const Icon(Icons.person_rounded),
-          title: const Text('Author'),
+          title: Text(t.author),
           subtitle: const Text(INFO.author),
           onTap: () => launchURL(INFO.authorUrl),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ],
     );

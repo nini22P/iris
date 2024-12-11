@@ -8,6 +8,7 @@ class AppState {
   String theme;
   String subtitleLanguage;
   bool autoCheckUpdates;
+  String language;
 
   AppState({
     this.autoPlay = false,
@@ -19,6 +20,7 @@ class AppState {
     this.theme = 'auto',
     this.subtitleLanguage = 'auto',
     this.autoCheckUpdates = true,
+    this.language = 'auto',
   });
 
   AppState copyWith({
@@ -31,6 +33,7 @@ class AppState {
     String? theme,
     String? subtitleLanguage,
     bool? autoCheckUpdates,
+    String? language,
   }) =>
       AppState(
         autoPlay: autoPlay ?? this.autoPlay,
@@ -42,6 +45,7 @@ class AppState {
         theme: theme ?? this.theme,
         subtitleLanguage: subtitleLanguage ?? this.subtitleLanguage,
         autoCheckUpdates: autoCheckUpdates ?? this.autoCheckUpdates,
+        language: language ?? this.language,
       );
 
   Map<String, dynamic> toJson() {
@@ -55,6 +59,7 @@ class AppState {
       'theme': theme,
       'subtitleLanguage': subtitleLanguage,
       'autoCheckUpdates': autoCheckUpdates,
+      'language': language
     };
   }
 
@@ -69,6 +74,7 @@ class AppState {
       theme: json['theme'] ?? 'auto',
       subtitleLanguage: json['subtitleLanguage'] ?? 'auto',
       autoCheckUpdates: json['autoCheckUpdates'] ?? true,
+      language: json['language'] ?? 'auto',
     );
   }
 }
