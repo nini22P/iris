@@ -97,23 +97,6 @@ class IrisPlayer extends HookWidget {
       }
     }
 
-    final appLifecycleState = useAppLifecycleState();
-
-    useEffect(() {
-      if (appLifecycleState == AppLifecycleState.resumed) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-      }
-      return null;
-    }, [appLifecycleState]);
-
-    useEffect(() {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-      SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        systemNavigationBarColor: Colors.transparent,
-      ));
-      return null;
-    }, []);
-
     useEffect(() {
       if (isDesktop()) {
         windowManager
