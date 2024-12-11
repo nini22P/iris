@@ -22,12 +22,18 @@ class Settings extends HookWidget {
             controller: tabController,
             children: const [
               SingleChildScrollView(
-                child: General(),
+                child: Card(
+                  child: General(),
+                ),
               ),
               SingleChildScrollView(
-                child: About(),
+                child: Card(
+                  child: About(),
+                ),
               ),
-              Libraries(),
+              Card(
+                child: Libraries(),
+              ),
             ],
           ),
         ),

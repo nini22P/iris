@@ -31,8 +31,12 @@ class Storages extends HookWidget {
                 child: TabBarView(
                   controller: tabController,
                   children: const [
-                    StoragesList(),
-                    FavoriteStoragesList(),
+                    Card(
+                      child: StoragesList(),
+                    ),
+                    Card(
+                      child: FavoriteStoragesList(),
+                    ),
                   ],
                 ),
               ),
@@ -60,6 +64,7 @@ class Storages extends HookWidget {
                     PopupMenuButton<String>(
                       tooltip: t.add_storage,
                       icon: const Icon(Icons.add_rounded),
+                      clipBehavior: Clip.hardEdge,
                       onSelected: (String value) {
                         switch (value) {
                           case 'local':

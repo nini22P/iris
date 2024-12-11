@@ -88,82 +88,83 @@ class Files extends HookWidget {
                   ? Center(child: Text(t.unable_to_fetch_files))
                   : filteredFiles.isEmpty
                       ? const Center()
-                      : ScrollablePositionedList.builder(
-                          itemScrollController: itemScrollController,
-                          scrollOffsetController: scrollOffsetController,
-                          itemPositionsListener: itemPositionsListener,
-                          scrollOffsetListener: scrollOffsetListener,
-                          itemCount: filteredFiles.length,
-                          itemBuilder: (context, index) => ListTile(
-                            contentPadding:
-                                const EdgeInsets.fromLTRB(16, 0, 8, 0),
-                            leading: filteredFiles[index].isDir == true
-                                ? const Icon(Icons.folder_rounded)
-                                : const Icon(Icons.video_file_rounded),
-                            title: Text(
-                              filteredFiles[index].name,
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: filteredFiles[index].size != 0
-                                ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                          "${fileSizeConvert(filteredFiles[index].size)} MB"),
-                                      const Spacer(),
-                                      const SizedBox(width: 16),
-                                      ...filteredFiles[index]
-                                          .subtitles!
-                                          .map((subtitle) => subtitle.uri
-                                              .split('.')
-                                              .last
-                                              .toUpperCase())
-                                          .toSet()
-                                          .toList()
-                                          .map((subTitleType) => Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  const SizedBox(width: 8),
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .inversePrimary,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
-                                                    padding: const EdgeInsets
-                                                        .fromLTRB(8, 4, 8, 4),
-                                                    child: Text(
-                                                      subTitleType,
-                                                      style: const TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold,
+                      : Card(
+                          child: ScrollablePositionedList.builder(
+                            itemScrollController: itemScrollController,
+                            scrollOffsetController: scrollOffsetController,
+                            itemPositionsListener: itemPositionsListener,
+                            scrollOffsetListener: scrollOffsetListener,
+                            itemCount: filteredFiles.length,
+                            itemBuilder: (context, index) => ListTile(
+                              contentPadding:
+                                  const EdgeInsets.fromLTRB(16, 0, 8, 0),
+                              leading: filteredFiles[index].isDir == true
+                                  ? const Icon(Icons.folder_rounded)
+                                  : const Icon(Icons.video_file_rounded),
+                              title: Text(
+                                filteredFiles[index].name,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: filteredFiles[index].size != 0
+                                  ? Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                            "${fileSizeConvert(filteredFiles[index].size)} MB"),
+                                        const Spacer(),
+                                        const SizedBox(width: 16),
+                                        ...filteredFiles[index]
+                                            .subtitles!
+                                            .map((subtitle) => subtitle.uri
+                                                .split('.')
+                                                .last
+                                                .toUpperCase())
+                                            .toSet()
+                                            .toList()
+                                            .map((subTitleType) => Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    const SizedBox(width: 8),
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .inversePrimary,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
                                                       ),
-                                                    ),
-                                                  )
-                                                ],
-                                              )),
-                                    ],
-                                  )
-                                : null,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                            onTap: () {
-                              if (filteredFiles[index].isDir == true &&
-                                  filteredFiles[index].name.isNotEmpty) {
-                                useStorageStore().updateCurrentPath([
-                                  ...currentPath,
-                                  filteredFiles[index].name
-                                ]);
-                              } else {
-                                play(filteredFiles, index);
-                                Navigator.pop(context);
-                              }
-                            },
+                                                      padding: const EdgeInsets
+                                                          .fromLTRB(8, 4, 8, 4),
+                                                      child: Text(
+                                                        subTitleType,
+                                                        style: const TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  ],
+                                                )),
+                                      ],
+                                    )
+                                  : null,
+                              onTap: () {
+                                if (filteredFiles[index].isDir == true &&
+                                    filteredFiles[index].name.isNotEmpty) {
+                                  useStorageStore().updateCurrentPath([
+                                    ...currentPath,
+                                    filteredFiles[index].name
+                                  ]);
+                                } else {
+                                  play(filteredFiles, index);
+                                  Navigator.pop(context);
+                                }
+                              },
+                            ),
                           ),
                         ),
         ),

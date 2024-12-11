@@ -55,8 +55,29 @@ class MyApp extends HookWidget {
     return MaterialApp(
       title: INFO.title,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
         useMaterial3: true,
+        cardTheme: CardTheme(
+          color: Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        popupMenuTheme: PopupMenuThemeData(
+          color: Theme.of(context).colorScheme.surface.withAlpha(250),
+          menuPadding: const EdgeInsets.all(0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          shadowColor: null,
+          elevation: 0,
+        ),
+        listTileTheme: ListTileThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       ),
       darkTheme: ThemeData.dark(),
       themeMode: themeMode,

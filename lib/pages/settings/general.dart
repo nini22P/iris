@@ -23,7 +23,6 @@ class General extends HookWidget {
         title: Text(t.language),
         subtitle:
             Text(language == 'auto' ? t.auto : languages[language] ?? language),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         onTap: () => showLanguageDialog(context),
       ),
       ListTile(
@@ -45,7 +44,6 @@ class General extends HookWidget {
               return theme;
           }
         }()),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         onTap: () => showThemeColorDialog(context),
       ),
     ]);

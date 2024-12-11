@@ -60,6 +60,7 @@ class ControlBar extends HookWidget {
         size: 18,
         color: Theme.of(context).colorScheme.onSurface.withAlpha(222),
       ),
+      clipBehavior: Clip.hardEdge,
       itemBuilder: (context) => [
         PopupMenuItem(
           padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),

@@ -24,7 +24,7 @@ class StoragesList extends HookWidget {
       padding: EdgeInsets.zero,
       itemCount: storages.length,
       itemBuilder: (context, index) => ListTile(
-        contentPadding: const EdgeInsets.fromLTRB(16, 0, 4, 0),
+        contentPadding: const EdgeInsets.fromLTRB(16, 0, 12, 0),
         title: Text(storages[index].name),
         subtitle: () {
           switch (storages[index].type) {
@@ -34,13 +34,13 @@ class StoragesList extends HookWidget {
               return const Text('WebDAV');
           }
         }(),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         onTap: () {
           useStorageStore().updateCurrentPath(storages[index].basePath);
           useStorageStore().updateCurrentStorage(storages[index]);
         },
         trailing: PopupMenuButton<String>(
           tooltip: t.menu,
+          clipBehavior: Clip.hardEdge,
           onSelected: (value) {
             switch (value) {
               case 'edit':

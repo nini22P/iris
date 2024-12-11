@@ -30,8 +30,6 @@ class ThemeColorDialog extends HookWidget {
         children: [
           ListTile(
             title: Text(t.auto),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
               value: 'auto',
@@ -42,8 +40,6 @@ class ThemeColorDialog extends HookWidget {
           ),
           ListTile(
             title: Text(t.light),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
               value: 'light',
@@ -54,8 +50,6 @@ class ThemeColorDialog extends HookWidget {
           ),
           ListTile(
             title: Text(t.dark),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
               value: 'dark',

@@ -25,7 +25,7 @@ class FavoriteStoragesList extends HookWidget {
       padding: EdgeInsets.zero,
       itemCount: favoriteStorages.length,
       itemBuilder: (context, index) => ListTile(
-        contentPadding: const EdgeInsets.fromLTRB(16, 0, 4, 0),
+        contentPadding: const EdgeInsets.fromLTRB(16, 0, 12, 0),
         title: Text(favoriteStorages[index].name),
         subtitle: () {
           switch (favoriteStorages[index].type) {
@@ -39,13 +39,13 @@ class FavoriteStoragesList extends HookWidget {
               return const Text('WebDAV');
           }
         }(),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         onTap: () {
           useStorageStore().updateCurrentPath(favoriteStorages[index].basePath);
           useStorageStore().updateCurrentStorage(favoriteStorages[index]);
         },
         trailing: PopupMenuButton<String>(
           tooltip: t.menu,
+          clipBehavior: Clip.hardEdge,
           onSelected: (value) {
             switch (value) {
               case 'edit':

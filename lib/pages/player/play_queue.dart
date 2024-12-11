@@ -35,33 +35,33 @@ class PlayQueue extends HookWidget {
     return Column(
       children: [
         Expanded(
-          child: ScrollablePositionedList.builder(
-            itemCount: playQueue.length,
-            itemBuilder: (context, index) => ListTile(
-              title: Text(
-                playQueue[index].name,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: currentIndex == index
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
+          child: Card(
+            child: ScrollablePositionedList.builder(
+              itemCount: playQueue.length,
+              itemBuilder: (context, index) => ListTile(
+                title: Text(
+                  playQueue[index].name,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: currentIndex == index
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                  ),
                 ),
+                tileColor: currentIndex == index
+                    ? Theme.of(context).colorScheme.onSurface.withAlpha(20)
+                    : null,
+                onTap: () {
+                  usePlayQueueStore().updateCurrentIndex(index);
+                  Navigator.of(context).pop();
+                },
               ),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              tileColor: currentIndex == index
-                  ? Theme.of(context).colorScheme.onSurface.withAlpha(20)
-                  : null,
-              onTap: () {
-                usePlayQueueStore().updateCurrentIndex(index);
-                Navigator.of(context).pop();
-              },
+              itemScrollController: itemScrollController,
+              scrollOffsetController: scrollOffsetController,
+              itemPositionsListener: itemPositionsListener,
+              scrollOffsetListener: scrollOffsetListener,
             ),
-            itemScrollController: itemScrollController,
-            scrollOffsetController: scrollOffsetController,
-            itemPositionsListener: itemPositionsListener,
-            scrollOffsetListener: scrollOffsetListener,
           ),
         ),
         Divider(

@@ -25,36 +25,28 @@ class About extends HookWidget {
 
     return Column(
       children: [
-        ListTile(
-          leading: const Icon(null),
-          title: const Text(INFO.title),
-          subtitle: const Text(INFO.description),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        const ListTile(
+          leading: Icon(null),
+          title: Text(INFO.title),
+          subtitle: Text(INFO.description),
         ),
         ListTile(
           leading: const Icon(Icons.info_rounded),
           title: Text(t.version),
           subtitle:
               Text(packageInfo.value != null ? packageInfo.value!.version : ''),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         ListTile(
           leading: const Icon(Icons.code_rounded),
           title: Text(t.source_code),
           subtitle: const Text(INFO.githubUrl),
           onTap: () => launchURL(INFO.githubUrl),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         ListTile(
           leading: const Icon(Icons.person_rounded),
           title: Text(t.author),
           subtitle: const Text(INFO.author),
           onTap: () => launchURL(INFO.authorUrl),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ],
     );

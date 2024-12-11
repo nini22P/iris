@@ -31,8 +31,6 @@ class LanguageDialog extends HookWidget {
         children: [
           ListTile(
             title: Text(t.auto),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
               value: 'auto',
@@ -44,8 +42,6 @@ class LanguageDialog extends HookWidget {
           ...languages.entries.map(
             (e) => ListTile(
               title: Text(e.value),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
               contentPadding: const EdgeInsets.only(left: 8),
               leading: Radio(
                 value: e.key,
