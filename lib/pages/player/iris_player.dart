@@ -12,6 +12,7 @@ import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/is_desktop.dart';
+import 'package:iris/utils/resize_window.dart';
 import 'package:iris/widgets/custom_app_bar.dart';
 import 'package:iris/pages/player/control_bar.dart';
 import 'package:iris/widgets/show_popup.dart';
@@ -54,18 +55,28 @@ class IrisPlayer extends HookWidget {
 
     useEffect(() {
       if (isDesktop()) {
-        if (isMaximized) {
-          windowManager.maximize();
-        } else {
-          windowManager.unmaximize();
-        }
+        () async {
+          if (isMaximized) {
+            await windowManager.maximize();
+          } else {
+            await windowManager.unmaximize();
+            if (playerCore.aspectRatio != null) {
+              resizeWindow(playerCore.aspectRatio!);
+            }
+          }
+        }();
       }
       return;
     }, [isMaximized]);
 
     useEffect(() {
       if (isDesktop()) {
-        windowManager.setFullScreen(isFullScreen);
+        () async {
+          await windowManager.setFullScreen(isFullScreen);
+          if (!isFullScreen && playerCore.aspectRatio != null) {
+            resizeWindow(playerCore.aspectRatio!);
+          }
+        }();
       }
       return;
     }, [isFullScreen]);
@@ -105,6 +116,18 @@ class IrisPlayer extends HookWidget {
       }
       return;
     }, [playerCore.title]);
+
+    useEffect(() {
+      if (isDesktop() &&
+          !isFullScreen &&
+          !isMaximized &&
+          playerCore.aspectRatio != null) {
+        () async {
+          resizeWindow(playerCore.aspectRatio!);
+        }();
+      }
+      return;
+    }, [playerCore.aspectRatio]);
 
     return Stack(
       children: [

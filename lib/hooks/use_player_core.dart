@@ -23,6 +23,7 @@ class PlayerCore {
   final bool seeking;
   final bool completed;
   final double rate;
+  final double? aspectRatio;
   final void Function(Duration) seek;
   final void Function(Duration) updatePosition;
   final void Function(bool) updateSeeking;
@@ -43,6 +44,7 @@ class PlayerCore {
     this.seeking,
     this.completed,
     this.rate,
+    this.aspectRatio,
     this.seek,
     this.updatePosition,
     this.updateSeeking,
@@ -73,6 +75,12 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final duration = useState(Duration.zero);
   final completed = useState(false);
   final rate = useState(1.0);
+  final videoParams = useState<VideoParams?>(null);
+  final aspectRatio = videoParams.value != null &&
+          videoParams.value!.w != null &&
+          videoParams.value!.h != null
+      ? (videoParams.value!.w! / videoParams.value!.h!)
+      : null;
 
   final subtitle = useState(SubtitleTrack.no());
   final subtitles = useState<List<SubtitleTrack>>([]);
@@ -85,6 +93,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final durationStream = useStream(player.stream.duration);
   final completedStream = useStream(player.stream.completed);
   final rateStream = useStream(player.stream.rate);
+  final videoParamsStream = useStream(player.stream.videoParams);
 
   if (playingStream.hasData) {
     playing.value = playingStream.data!;
@@ -106,6 +115,10 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
 
   if (rateStream.hasData) {
     rate.value = rateStream.data!;
+  }
+
+  if (videoParamsStream.hasData) {
+    videoParams.value = videoParamsStream.data!;
   }
 
   useEffect(() {
@@ -183,6 +196,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     seeking.value,
     completed.value,
     rate.value,
+    aspectRatio,
     seek,
     updatePosition,
     updateSeeking,
