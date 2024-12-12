@@ -7,6 +7,8 @@ import 'package:window_size/window_size.dart';
 Future<void> resizeWindow(double videoAspectRatio) async {
   if (!isDesktop()) return;
 
+  windowManager.setAspectRatio(videoAspectRatio);
+
   final windowSize = await windowManager.getSize();
   final windowAspectRatio = windowSize.aspectRatio;
 
@@ -24,12 +26,12 @@ Future<void> resizeWindow(double videoAspectRatio) async {
   if (screenAspectRatio > videoAspectRatio) {
     final height = screenHeight * 0.8 / screen.scaleFactor;
     final width = height * videoAspectRatio;
-    windowManager.setAspectRatio(videoAspectRatio);
+    // windowManager.setAspectRatio(videoAspectRatio);
     windowManager.setSize(Size(width, height));
   } else {
     final width = screenWidth * 0.8 / screen.scaleFactor;
     final height = width / videoAspectRatio;
-    windowManager.setAspectRatio(videoAspectRatio);
+    // windowManager.setAspectRatio(videoAspectRatio);
     windowManager.setSize(Size(width, height));
   }
 }
