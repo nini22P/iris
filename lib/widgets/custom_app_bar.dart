@@ -48,9 +48,10 @@ class CustomAppBar extends HookWidget {
                   child: Text(
                     title!.isEmpty ? INFO.title : title!,
                     maxLines: 1,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       overflow: TextOverflow.ellipsis,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),

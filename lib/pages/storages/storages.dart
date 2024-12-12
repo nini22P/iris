@@ -64,7 +64,10 @@ class Storages extends HookWidget {
                     PopupMenuButton<String>(
                       tooltip: t.add_storage,
                       icon: const Icon(Icons.add_rounded),
+                      iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
                       clipBehavior: Clip.hardEdge,
+                      color:
+                          Theme.of(context).colorScheme.surface.withAlpha(250),
                       onSelected: (String value) {
                         switch (value) {
                           case 'local':

@@ -1,4 +1,8 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_play_queue_store.dart';
+import 'package:iris/utils/file_filter.dart';
 import 'package:iris/utils/file_sort.dart';
 import 'package:iris/utils/find_sub_title.dart';
 import 'package:iris/utils/path_converter.dart';
@@ -70,5 +74,31 @@ class LocalStorage implements Storage {
         type: json['type'],
         name: json['name'],
         basePath: List<String>.from(json['basePath']));
+  }
+}
+
+Future<void> pickFile() async {
+  FilePickerResult? result = await FilePicker.platform
+      .pickFiles(type: FileType.custom, allowedExtensions: Formats.video);
+
+  if (result != null) {
+    final filePath = pathConverter(result.files.first.path!);
+    final basePath = filePath.sublist(0, filePath.length - 1);
+    final files = await LocalStorage(
+      type: 'local',
+      name: result.files.first.name,
+      basePath: basePath,
+    ).getFiles(basePath);
+
+    final playQueue = fileFilter(files, 'video');
+    final clickedFile = playQueue
+        .where((file) => file.uri == filePath.join('/').toString())
+        .first;
+    final index = playQueue.indexOf(clickedFile);
+
+    if (playQueue.isEmpty || index < 0) return;
+
+    await useAppStore().updateAutoPlay(true);
+    await usePlayQueueStore().updatePlayQueue(playQueue, index);
   }
 }

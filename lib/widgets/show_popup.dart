@@ -6,11 +6,11 @@ import 'package:window_manager/window_manager.dart';
 
 enum PopupDirection { left, right }
 
-void showPopup(
+Future<void> showPopup(
         {required BuildContext context,
         required Widget child,
-        required PopupDirection direction}) =>
-    Navigator.of(context).push(Popup(child: child, direction: direction));
+        required PopupDirection direction}) async =>
+    await Navigator.of(context).push(Popup(child: child, direction: direction));
 
 class Popup<T> extends PopupRoute<T> {
   Popup({

@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
+import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/pages/player/subtitles_menu_button.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -28,15 +29,19 @@ class IrisPlayer extends HookWidget {
     final t = getLocalizations(context);
     final player = useMemoized(() => Player());
     final controller = useMemoized(() => VideoController(player));
-    PlayerCore playerCore = usePlayerCore(context, player);
-    PlayerController playerController =
-        usePlayerController(context, playerCore);
 
     useEffect(() {
       return player.dispose;
     }, []);
 
-    final isShowControlBar = useState(true);
+    PlayerCore playerCore = usePlayerCore(context, player);
+    PlayerController playerController =
+        usePlayerController(context, playerCore);
+
+    final isShowControl = useState(true);
+    final isHover = useState(true);
+    final isTouch = useState(false);
+
     final hideTimer = useRef<Timer?>(null);
 
     final isMaximized =
@@ -67,8 +72,8 @@ class IrisPlayer extends HookWidget {
 
     void startHideTimer() {
       hideTimer.value = Timer(const Duration(seconds: 5), () {
-        if (isShowControlBar.value) {
-          isShowControlBar.value = false;
+        if (isShowControl.value && !isHover.value) {
+          isShowControl.value = false;
         }
       });
     }
@@ -78,24 +83,20 @@ class IrisPlayer extends HookWidget {
       startHideTimer();
     }
 
+    void showControl() {
+      isShowControl.value = true;
+      resetHideTimer();
+    }
+
+    void hideControl() {
+      isShowControl.value = false;
+      hideTimer.value?.cancel();
+    }
+
     useEffect(() {
       startHideTimer();
       return () => hideTimer.value?.cancel();
     }, []);
-
-    void showControlBar() {
-      isShowControlBar.value = true;
-      resetHideTimer();
-    }
-
-    void toggleControlBar() {
-      isShowControlBar.value = !isShowControlBar.value;
-      if (isShowControlBar.value) {
-        startHideTimer();
-      } else {
-        resetHideTimer();
-      }
-    }
 
     useEffect(() {
       if (isDesktop()) {
@@ -107,30 +108,86 @@ class IrisPlayer extends HookWidget {
 
     return Stack(
       children: [
+        // Video
         Positioned(
           left: 0,
           top: 0,
           right: 0,
           bottom: 0,
           child: MouseRegion(
-            cursor: isShowControlBar.value || !playerCore.playing
+            cursor: isShowControl.value || !playerCore.playing
                 ? SystemMouseCursors.basic
                 : SystemMouseCursors.none,
-            onEnter: (_) => showControlBar(),
-            onHover: (PointerHoverEvent event) {
-              if (event.kind == PointerDeviceKind.mouse) {
-                showControlBar();
+            onEnter: (event) {
+              if (event.kind != PointerDeviceKind.touch) {
+                isHover.value = false;
+                showControl();
+              }
+            },
+            onExit: (event) {
+              if (event.kind != PointerDeviceKind.touch) {
+                isHover.value = false;
+                if (playerCore.playing) {
+                  hideControl();
+                }
+              }
+            },
+            onHover: (event) {
+              if (event.kind != PointerDeviceKind.touch) {
+                isHover.value = false;
+                showControl();
               }
             },
             child: GestureDetector(
-              onTap: () => toggleControlBar(),
-              onDoubleTap: () async => isDesktop()
-                  ? useAppStore().toggleFullScreen()
-                  : player.state.playing == true
-                      ? player.pause()
-                      : player.play(),
-              onPanUpdate: (DragUpdateDetails details) {
-                if (isDesktop()) windowManager.startDragging();
+              onTap: () {
+                isHover.value = false;
+                if (isShowControl.value) {
+                  hideControl();
+                } else {
+                  showControl();
+                }
+              },
+              onDoubleTapDown: (details) {
+                showControl();
+                if (details.kind == PointerDeviceKind.touch) {
+                  double position = details.globalPosition.dx / width;
+                  if (position > 0.75) {
+                    int seconds = playerCore.position.inSeconds + 10;
+                    playerCore.seek(Duration(seconds: seconds));
+                  } else if (position < 0.25) {
+                    int seconds = playerCore.position.inSeconds - 10;
+                    playerCore.seek(Duration(seconds: seconds));
+                  } else {
+                    player.state.playing == true
+                        ? player.pause()
+                        : player.play();
+                  }
+                } else {
+                  if (isDesktop()) {
+                    useAppStore().toggleFullScreen();
+                  }
+                }
+              },
+              // onLongPressDown: (details) {
+              //   if (details.kind == PointerDeviceKind.touch &&
+              //       playerCore.playing) {
+              //     playerCore.updateRate(2.0);
+              //   }
+              // },
+              // onLongPressUp: () => playerCore.updateRate(1.0),
+              // onLongPressEnd: (details) => playerCore.updateRate(1.0),
+              // onLongPressCancel: () => playerCore.updateRate(1.0),
+              onPanStart: (details) {
+                if (details.kind == PointerDeviceKind.touch) {
+                  isTouch.value = true;
+                } else {
+                  isTouch.value = false;
+                }
+              },
+              onPanUpdate: (details) {
+                if (isDesktop() && !isTouch.value) {
+                  windowManager.startDragging();
+                }
               },
               child: Video(
                 controller: controller,
@@ -138,7 +195,7 @@ class IrisPlayer extends HookWidget {
                 subtitleViewConfiguration: SubtitleViewConfiguration(
                   style: const TextStyle(
                     height: 1.6,
-                    fontSize: 44.0,
+                    fontSize: 46.0,
                     letterSpacing: 0.0,
                     wordSpacing: 0.0,
                     color: Color.fromARGB(255, 255, 255, 255),
@@ -147,56 +204,122 @@ class IrisPlayer extends HookWidget {
                     shadows: [
                       Shadow(
                         color: Color.fromARGB(255, 0, 0, 0),
-                        offset: Offset(2.0, 2.0),
-                        blurRadius: 3.0,
+                        offset: Offset(1.0, 1.0),
+                        blurRadius: 8.0,
                       ),
                     ],
                   ),
                   textAlign: TextAlign.center,
                   padding: EdgeInsets.fromLTRB(0, 0, 0,
-                      isShowControlBar.value || !playerCore.playing ? 128 : 24),
+                      isShowControl.value || !playerCore.playing ? 128 : 24),
                 ),
               ),
             ),
           ),
         ),
+        // AppBar
         AnimatedPositioned(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOutCubicEmphasized,
-          top: isShowControlBar.value || !playerCore.playing ? 0 : -64,
+          top: isShowControl.value || !playerCore.playing ? 0 : -64,
           left: 0,
           right: 0,
           child: MouseRegion(
-            onEnter: (_) => showControlBar(),
-            onHover: (PointerHoverEvent event) {
-              if (event.kind == PointerDeviceKind.mouse) {
-                showControlBar();
+            onEnter: (event) {
+              if (event.kind != PointerDeviceKind.touch) {
+                showControl();
+              }
+            },
+            onExit: (event) {
+              if (event.kind != PointerDeviceKind.touch) {
+                isHover.value = false;
+                resetHideTimer();
+              }
+            },
+            onHover: (event) {
+              if (event.kind != PointerDeviceKind.touch) {
+                showControl();
               }
             },
             child: GestureDetector(
-              onTap: () => showControlBar(),
+              onTapDown: (details) {
+                if (details.kind == PointerDeviceKind.touch) {
+                  isHover.value = false;
+                }
+                showControl();
+              },
               child: CustomAppBar(
                 title: playerCore.title,
                 actions: [
-                  IconButton(
-                    tooltip: t.settings,
-                    icon: const Icon(Icons.settings_rounded),
-                    onPressed: () => showPopup(
-                      context: context,
-                      child: const Settings(),
-                      direction: PopupDirection.right,
-                    ),
-                  ),
+                  width > 600
+                      ? const SizedBox(width: 8)
+                      : Row(
+                          children: [
+                            IconButton(
+                              tooltip: t.open_file,
+                              icon: const Icon(Icons.file_open_rounded),
+                              iconSize: 18,
+                              onPressed: () async {
+                                showControl();
+                                await pickFile();
+                                showControl();
+                              },
+                            ),
+                            // IconButton(
+                            //   tooltip: t.open_link,
+                            //   icon: const Icon(Icons.file_present_rounded),
+                            //   iconSize: 18,
+                            //   onPressed: () async {
+                            //     showControl();
+                            //     await pickFile();
+                            //     showControl();
+                            //   },
+                            // ),
+                            SubtitlesMenuButton(playerCore: playerCore),
+                            IconButton(
+                              tooltip: t.settings,
+                              icon: const Icon(Icons.settings_rounded),
+                              iconSize: 20,
+                              onPressed: () async {
+                                showControl();
+                                await showPopup(
+                                  context: context,
+                                  child: const Settings(),
+                                  direction: PopupDirection.right,
+                                );
+                              },
+                            ),
+                            Visibility(
+                              visible: isDesktop(),
+                              child: IconButton(
+                                tooltip: isFullScreen
+                                    ? t.exit_fullscreen
+                                    : t.enter_fullscreen,
+                                icon: Icon(
+                                  isFullScreen
+                                      ? Icons.close_fullscreen_rounded
+                                      : Icons.open_in_full_rounded,
+                                  size: 18,
+                                ),
+                                onPressed: () {
+                                  showControl();
+                                  useAppStore().toggleFullScreen();
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                   const SizedBox(width: 8),
                 ],
               ),
             ),
           ),
         ),
+        // ControlBar
         AnimatedPositioned(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOutCubicEmphasized,
-          bottom: isShowControlBar.value || !playerCore.playing ? 16 : -96,
+          bottom: isShowControl.value || !playerCore.playing ? 16 : -96,
           left: 0,
           right: 0,
           child: Align(
@@ -204,17 +327,33 @@ class IrisPlayer extends HookWidget {
             child: SizedBox(
               width: controlBarWidth,
               child: MouseRegion(
-                onEnter: (_) => showControlBar(),
-                onHover: (PointerHoverEvent event) {
-                  if (event.kind == PointerDeviceKind.mouse) {
-                    showControlBar();
+                onEnter: (event) {
+                  if (event.kind != PointerDeviceKind.touch) {
+                    showControl();
+                  }
+                },
+                onExit: (event) {
+                  if (event.kind != PointerDeviceKind.touch) {
+                    isHover.value = false;
+                    resetHideTimer();
+                  }
+                },
+                onHover: (event) {
+                  if (event.kind != PointerDeviceKind.touch) {
+                    showControl();
                   }
                 },
                 child: GestureDetector(
-                  onTap: () => showControlBar(),
+                  onTapDown: (details) {
+                    if (details.kind == PointerDeviceKind.touch) {
+                      isHover.value = false;
+                    }
+                    showControl();
+                  },
                   child: ControlBar(
                     playerCore: playerCore,
                     playerController: playerController,
+                    showControl: showControl,
                   ),
                 ),
               ),

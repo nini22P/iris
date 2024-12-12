@@ -22,8 +22,11 @@ class PlayerCore {
   final Duration duration;
   final bool seeking;
   final bool completed;
+  final double rate;
+  final void Function(Duration) seek;
   final void Function(Duration) updatePosition;
   final void Function(bool) updateSeeking;
+  final void Function(double) updateRate;
 
   PlayerCore(
     this.player,
@@ -39,8 +42,11 @@ class PlayerCore {
     this.duration,
     this.seeking,
     this.completed,
+    this.rate,
+    this.seek,
     this.updatePosition,
     this.updateSeeking,
+    this.updateRate,
   );
 }
 
@@ -66,6 +72,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final position = useState(Duration.zero);
   final duration = useState(Duration.zero);
   final completed = useState(false);
+  final rate = useState(1.0);
 
   final subtitle = useState(SubtitleTrack.no());
   final subtitles = useState<List<SubtitleTrack>>([]);
@@ -77,6 +84,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final positionStream = useStream(player.stream.position);
   final durationStream = useStream(player.stream.duration);
   final completedStream = useStream(player.stream.completed);
+  final rateStream = useStream(player.stream.rate);
 
   if (playingStream.hasData) {
     playing.value = playingStream.data!;
@@ -94,6 +102,10 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
 
   if (completedStream.hasData) {
     completed.value = completedStream.data!;
+  }
+
+  if (rateStream.hasData) {
+    rate.value = rateStream.data!;
   }
 
   useEffect(() {
@@ -143,9 +155,18 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     return null;
   }, [duration.value]);
 
+  void seek(Duration newPosition) => newPosition.inSeconds < 0
+      ? player.seek(Duration.zero)
+      : newPosition.inSeconds > duration.value.inSeconds
+          ? player.seek(duration.value)
+          : player.seek(newPosition);
+
   void updatePosition(Duration newPosition) => position.value = newPosition;
 
   void updateSeeking(bool value) => seeking.value = value;
+
+  void updateRate(double value) =>
+      rate.value == value ? null : player.setRate(value);
 
   return PlayerCore(
     player,
@@ -161,7 +182,10 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     duration.value,
     seeking.value,
     completed.value,
+    rate.value,
+    seek,
     updatePosition,
     updateSeeking,
+    updateRate,
   );
 }

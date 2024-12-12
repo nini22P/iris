@@ -46,6 +46,7 @@ class FavoriteStoragesList extends HookWidget {
         trailing: PopupMenuButton<String>(
           tooltip: t.menu,
           clipBehavior: Clip.hardEdge,
+          color: Theme.of(context).colorScheme.surface.withAlpha(250),
           onSelected: (value) {
             switch (value) {
               case 'edit':

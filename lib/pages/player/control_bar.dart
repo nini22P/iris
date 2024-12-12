@@ -1,23 +1,19 @@
-import 'dart:developer';
 import 'dart:ui';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/pages/player/subtitles_menu_button.dart';
+import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
-import 'package:iris/utils/check_file_type.dart';
-import 'package:iris/utils/file_filter.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/pages/player/play_queue.dart';
-import 'package:iris/utils/path_converter.dart';
 import 'package:iris/widgets/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
 String formatDurationToMinutes(Duration duration) {
@@ -33,10 +29,12 @@ class ControlBar extends HookWidget {
     super.key,
     required this.playerCore,
     required this.playerController,
+    required this.showControl,
   });
 
   final PlayerCore playerCore;
   final PlayerController playerController;
+  final void Function() showControl;
 
   @override
   Widget build(BuildContext context) {
@@ -47,90 +45,6 @@ class ControlBar extends HookWidget {
         usePlayQueueStore().select(context, (state) => state.playQueue.length);
     final currentIndex =
         usePlayQueueStore().select(context, (state) => state.currentIndex);
-    final externalSubtitles = useMemoized(
-        () => [...playerCore.externalSubtitles]..removeWhere((subtitle) =>
-            playerCore.subtitles.any((item) => item.title == subtitle.name)),
-        [playerCore.externalSubtitles, playerCore.subtitles]);
-    Widget subtitlesMenuButton = PopupMenuButton(
-      tooltip: t.subtitles,
-      icon: Icon(
-        playerCore.subtitle == SubtitleTrack.no()
-            ? Icons.subtitles_off_rounded
-            : Icons.subtitles_rounded,
-        size: 18,
-        color: Theme.of(context).colorScheme.onSurface.withAlpha(222),
-      ),
-      clipBehavior: Clip.hardEdge,
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
-          child: Text(
-            t.off,
-            style: TextStyle(
-                color: playerCore.subtitle == SubtitleTrack.no()
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurface.withAlpha(222)),
-          ),
-          onTap: () => playerCore.player.setSubtitleTrack(SubtitleTrack.no()),
-        ),
-        ...playerCore.subtitles.map((subtitle) => PopupMenuItem(
-              padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
-              onTap: () async => playerCore.player.setSubtitleTrack(subtitle),
-              child: Text(
-                '${subtitle.title ?? subtitle.language}',
-                style: TextStyle(
-                    color: playerCore.subtitle == subtitle
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withAlpha(222)),
-              ),
-            )),
-        ...externalSubtitles.map((subtitle) => PopupMenuItem(
-              padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
-              onTap: () {
-                log('Set external subtitle: ${subtitle.name}');
-                playerCore.player.setSubtitleTrack(SubtitleTrack.uri(
-                  subtitle.uri,
-                  title: subtitle.name,
-                ));
-              },
-              child: Text(
-                subtitle.name,
-                style: TextStyle(
-                    color:
-                        Theme.of(context).colorScheme.onSurface.withAlpha(222)),
-              ),
-            )),
-      ],
-    );
-
-    void pickFile() async {
-      FilePickerResult? result = await FilePicker.platform
-          .pickFiles(type: FileType.custom, allowedExtensions: Formats.video);
-
-      if (result != null) {
-        final filePath = pathConverter(result.files.first.path!);
-        final basePath = filePath.sublist(0, filePath.length - 1);
-        final files = await LocalStorage(
-          type: 'local',
-          name: result.files.first.name,
-          basePath: basePath,
-        ).getFiles(basePath);
-
-        final playQueue = fileFilter(files, 'video');
-        final clickedFile = playQueue
-            .where((file) => file.uri == filePath.join('/').toString())
-            .first;
-        final index = playQueue.indexOf(clickedFile);
-
-        if (playQueue.isEmpty || index < 0) return;
-
-        await useAppStore().updateAutoPlay(true);
-        await usePlayQueueStore().updatePlayQueue(playQueue, index);
-      }
-    }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
@@ -187,6 +101,7 @@ class ControlBar extends HookWidget {
                             min: 0,
                             max: playerCore.duration.inSeconds.toDouble(),
                             onChanged: (value) {
+                              showControl();
                               playerCore.updateSeeking(true);
                               playerCore.updatePosition(
                                   Duration(seconds: value.toInt()));
@@ -210,7 +125,7 @@ class ControlBar extends HookWidget {
                       ),
                     ])),
             Container(
-              padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -219,21 +134,44 @@ class ControlBar extends HookWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        IconButton(
-                          tooltip: t.open_file,
-                          icon: const Icon(Icons.file_open_rounded),
-                          iconSize: 18,
-                          onPressed: () => pickFile(),
+                        Visibility(
+                          visible: MediaQuery.of(context).size.width > 600,
+                          child: IconButton(
+                            tooltip: t.open_file,
+                            icon: const Icon(Icons.file_open_rounded),
+                            iconSize: 18,
+                            onPressed: () async {
+                              showControl();
+                              await pickFile();
+                              showControl();
+                            },
+                          ),
                         ),
+                        // Visibility(
+                        //   visible: MediaQuery.of(context).size.width > 600,
+                        //   child: IconButton(
+                        //     tooltip: t.open_link,
+                        //     icon: const Icon(Icons.file_present_rounded),
+                        //     iconSize: 18,
+                        //     onPressed: () async {
+                        //       showControl();
+                        //       await pickFile();
+                        //       showControl();
+                        //     },
+                        //   ),
+                        // ),
                         IconButton(
                           tooltip: t.storages,
                           icon: const Icon(Icons.storage_rounded),
                           iconSize: 18,
-                          onPressed: () => showPopup(
-                            context: context,
-                            child: const Storages(),
-                            direction: PopupDirection.left,
-                          ),
+                          onPressed: () async {
+                            showControl();
+                            await showPopup(
+                              context: context,
+                              child: const Storages(),
+                              direction: PopupDirection.left,
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -248,9 +186,12 @@ class ControlBar extends HookWidget {
                             Icons.skip_previous_rounded,
                             size: 32,
                           ),
-                          onPressed: playQueueLength > 0 && currentIndex > 0
-                              ? playerController.previous
-                              : null,
+                          onPressed: () {
+                            showControl();
+                            if (playQueueLength > 0 && currentIndex > 0) {
+                              playerController.previous();
+                            }
+                          },
                         ),
                       ),
                       IconButton(
@@ -261,18 +202,19 @@ class ControlBar extends HookWidget {
                               : Icons.play_circle_outline_rounded,
                           size: 42,
                         ),
-                        onPressed: playQueueLength > 0
-                            ? () {
-                                if (playerCore.playing == true) {
-                                  playerController.pause();
-                                } else {
-                                  if (isDesktop()) {
-                                    windowManager.setTitle(playerCore.title);
-                                  }
-                                  playerController.play();
-                                }
+                        onPressed: () {
+                          showControl();
+                          if (playQueueLength > 0) {
+                            if (playerCore.playing == true) {
+                              playerController.pause();
+                            } else {
+                              if (isDesktop()) {
+                                windowManager.setTitle(playerCore.title);
                               }
-                            : null,
+                              playerController.play();
+                            }
+                          }
+                        },
                       ),
                       Visibility(
                         visible: playQueueLength > 1,
@@ -282,10 +224,13 @@ class ControlBar extends HookWidget {
                             Icons.skip_next_rounded,
                             size: 32,
                           ),
-                          onPressed: playQueueLength > 0 &&
-                                  currentIndex < playQueueLength - 1
-                              ? playerController.next
-                              : null,
+                          onPressed: () {
+                            showControl();
+                            if (playQueueLength > 0 &&
+                                currentIndex < playQueueLength - 1) {
+                              playerController.next();
+                            }
+                          },
                         ),
                       ),
                     ],
@@ -294,18 +239,25 @@ class ControlBar extends HookWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        subtitlesMenuButton,
                         IconButton(
                           tooltip: t.play_queue,
                           icon: const Icon(Icons.playlist_play_rounded),
-                          onPressed: () => showPopup(
-                            context: context,
-                            child: const PlayQueue(),
-                            direction: PopupDirection.right,
-                          ),
+                          onPressed: () async {
+                            showControl();
+                            await showPopup(
+                              context: context,
+                              child: const PlayQueue(),
+                              direction: PopupDirection.right,
+                            );
+                          },
                         ),
                         Visibility(
-                          visible: isDesktop(),
+                          visible: MediaQuery.of(context).size.width > 600,
+                          child: SubtitlesMenuButton(playerCore: playerCore),
+                        ),
+                        Visibility(
+                          visible: isDesktop() &&
+                              MediaQuery.of(context).size.width > 600,
                           child: IconButton(
                             tooltip: isFullScreen
                                 ? t.exit_fullscreen
@@ -316,7 +268,26 @@ class ControlBar extends HookWidget {
                                   : Icons.open_in_full_rounded,
                               size: 18,
                             ),
-                            onPressed: () => useAppStore().toggleFullScreen(),
+                            onPressed: () {
+                              showControl();
+                              useAppStore().toggleFullScreen();
+                            },
+                          ),
+                        ),
+                        Visibility(
+                          visible: MediaQuery.of(context).size.width > 600,
+                          child: IconButton(
+                            tooltip: t.settings,
+                            icon: const Icon(Icons.settings_rounded),
+                            iconSize: 20,
+                            onPressed: () async {
+                              showControl();
+                              await showPopup(
+                                context: context,
+                                child: const Settings(),
+                                direction: PopupDirection.right,
+                              );
+                            },
                           ),
                         ),
                       ],
