@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:iris/info.dart';
 import 'package:iris/pages/home_page.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -52,11 +53,8 @@ class MyApp extends HookWidget {
             ThemeMode.system,
         [theme]);
 
-    return MaterialApp(
-      title: INFO.title,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
-        useMaterial3: true,
+    ThemeData baseTheme(BuildContext context) {
+      return ThemeData(
         cardTheme: CardTheme(
           color: Colors.transparent,
           elevation: 0,
@@ -65,7 +63,6 @@ class MyApp extends HookWidget {
           ),
         ),
         popupMenuTheme: PopupMenuThemeData(
-          color: Theme.of(context).colorScheme.surface.withAlpha(250),
           menuPadding: const EdgeInsets.all(0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -78,8 +75,38 @@ class MyApp extends HookWidget {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
+      );
+    }
+
+    return MaterialApp(
+      title: INFO.title,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+        useMaterial3: true,
+        textTheme: GoogleFonts.notoSansScTextTheme(),
+        cardTheme: baseTheme(context).cardTheme,
+        popupMenuTheme: baseTheme(context).popupMenuTheme,
+        listTileTheme: baseTheme(context).listTileTheme,
       ),
-      darkTheme: ThemeData.dark(),
+      darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepOrange,
+          brightness: Brightness.dark,
+        ),
+        textTheme: GoogleFonts.notoSansScTextTheme(
+          ThemeData.dark(useMaterial3: true)
+              .copyWith(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: Colors.deepOrange,
+                  brightness: Brightness.dark,
+                ),
+              )
+              .textTheme,
+        ),
+        cardTheme: baseTheme(context).cardTheme,
+        popupMenuTheme: baseTheme(context).popupMenuTheme,
+        listTileTheme: baseTheme(context).listTileTheme,
+      ),
       themeMode: themeMode,
       home: const HomePage(),
       locale: language == 'auto' ? null : Locale(language),
