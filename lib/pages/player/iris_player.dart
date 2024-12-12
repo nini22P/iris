@@ -227,6 +227,7 @@ class IrisPlayer extends HookWidget {
           child: MouseRegion(
             onEnter: (event) {
               if (event.kind != PointerDeviceKind.touch) {
+                isHover.value = true;
                 showControl();
               }
             },
@@ -238,6 +239,7 @@ class IrisPlayer extends HookWidget {
             },
             onHover: (event) {
               if (event.kind != PointerDeviceKind.touch) {
+                isHover.value = true;
                 showControl();
               }
             },
@@ -329,6 +331,7 @@ class IrisPlayer extends HookWidget {
               child: MouseRegion(
                 onEnter: (event) {
                   if (event.kind != PointerDeviceKind.touch) {
+                    isHover.value = true;
                     showControl();
                   }
                 },
@@ -340,6 +343,7 @@ class IrisPlayer extends HookWidget {
                 },
                 onHover: (event) {
                   if (event.kind != PointerDeviceKind.touch) {
+                    isHover.value = true;
                     showControl();
                   }
                 },
