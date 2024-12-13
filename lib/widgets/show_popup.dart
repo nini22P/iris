@@ -1,7 +1,6 @@
+import 'dart:io';
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:iris/utils/is_desktop.dart';
 import 'package:window_manager/window_manager.dart';
 
 enum PopupDirection { left, right }
@@ -53,7 +52,7 @@ class Popup<T> extends PopupRoute<T> {
           bottom: 0,
           child: GestureDetector(
             onPanStart: (details) {
-              if (isDesktop()) {
+              if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
                 windowManager.startDragging();
               }
             },
@@ -61,7 +60,9 @@ class Popup<T> extends PopupRoute<T> {
           ),
         ),
         Positioned(
-          top: isDesktop() ? 64 : 16,
+          top: Platform.isWindows || Platform.isLinux || Platform.isMacOS
+              ? 64
+              : 16,
           left: direction == PopupDirection.left ? 16 : null,
           right: direction == PopupDirection.right ? 16 : null,
           bottom: 16,

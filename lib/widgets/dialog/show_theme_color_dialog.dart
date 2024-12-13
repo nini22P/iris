@@ -24,7 +24,7 @@ class ThemeColorDialog extends HookWidget {
     }
 
     return AlertDialog(
-      title: Text(t.theme_color),
+      title: Text(t.theme_mode),
       content: SingleChildScrollView(
           child: Column(
         children: [

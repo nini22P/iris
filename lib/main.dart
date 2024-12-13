@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
@@ -6,7 +8,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:iris/info.dart';
 import 'package:iris/pages/home_page.dart';
 import 'package:iris/store/use_app_store.dart';
-import 'package:iris/utils/is_desktop.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -15,11 +16,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
 
-  if (isDesktop()) {
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
 
     WindowOptions windowOptions = const WindowOptions(
-      size: Size(1280, 720),
+      size: Size(800, 600),
       minimumSize: Size(480, 270),
       center: true,
       backgroundColor: Colors.transparent,
@@ -27,6 +28,7 @@ void main() async {
       titleBarStyle: TitleBarStyle.hidden,
       title: INFO.title,
     );
+
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
       await windowManager.focus();

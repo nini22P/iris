@@ -1,11 +1,14 @@
 import 'dart:ui';
-
-import 'package:iris/utils/is_desktop.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart';
 
-Future<void> resizeWindow(double videoAspectRatio) async {
-  if (!isDesktop()) return;
+Future<void> resizeWindow(double? videoAspectRatio) async {
+  if (await windowManager.isFullScreen() ||
+      await windowManager.isMaximized() ||
+      videoAspectRatio == null) {
+    return;
+  }
 
   windowManager.setAspectRatio(videoAspectRatio);
 
@@ -27,11 +30,13 @@ Future<void> resizeWindow(double videoAspectRatio) async {
     final height = screenHeight * 0.8 / screen.scaleFactor;
     final width = height * videoAspectRatio;
     // windowManager.setAspectRatio(videoAspectRatio);
+    logger('Window resize: width: $width, height: $height');
     windowManager.setSize(Size(width, height));
   } else {
     final width = screenWidth * 0.8 / screen.scaleFactor;
     final height = width / videoAspectRatio;
     // windowManager.setAspectRatio(videoAspectRatio);
+    logger('Window resize: width: $width, height: $height');
     windowManager.setSize(Size(width, height));
   }
 }

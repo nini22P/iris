@@ -31,7 +31,7 @@
   "version": "Version",
   "source_code": "Source Code",
   "author": "Author",
-  "theme_color": "Theme Color",
+  "theme_mode": "Theme Mode",
   "auto": "Auto",
   "light": "Light",
   "dark": "Datk",

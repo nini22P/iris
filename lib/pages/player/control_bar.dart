@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -7,11 +8,10 @@ import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/pages/player/subtitles_menu_button.dart';
 import 'package:iris/pages/settings/settings.dart';
-import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/pages/player/play_queue.dart';
+import 'package:iris/utils/resize_window.dart';
 import 'package:iris/widgets/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
 import 'package:window_manager/window_manager.dart';
@@ -39,8 +39,9 @@ class ControlBar extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final isFullScreen =
-        useAppStore().select(context, (state) => state.isFullScreen);
+    bool isDesktop = useMemoized(
+        (() => Platform.isWindows || Platform.isLinux || Platform.isMacOS));
+
     final playQueueLength =
         usePlayQueueStore().select(context, (state) => state.playQueue.length);
     final currentIndex =
@@ -64,7 +65,8 @@ class ControlBar extends HookWidget {
                       Text(
                         formatDurationToMinutes(playerCore.position),
                         style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                             fontSize: 14,
                             decoration: TextDecoration.none),
                       ),
@@ -73,7 +75,7 @@ class ControlBar extends HookWidget {
                           data: SliderTheme.of(context).copyWith(
                             thumbColor: Theme.of(context)
                                 .colorScheme
-                                .onSurface
+                                .onSurfaceVariant
                                 .withAlpha(222),
                             thumbShape: const RoundSliderThumbShape(
                               enabledThumbRadius: 6,
@@ -86,11 +88,11 @@ class ControlBar extends HookWidget {
                                 overlayRadius: 12),
                             activeTrackColor: Theme.of(context)
                                 .colorScheme
-                                .onSurface
+                                .onSurfaceVariant
                                 .withOpacity(0.75),
                             inactiveTrackColor: Theme.of(context)
                                 .colorScheme
-                                .onSurface
+                                .onSurfaceVariant
                                 .withOpacity(0.5),
                             trackHeight: 4,
                           ),
@@ -119,7 +121,8 @@ class ControlBar extends HookWidget {
                       Text(
                         formatDurationToMinutes(playerCore.duration),
                         style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                             fontSize: 14,
                             decoration: TextDecoration.none),
                       ),
@@ -208,7 +211,7 @@ class ControlBar extends HookWidget {
                             if (playerCore.playing == true) {
                               playerController.pause();
                             } else {
-                              if (isDesktop()) {
+                              if (isDesktop) {
                                 windowManager.setTitle(playerCore.title);
                               }
                               playerController.play();
@@ -256,21 +259,33 @@ class ControlBar extends HookWidget {
                           child: SubtitlesMenuButton(playerCore: playerCore),
                         ),
                         Visibility(
-                          visible: isDesktop() &&
+                          visible: isDesktop &&
                               MediaQuery.of(context).size.width > 600,
-                          child: IconButton(
-                            tooltip: isFullScreen
-                                ? t.exit_fullscreen
-                                : t.enter_fullscreen,
-                            icon: Icon(
-                              isFullScreen
-                                  ? Icons.close_fullscreen_rounded
-                                  : Icons.open_in_full_rounded,
-                              size: 18,
-                            ),
-                            onPressed: () {
-                              showControl();
-                              useAppStore().toggleFullScreen();
+                          child: FutureBuilder<bool>(
+                            future: windowManager.isFullScreen(),
+                            builder: (BuildContext context,
+                                AsyncSnapshot<bool> snapshot) {
+                              final isFullScreen = snapshot.data ?? false;
+                              return IconButton(
+                                tooltip: isFullScreen
+                                    ? t.exit_fullscreen
+                                    : t.enter_fullscreen,
+                                icon: Icon(
+                                  isFullScreen
+                                      ? Icons.close_fullscreen_rounded
+                                      : Icons.open_in_full_rounded,
+                                  size: 18,
+                                ),
+                                onPressed: () async {
+                                  showControl();
+                                  if (isFullScreen) {
+                                    await windowManager.setFullScreen(false);
+                                    await resizeWindow(playerCore.aspectRatio);
+                                  } else {
+                                    await windowManager.setFullScreen(true);
+                                  }
+                                },
+                              );
                             },
                           ),
                         ),

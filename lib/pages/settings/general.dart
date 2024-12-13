@@ -31,7 +31,7 @@ class General extends HookWidget {
             : theme == 'dark'
                 ? Icons.dark_mode_rounded
                 : Icons.contrast_rounded),
-        title: Text(t.theme_color),
+        title: Text(t.theme_mode),
         subtitle: Text(() {
           switch (theme) {
             case 'auto':

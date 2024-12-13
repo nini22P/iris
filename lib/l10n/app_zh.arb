@@ -31,7 +31,7 @@
   "version": "版本",
   "source_code": "源码",
   "author": "作者",
-  "theme_color": "主题颜色",
+  "theme_mode": "主题模式",
   "auto": "自动",
   "light": "亮色",
   "dark": "暗色",
