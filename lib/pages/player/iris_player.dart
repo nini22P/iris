@@ -270,7 +270,10 @@ class IrisPlayer extends HookWidget {
                             Visibility(
                               visible: isDesktop,
                               child: FutureBuilder<bool>(
-                                future: windowManager.isFullScreen(),
+                                future: () async {
+                                  return (isDesktop &&
+                                      await windowManager.isFullScreen());
+                                }(),
                                 builder: (BuildContext context,
                                     AsyncSnapshot<bool> snapshot) {
                                   final isFullScreen = snapshot.data ?? false;

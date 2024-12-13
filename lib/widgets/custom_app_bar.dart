@@ -55,44 +55,54 @@ class CustomAppBar extends HookWidget {
                       onPressed: () => windowManager.minimize(),
                       icon: const Icon(Icons.remove_rounded),
                     ),
-                    FutureBuilder<bool>(
-                      future: windowManager.isFullScreen(),
-                      builder:
-                          (BuildContext context, AsyncSnapshot<bool> snapshot) {
-                        final isFullScreen = snapshot.data ?? false;
-                        return FutureBuilder<bool>(
-                          future: windowManager.isMaximized(),
-                          builder: (BuildContext context,
-                              AsyncSnapshot<bool> snapshot) {
-                            final isMaximized = snapshot.data ?? false;
-                            return IconButton(
-                              onPressed: () async {
-                                if (isFullScreen) {
-                                  await windowManager.setFullScreen(false);
-                                  await resizeWindow(playerCore.aspectRatio);
-                                } else if (isMaximized) {
-                                  await windowManager.unmaximize();
-                                  await resizeWindow(playerCore.aspectRatio);
-                                } else {
-                                  await windowManager.maximize();
-                                }
-                              },
-                              icon: isFullScreen == true
-                                  ? const Icon(Icons.close_fullscreen_rounded,
-                                      size: 20)
-                                  : isMaximized == true
-                                      ? const RotatedBox(
-                                          quarterTurns: 2,
-                                          child: Icon(
-                                            Icons.filter_none_rounded,
-                                            size: 18,
-                                          ))
-                                      : const Icon(
-                                          Icons.crop_din_rounded,
-                                          size: 20,
-                                        ),
-                            );
+                    FutureBuilder<Map<String, bool>>(
+                      future: () async {
+                        final isFullScreen =
+                            isDesktop && await windowManager.isFullScreen();
+                        final isMaximized =
+                            isDesktop && await windowManager.isMaximized();
+
+                        return {
+                          'isFullScreen': isFullScreen,
+                          'isMaximized': isMaximized,
+                        };
+                      }(),
+                      builder: (
+                        BuildContext context,
+                        AsyncSnapshot<Map<String, bool>> snapshot,
+                      ) {
+                        final isFullScreen =
+                            snapshot.data?['isFullScreen'] ?? false;
+                        final isMaximized =
+                            snapshot.data?['isMaximized'] ?? false;
+
+                        return IconButton(
+                          onPressed: () async {
+                            if (isFullScreen) {
+                              await windowManager.setFullScreen(false);
+                              await resizeWindow(playerCore.aspectRatio);
+                            } else if (isMaximized) {
+                              await windowManager.unmaximize();
+                              await resizeWindow(playerCore.aspectRatio);
+                            } else {
+                              await windowManager.maximize();
+                            }
                           },
+                          icon: isFullScreen
+                              ? const Icon(Icons.close_fullscreen_rounded,
+                                  size: 20)
+                              : isMaximized
+                                  ? const RotatedBox(
+                                      quarterTurns: 2,
+                                      child: Icon(
+                                        Icons.filter_none_rounded,
+                                        size: 18,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.crop_din_rounded,
+                                      size: 20,
+                                    ),
                         );
                       },
                     ),

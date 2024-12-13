@@ -23,32 +23,34 @@ class About extends HookWidget {
       return null;
     }, []);
 
-    return Column(
-      children: [
-        const ListTile(
-          leading: Icon(null),
-          title: Text(INFO.title),
-          subtitle: Text(INFO.description),
-        ),
-        ListTile(
-          leading: const Icon(Icons.info_rounded),
-          title: Text(t.version),
-          subtitle:
-              Text(packageInfo.value != null ? packageInfo.value!.version : ''),
-        ),
-        ListTile(
-          leading: const Icon(Icons.code_rounded),
-          title: Text(t.source_code),
-          subtitle: const Text(INFO.githubUrl),
-          onTap: () => launchURL(INFO.githubUrl),
-        ),
-        ListTile(
-          leading: const Icon(Icons.person_rounded),
-          title: Text(t.author),
-          subtitle: const Text(INFO.author),
-          onTap: () => launchURL(INFO.authorUrl),
-        ),
-      ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const ListTile(
+            leading: Icon(null),
+            title: Text(INFO.title),
+            subtitle: Text(INFO.description),
+          ),
+          ListTile(
+            leading: const Icon(Icons.info_rounded),
+            title: Text(t.version),
+            subtitle: Text(
+                packageInfo.value != null ? packageInfo.value!.version : ''),
+          ),
+          ListTile(
+            leading: const Icon(Icons.code_rounded),
+            title: Text(t.source_code),
+            subtitle: const Text(INFO.githubUrl),
+            onTap: () => launchURL(INFO.githubUrl),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person_rounded),
+            title: Text(t.author),
+            subtitle: const Text(INFO.author),
+            onTap: () => launchURL(INFO.authorUrl),
+          ),
+        ],
+      ),
     );
   }
 }

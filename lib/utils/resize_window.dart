@@ -1,4 +1,5 @@
-import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart';
@@ -9,6 +10,12 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
       videoAspectRatio == null) {
     return;
   }
+
+  final autoResize = useAppStore().state.autoResize;
+
+  if (!autoResize) return;
+
+  final centerOnResize = useAppStore().state.centerOnResize;
 
   windowManager.setAspectRatio(videoAspectRatio);
 
@@ -29,14 +36,40 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
   if (screenAspectRatio > videoAspectRatio) {
     final height = screenHeight * 0.8 / screen.scaleFactor;
     final width = height * videoAspectRatio;
-    // windowManager.setAspectRatio(videoAspectRatio);
+
     logger('Window resize: width: $width, height: $height');
-    windowManager.setSize(Size(width, height));
+
+    final size = Size(width, height);
+
+    resize(size, centerOnResize);
   } else {
     final width = screenWidth * 0.8 / screen.scaleFactor;
     final height = width / videoAspectRatio;
-    // windowManager.setAspectRatio(videoAspectRatio);
+
     logger('Window resize: width: $width, height: $height');
-    windowManager.setSize(Size(width, height));
+
+    final size = Size(width, height);
+
+    resize(size, centerOnResize);
+  }
+}
+
+Future<void> resize(Size size, bool? center) async {
+  if (center ?? false) {
+    Offset newPosition = await calcWindowPosition(
+      size,
+      Alignment.center,
+    );
+    windowManager.setBounds(
+      null,
+      position: newPosition,
+      size: size,
+      animate: true,
+    );
+  } else {
+    windowManager.setSize(
+      size,
+      animate: true,
+    );
   }
 }

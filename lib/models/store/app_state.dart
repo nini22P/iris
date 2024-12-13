@@ -7,6 +7,8 @@ class AppState {
   String subtitleLanguage;
   bool autoCheckUpdates;
   String language;
+  bool autoResize;
+  bool centerOnResize;
 
   AppState({
     this.autoPlay = false,
@@ -17,6 +19,8 @@ class AppState {
     this.subtitleLanguage = 'auto',
     this.autoCheckUpdates = true,
     this.language = 'auto',
+    this.autoResize = true,
+    this.centerOnResize = false,
   });
 
   AppState copyWith({
@@ -28,6 +32,8 @@ class AppState {
     String? subtitleLanguage,
     bool? autoCheckUpdates,
     String? language,
+    bool? autoResize,
+    bool? centerOnResize,
   }) =>
       AppState(
         autoPlay: autoPlay ?? this.autoPlay,
@@ -38,6 +44,8 @@ class AppState {
         subtitleLanguage: subtitleLanguage ?? this.subtitleLanguage,
         autoCheckUpdates: autoCheckUpdates ?? this.autoCheckUpdates,
         language: language ?? this.language,
+        autoResize: autoResize ?? this.autoResize,
+        centerOnResize: centerOnResize ?? this.centerOnResize,
       );
 
   Map<String, dynamic> toJson() {
@@ -49,7 +57,9 @@ class AppState {
       'theme': theme,
       'subtitleLanguage': subtitleLanguage,
       'autoCheckUpdates': autoCheckUpdates,
-      'language': language
+      'language': language,
+      'autoResize': autoResize,
+      'centerOnResize': centerOnResize,
     };
   }
 
@@ -63,6 +73,8 @@ class AppState {
       subtitleLanguage: json['subtitleLanguage'] ?? 'auto',
       autoCheckUpdates: json['autoCheckUpdates'] ?? true,
       language: json['language'] ?? 'auto',
+      autoResize: json['autoResize'] ?? true,
+      centerOnResize: json['centerOnResize'] ?? false,
     );
   }
 }

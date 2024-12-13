@@ -49,5 +49,7 @@
   "add_local_storage": "Add Local Storage",
   "edit_local_storage": "Edit Local Storage",
   "add_webdav_storage": "Add WebDAV Storage",
-  "edit_webdav_storage": "Edit WebDAV Storage"
+  "edit_webdav_storage": "Edit WebDAV Storage",
+  "auto_resize": "Auto Resize Window Proportion",
+  "center_on_resize": "Center On Resize"
 }

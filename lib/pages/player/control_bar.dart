@@ -262,7 +262,10 @@ class ControlBar extends HookWidget {
                           visible: isDesktop &&
                               MediaQuery.of(context).size.width > 600,
                           child: FutureBuilder<bool>(
-                            future: windowManager.isFullScreen(),
+                            future: () async {
+                              return (isDesktop &&
+                                  await windowManager.isFullScreen());
+                            }(),
                             builder: (BuildContext context,
                                 AsyncSnapshot<bool> snapshot) {
                               final isFullScreen = snapshot.data ?? false;

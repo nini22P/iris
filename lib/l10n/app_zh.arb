@@ -49,5 +49,7 @@
   "add_local_storage": "添加本地存储",
   "edit_local_storage": "编辑本地存储",
   "add_webdav_storage": "添加 WebDAV 存储",
-  "edit_webdav_storage": "编辑 WebDAV 存储"
+  "edit_webdav_storage": "编辑 WebDAV 存储",
+  "auto_resize": "自动调整窗口比例",
+  "center_on_resize": "调整窗口时移动到屏幕中心"
 }

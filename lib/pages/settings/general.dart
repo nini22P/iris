@@ -17,35 +17,39 @@ class General extends HookWidget {
     final language = useAppStore().select(context, (state) => state.language);
     final theme = useAppStore().select(context, (state) => state.theme);
 
-    return Column(children: [
-      ListTile(
-        leading: const Icon(Icons.translate_rounded),
-        title: Text(t.language),
-        subtitle:
-            Text(language == 'auto' ? t.auto : languages[language] ?? language),
-        onTap: () => showLanguageDialog(context),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.translate_rounded),
+            title: Text(t.language),
+            subtitle: Text(
+                language == 'auto' ? t.auto : languages[language] ?? language),
+            onTap: () => showLanguageDialog(context),
+          ),
+          ListTile(
+            leading: Icon(theme == 'light'
+                ? Icons.light_mode_rounded
+                : theme == 'dark'
+                    ? Icons.dark_mode_rounded
+                    : Icons.contrast_rounded),
+            title: Text(t.theme_mode),
+            subtitle: Text(() {
+              switch (theme) {
+                case 'auto':
+                  return t.auto;
+                case 'light':
+                  return t.light;
+                case 'dark':
+                  return t.dark;
+                default:
+                  return theme;
+              }
+            }()),
+            onTap: () => showThemeColorDialog(context),
+          ),
+        ],
       ),
-      ListTile(
-        leading: Icon(theme == 'light'
-            ? Icons.light_mode_rounded
-            : theme == 'dark'
-                ? Icons.dark_mode_rounded
-                : Icons.contrast_rounded),
-        title: Text(t.theme_mode),
-        subtitle: Text(() {
-          switch (theme) {
-            case 'auto':
-              return t.auto;
-            case 'light':
-              return t.light;
-            case 'dark':
-              return t.dark;
-            default:
-              return theme;
-          }
-        }()),
-        onTap: () => showThemeColorDialog(context),
-      ),
-    ]);
+    );
   }
 }
