@@ -51,7 +51,6 @@
   "add_webdav_storage": "Add WebDAV Storage",
   "edit_webdav_storage": "Edit WebDAV Storage",
   "auto_resize": "Auto Resize Window Proportion",
-  "center_on_resize": "Center On Resize",
   "always_on_top_on": "Always On Top: On",
   "always_on_top_off": "Always On Top: Off"
 }

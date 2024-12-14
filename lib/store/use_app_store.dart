@@ -26,11 +26,6 @@ class AppStore extends PersistentStore<AppState> {
     save(state);
   }
 
-  Future<void> toggleCenterOnResize() async {
-    set(state.copyWith(centerOnResize: !state.centerOnResize));
-    save(state);
-  }
-
   @override
   Future<AppState?> load() async {
     try {

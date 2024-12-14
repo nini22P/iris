@@ -51,7 +51,6 @@
   "add_webdav_storage": "添加 WebDAV 存储",
   "edit_webdav_storage": "编辑 WebDAV 存储",
   "auto_resize": "自动调整窗口比例",
-  "center_on_resize": "调整窗口时移动到屏幕中心",
   "always_on_top_on": "窗口置顶: 开",
   "always_on_top_off": "窗口置顶: 关"
 }

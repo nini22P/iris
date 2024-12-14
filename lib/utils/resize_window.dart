@@ -11,65 +11,77 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
     return;
   }
 
-  final autoResize = useAppStore().state.autoResize;
+  bool autoResize = useAppStore().state.autoResize;
 
   if (!autoResize) return;
 
-  final centerOnResize = useAppStore().state.centerOnResize;
-
   windowManager.setAspectRatio(videoAspectRatio);
 
-  final windowSize = await windowManager.getSize();
-  final windowAspectRatio = windowSize.aspectRatio;
+  Rect bounds = await windowManager.getBounds();
+  Size windowSize = bounds.size;
+  double windowAspectRatio = windowSize.aspectRatio;
 
   if (windowAspectRatio.toStringAsFixed(2) ==
       videoAspectRatio.toStringAsFixed(2)) return;
 
-  final screen = await getCurrentScreen();
+  Screen? screen = await getCurrentScreen();
 
   if (screen == null) return;
 
-  final screenWidth = screen.frame.size.width;
-  final screenHeight = screen.frame.size.height;
-  final screenAspectRatio = screen.frame.size.aspectRatio;
+  double screenWidth = screen.frame.size.width;
+  double screenHeight = screen.frame.size.height;
+  double screenAspectRatio = screen.frame.size.aspectRatio;
 
-  if (screenAspectRatio > videoAspectRatio) {
-    final height = screenHeight * 0.8 / screen.scaleFactor;
-    final width = height * videoAspectRatio;
+  Size size = Size(windowSize.height * videoAspectRatio, windowSize.height);
 
-    logger('Window resize: width: $width, height: $height');
+  if (size.width < screenWidth / screen.scaleFactor &&
+      size.height < screenHeight / screen.scaleFactor) {
+    logger('Window resize: $size');
 
-    final size = Size(width, height);
-
-    resize(size, centerOnResize);
-  } else {
-    final width = screenWidth * 0.8 / screen.scaleFactor;
-    final height = width / videoAspectRatio;
-
-    logger('Window resize: width: $width, height: $height');
-
-    final size = Size(width, height);
-
-    resize(size, centerOnResize);
-  }
-}
-
-Future<void> resize(Size size, bool? center) async {
-  if (center ?? false) {
-    Offset newPosition = await calcWindowPosition(
-      size,
-      Alignment.center,
-    );
     windowManager.setBounds(
       null,
-      position: newPosition,
+      position: Offset(
+          bounds.left < 0
+              ? 0
+              : screenWidth / screen.scaleFactor - bounds.left < size.width
+                  ? screenWidth / screen.scaleFactor - size.width
+                  : bounds.left,
+          bounds.top),
       size: size,
       animate: true,
     );
   } else {
-    windowManager.setSize(
+    Offset position = await calcWindowPosition(
       size,
-      animate: true,
+      Alignment.center,
     );
+
+    if (screenAspectRatio > videoAspectRatio) {
+      double height = screenHeight * 0.9 / screen.scaleFactor;
+      double width = height * videoAspectRatio;
+      Size size = Size(width, height);
+
+      logger('Window resize: $size');
+
+      windowManager.setBounds(
+        null,
+        position: position,
+        size: size,
+        animate: true,
+      );
+    } else {
+      double width = screenWidth * 0.9 / screen.scaleFactor;
+      double height = width / videoAspectRatio;
+      Size size = Size(width, height);
+
+      logger('Window resize: $size');
+
+      windowManager.setBounds(
+        null,
+        position: position,
+        size: size,
+        animate: true,
+      );
+    }
   }
 }

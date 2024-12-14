@@ -17,8 +17,6 @@ class Play extends HookWidget {
 
     final autoResize =
         useAppStore().select(context, (state) => state.autoResize);
-    final centerOnResize =
-        useAppStore().select(context, (state) => state.centerOnResize);
 
     return SingleChildScrollView(
       child: Column(
@@ -32,18 +30,6 @@ class Play extends HookWidget {
               trailing: Checkbox(
                 value: autoResize,
                 onChanged: (_) => useAppStore().toggleAutoResize(),
-              ),
-            ),
-          ),
-          Visibility(
-            visible: isDesktop,
-            child: ListTile(
-              leading: const Icon(Icons.center_focus_strong_rounded),
-              title: Text(t.center_on_resize),
-              onTap: () => useAppStore().toggleCenterOnResize(),
-              trailing: Checkbox(
-                value: centerOnResize,
-                onChanged: (_) => useAppStore().toggleCenterOnResize(),
               ),
             ),
           ),
