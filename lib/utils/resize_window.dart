@@ -18,10 +18,8 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
   windowManager.setAspectRatio(videoAspectRatio);
 
   Rect bounds = await windowManager.getBounds();
-  Size windowSize = bounds.size;
-  double windowAspectRatio = windowSize.aspectRatio;
 
-  if (windowAspectRatio.toStringAsFixed(2) ==
+  if (bounds.size.aspectRatio.toStringAsFixed(2) ==
       videoAspectRatio.toStringAsFixed(2)) return;
 
   Screen? screen = await getCurrentScreen();
@@ -32,7 +30,7 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
   double screenHeight = screen.frame.size.height;
   double screenAspectRatio = screen.frame.size.aspectRatio;
 
-  Size size = Size(windowSize.height * videoAspectRatio, windowSize.height);
+  Size size = Size(bounds.size.height * videoAspectRatio, bounds.size.height);
 
   if (size.width < screenWidth / screen.scaleFactor &&
       size.height < screenHeight / screen.scaleFactor) {
@@ -43,9 +41,11 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
       position: Offset(
           bounds.left < 0
               ? 0
-              : screenWidth / screen.scaleFactor - bounds.left < size.width
+              : screenWidth / screen.scaleFactor - bounds.left < size.width / 2
                   ? screenWidth / screen.scaleFactor - size.width
-                  : bounds.left,
+                  : bounds.left + bounds.size.width / 2 - size.width / 2 < 0
+                      ? 0
+                      : bounds.left + bounds.size.width / 2 - size.width / 2,
           bounds.top),
       size: size,
       animate: true,
