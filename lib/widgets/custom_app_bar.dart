@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
+import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/resize_window.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -20,6 +21,8 @@ class CustomAppBar extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = getLocalizations(context);
+
     bool isDesktop = useMemoized(
         (() => Platform.isWindows || Platform.isLinux || Platform.isMacOS));
 
@@ -51,6 +54,26 @@ class CustomAppBar extends HookWidget {
                 children: [
                   ...actions ?? [],
                   if (isDesktop) ...[
+                    FutureBuilder<bool>(
+                      future: windowManager.isAlwaysOnTop(),
+                      builder: (context, snapshot) {
+                        bool isAlwaysOnTop = snapshot.data ?? false;
+                        return IconButton(
+                          tooltip: isAlwaysOnTop
+                              ? t.always_on_top_on
+                              : t.always_on_top_off,
+                          icon: Icon(
+                            isAlwaysOnTop
+                                ? Icons.push_pin_rounded
+                                : Icons.push_pin_outlined,
+                            size: 18,
+                          ),
+                          onPressed: () =>
+                              windowManager.setAlwaysOnTop(!isAlwaysOnTop),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 8),
                     IconButton(
                       onPressed: () => windowManager.minimize(),
                       icon: const Icon(Icons.remove_rounded),

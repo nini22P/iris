@@ -304,7 +304,6 @@ class IrisPlayer extends HookWidget {
                             ),
                           ],
                         ),
-                  const SizedBox(width: 8),
                 ],
               ),
             ),
