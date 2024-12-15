@@ -18,7 +18,7 @@ class AppState {
     this.subtitleLanguage = 'auto',
     this.autoCheckUpdates = true,
     this.language = 'auto',
-    this.autoResize = true,
+    this.autoResize = false,
   });
 
   AppState copyWith({
@@ -68,7 +68,7 @@ class AppState {
       subtitleLanguage: json['subtitleLanguage'] ?? 'auto',
       autoCheckUpdates: json['autoCheckUpdates'] ?? true,
       language: json['language'] ?? 'auto',
-      autoResize: json['autoResize'] ?? true,
+      autoResize: json['autoResize'] ?? false,
     );
   }
 }

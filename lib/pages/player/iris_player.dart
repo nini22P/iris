@@ -195,7 +195,7 @@ class IrisPlayer extends HookWidget {
         AnimatedPositioned(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOutCubicEmphasized,
-          top: isShowControl.value || !playerCore.playing ? 0 : -64,
+          top: isShowControl.value ? 0 : -64,
           left: 0,
           right: 0,
           child: MouseRegion(
@@ -313,7 +313,7 @@ class IrisPlayer extends HookWidget {
         AnimatedPositioned(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOutCubicEmphasized,
-          bottom: isShowControl.value || !playerCore.playing ? 16 : -96,
+          bottom: isShowControl.value ? 16 : -96,
           left: 0,
           right: 0,
           child: Align(
