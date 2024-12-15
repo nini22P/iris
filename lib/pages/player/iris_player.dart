@@ -12,6 +12,8 @@ import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/pages/player/subtitles_menu_button.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/logger.dart';
+import 'package:iris/utils/path.dart';
 import 'package:iris/utils/resize_window.dart';
 import 'package:iris/widgets/custom_app_bar.dart';
 import 'package:iris/pages/player/control_bar.dart';
@@ -29,10 +31,43 @@ class IrisPlayer extends HookWidget {
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
     final focusNode = useFocusNode();
-    final player = useMemoized(() => Player());
+    final player = useMemoized(
+      () => Player(
+        configuration: const PlayerConfiguration(
+          libass: true,
+        ),
+      ),
+    );
     final controller = useMemoized(() => VideoController(player));
 
     useEffect(() {
+      () async {
+        if (Platform.isAndroid) {
+          NativePlayer nativePlayer = player.platform as NativePlayer;
+
+          final String dataDir = await getDataPath();
+          final String fontsDir = "$dataDir/fonts";
+
+          final Directory fontsDirectory = Directory(fontsDir);
+          if (!await fontsDirectory.exists()) {
+            await fontsDirectory.create(recursive: true);
+            logger('fonts directory created');
+          }
+
+          final File file = File("$fontsDir/NotoSansCJKsc-Medium.otf");
+          if (!await file.exists()) {
+            final ByteData data =
+                await rootBundle.load("assets/fonts/NotoSansCJKsc-Medium.otf");
+            final Uint8List buffer = data.buffer.asUint8List();
+            await file.create(recursive: true);
+            await file.writeAsBytes(buffer);
+            logger('NotoSansCJKsc-Medium.otf copied');
+          }
+
+          await nativePlayer.setProperty("sub-fonts-dir", fontsDir);
+          await nativePlayer.setProperty("sub-font", "NotoSansCJKsc-Medium");
+        }
+      }();
       return player.dispose;
     }, []);
 
@@ -237,27 +272,27 @@ class IrisPlayer extends HookWidget {
                 child: Video(
                   controller: controller,
                   controls: NoVideoControls,
-                  subtitleViewConfiguration: SubtitleViewConfiguration(
-                    style: const TextStyle(
-                      height: 1.6,
-                      fontSize: 46.0,
-                      letterSpacing: 0.0,
-                      wordSpacing: 0.0,
-                      color: Color.fromARGB(255, 255, 255, 255),
-                      fontWeight: FontWeight.normal,
-                      backgroundColor: Color.fromARGB(0, 0, 0, 0),
-                      shadows: [
-                        Shadow(
-                          color: Color.fromARGB(255, 0, 0, 0),
-                          offset: Offset(1.0, 1.0),
-                          blurRadius: 8.0,
-                        ),
-                      ],
-                    ),
-                    textAlign: TextAlign.center,
-                    padding: EdgeInsets.fromLTRB(
-                        0, 0, 0, isShowControl.value ? 128 : 24),
-                  ),
+                  // subtitleViewConfiguration: SubtitleViewConfiguration(
+                  //   style: const TextStyle(
+                  //     height: 1.6,
+                  //     fontSize: 32.0,
+                  //     letterSpacing: 0.0,
+                  //     wordSpacing: 0.0,
+                  //     color: Color.fromARGB(255, 255, 255, 255),
+                  //     fontWeight: FontWeight.normal,
+                  //     backgroundColor: Color.fromARGB(0, 0, 0, 0),
+                  //     shadows: [
+                  //       Shadow(
+                  //         color: Color.fromARGB(255, 0, 0, 0),
+                  //         offset: Offset(1.0, 1.0),
+                  //         blurRadius: 8.0,
+                  //       ),
+                  //     ],
+                  //   ),
+                  //   textAlign: TextAlign.center,
+                  //   padding: EdgeInsets.fromLTRB(
+                  //       0, 0, 0, isShowControl.value ? 128 : 24),
+                  // ),
                 ),
               ),
             ),
