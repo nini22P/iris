@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/store/use_play_queue_store.dart';
+import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -39,15 +40,36 @@ class PlayQueue extends HookWidget {
             child: ScrollablePositionedList.builder(
               itemCount: playQueue.length,
               itemBuilder: (context, index) => ListTile(
+                contentPadding: const EdgeInsets.fromLTRB(12, 0, 8, 0),
+                visualDensity:
+                    const VisualDensity(horizontal: -4, vertical: -4),
+                leading: Text(
+                  (index + 1).toString(),
+                  style: const TextStyle(
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                minLeadingWidth: 14,
                 title: Text(
                   playQueue[index].name,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: currentIndex == index
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                  ),
+                  style: currentIndex == index
+                      ? TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        )
+                      : null,
+                ),
+                subtitle: Row(
+                  children: [
+                    Text("${fileSizeConvert(playQueue[index].size)} MB",
+                        style: const TextStyle(
+                          fontSize: 13,
+                        )),
+                    const Spacer(),
+                  ],
                 ),
                 tileColor: currentIndex == index
                     ? Theme.of(context).colorScheme.onSurface.withAlpha(20)

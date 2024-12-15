@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
-import 'package:iris/hooks/use_get_files.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -34,10 +33,14 @@ class Files extends HookWidget {
 
     final title = storage.name;
 
-    final result = useGetFiles(currentPath, storage.getFiles);
+    final getFiles =
+        useMemoized(() async => storage.getFiles(currentPath), [currentPath]);
+
+    final result = useFuture(getFiles);
+
     final List<FileItem> files = result.data ?? [];
-    final isLoading = result.isLoading;
-    final error = result.error;
+    final isLoading = result.connectionState == ConnectionState.waiting;
+    final error = result.error != null;
 
     final filteredFiles = useMemoized(
         () =>
@@ -98,6 +101,8 @@ class Files extends HookWidget {
                             itemBuilder: (context, index) => ListTile(
                               contentPadding:
                                   const EdgeInsets.fromLTRB(16, 0, 8, 0),
+                              visualDensity: const VisualDensity(
+                                  horizontal: 0, vertical: -4),
                               leading: filteredFiles[index].isDir == true
                                   ? const Icon(Icons.folder_rounded)
                                   : const Icon(Icons.video_file_rounded),
@@ -111,7 +116,11 @@ class Files extends HookWidget {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                            "${fileSizeConvert(filteredFiles[index].size)} MB"),
+                                          "${fileSizeConvert(filteredFiles[index].size)} MB",
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                          ),
+                                        ),
                                         const Spacer(),
                                         const SizedBox(width: 16),
                                         ...filteredFiles[index]

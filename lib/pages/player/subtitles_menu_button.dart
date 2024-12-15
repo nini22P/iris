@@ -35,43 +35,54 @@ class SubtitlesMenuButton extends HookWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
           child: Text(
             t.off,
-            style: TextStyle(
-                color: playerCore.subtitle == SubtitleTrack.no()
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurface.withAlpha(222)),
+            style: playerCore.subtitle == SubtitleTrack.no()
+                ? TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
+                : TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
           ),
           onTap: () => playerCore.player.setSubtitleTrack(SubtitleTrack.no()),
         ),
-        ...playerCore.subtitles.map((subtitle) => PopupMenuItem(
-              padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
-              onTap: () async => playerCore.player.setSubtitleTrack(subtitle),
-              child: Text(
-                '${subtitle.title ?? subtitle.language}',
-                style: TextStyle(
-                    color: playerCore.subtitle == subtitle
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withAlpha(222)),
-              ),
-            )),
-        ...externalSubtitles.map((subtitle) => PopupMenuItem(
-              padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
-              onTap: () {
-                log('Set external subtitle: ${subtitle.name}');
-                playerCore.player.setSubtitleTrack(SubtitleTrack.uri(
+        ...playerCore.subtitles.map(
+          (subtitle) => PopupMenuItem(
+            padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
+            onTap: () async => playerCore.player.setSubtitleTrack(subtitle),
+            child: Text(
+              '${subtitle.title ?? subtitle.language}',
+              style: playerCore.subtitle == subtitle
+                  ? TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+            ),
+          ),
+        ),
+        ...externalSubtitles.map(
+          (subtitle) => PopupMenuItem(
+            padding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
+            onTap: () {
+              log('Set external subtitle: ${subtitle.name}');
+              playerCore.player.setSubtitleTrack(
+                SubtitleTrack.uri(
                   subtitle.uri,
                   title: subtitle.name,
-                ));
-              },
-              child: Text(
-                subtitle.name,
-                style: TextStyle(
-                    color:
-                        Theme.of(context).colorScheme.onSurface.withAlpha(222)),
+                ),
+              );
+            },
+            child: Text(
+              subtitle.name,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-            )),
+            ),
+          ),
+        ),
       ],
     );
   }

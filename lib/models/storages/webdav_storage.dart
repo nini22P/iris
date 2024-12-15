@@ -72,44 +72,40 @@ class WebdavStorage implements Storage {
 
   @override
   Future<List<FileItem>> getFiles(List<String> path) async {
-    try {
-      var client = webdav.newClient(
-        "http://$url:$port",
-        user: username,
-        password: password,
-        debug: false,
-      );
+    var client = webdav.newClient(
+      "http://$url:$port",
+      user: username,
+      password: password,
+      debug: false,
+    );
 
-      final String auth =
-          'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    final String auth =
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
-      client.setHeaders({'accept-charset': 'utf-8'});
-      client.setConnectTimeout(8000);
-      client.setSendTimeout(8000);
-      client.setReceiveTimeout(8000);
+    client.setHeaders({'accept-charset': 'utf-8'});
+    client.setConnectTimeout(8000);
+    client.setSendTimeout(8000);
+    client.setReceiveTimeout(8000);
 
-      var files = await client.readDir(path.join('/'));
+    var files = await client.readDir(path.join('/'));
 
-      final String baseUri = 'http://$url:$port/${path.join('/')}';
+    final String baseUri = 'http://$url:$port/${path.join('/')}';
 
-      return files
-          .map((file) => FileItem(
-                name: '${file.name}',
-                uri: '$baseUri/${file.name}',
-                path: [...path, '${file.name}'],
-                isDir: file.isDir ?? false,
-                size: file.size ?? 0,
-                type: checkFileType(file.name!),
-                auth: auth,
-                subtitles: findSubTitle(
-                    files.map((file) => file.name as String).toList(),
-                    file.name as String,
-                    baseUri),
-              ))
-          .toList();
-    } catch (e) {
-      throw Exception('Error occurred: $e');
-    }
+    return files
+        .map((file) => FileItem(
+              name: '${file.name}',
+              uri: '$baseUri/${file.name}',
+              path: [...path, '${file.name}'],
+              isDir: file.isDir ?? false,
+              size: file.size ?? 0,
+              type: checkFileType(file.name!),
+              auth: auth,
+              subtitles: findSubTitle(
+                  files.map((file) => file.name as String).toList(),
+                  file.name as String,
+                  baseUri),
+            ))
+        .toList();
   }
 
   @override
