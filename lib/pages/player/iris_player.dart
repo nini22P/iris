@@ -38,6 +38,7 @@ class IrisPlayer extends HookWidget {
 
     useEffect(() {
       focusNode.requestFocus();
+      return;
     }, []);
 
     bool isDesktop = useMemoized(

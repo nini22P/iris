@@ -19,6 +19,7 @@ class PlayerCore {
   final bool playing;
   final Duration position;
   final Duration duration;
+  final Duration buffer;
   final bool seeking;
   final bool completed;
   final double rate;
@@ -40,6 +41,7 @@ class PlayerCore {
     this.playing,
     this.position,
     this.duration,
+    this.buffer,
     this.seeking,
     this.completed,
     this.rate,
@@ -69,17 +71,17 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
 
   final seeking = useState(false);
 
-  final playing = useState(false);
+  bool playing = useStream(player.stream.playing).data ?? false;
   final position = useState(Duration.zero);
-  final duration = useState(Duration.zero);
-  final completed = useState(false);
-  final rate = useState(1.0);
-  final videoParams = useState<VideoParams?>(null);
-  final aspectRatio = videoParams.value != null &&
-          videoParams.value!.w != null &&
-          videoParams.value!.h != null
-      ? (videoParams.value!.w! / videoParams.value!.h!)
-      : null;
+  Duration duration = useStream(player.stream.duration).data ?? Duration.zero;
+  Duration buffer = useStream(player.stream.buffer).data ?? Duration.zero;
+  bool completed = useStream(player.stream.completed).data ?? false;
+  final rate = useStream(player.stream.rate).data ?? 1.0;
+  VideoParams? videoParams = useStream(player.stream.videoParams).data;
+  final aspectRatio =
+      videoParams != null && videoParams.w != null && videoParams.h != null
+          ? (videoParams.w! / videoParams.h!)
+          : null;
 
   final subtitle = useState(SubtitleTrack.no());
   final subtitles = useState<List<SubtitleTrack>>([]);
@@ -87,37 +89,12 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final List<Subtitle>? externalSubtitles =
       useMemoized(() => currentFile?.subtitles ?? [], [currentFile]);
 
-  final playingStream = useStream(player.stream.playing);
   final positionStream = useStream(player.stream.position);
-  final durationStream = useStream(player.stream.duration);
-  final completedStream = useStream(player.stream.completed);
-  final rateStream = useStream(player.stream.rate);
-  final videoParamsStream = useStream(player.stream.videoParams);
-
-  if (playingStream.hasData) {
-    playing.value = playingStream.data!;
-  }
 
   if (positionStream.hasData) {
     if (!seeking.value) {
       position.value = positionStream.data!;
     }
-  }
-
-  if (durationStream.hasData) {
-    duration.value = durationStream.data!;
-  }
-
-  if (completedStream.hasData) {
-    completed.value = completedStream.data!;
-  }
-
-  if (rateStream.hasData) {
-    rate.value = rateStream.data!;
-  }
-
-  if (videoParamsStream.hasData) {
-    videoParams.value = videoParamsStream.data!;
   }
 
   useEffect(() {
@@ -149,7 +126,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   }, [currentFile]);
 
   useEffect(() {
-    if (duration.value == Duration.zero) return;
+    if (duration == Duration.zero) return;
     if (externalSubtitles!.isNotEmpty) {
       log('Set external subtitle: ${externalSubtitles[0].name}');
       player.setSubtitleTrack(
@@ -165,20 +142,19 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       player.setSubtitleTrack(SubtitleTrack.no());
     }
     return null;
-  }, [duration.value]);
+  }, [duration]);
 
   void seek(Duration newPosition) => newPosition.inSeconds < 0
       ? player.seek(Duration.zero)
-      : newPosition.inSeconds > duration.value.inSeconds
-          ? player.seek(duration.value)
+      : newPosition.inSeconds > duration.inSeconds
+          ? player.seek(duration)
           : player.seek(newPosition);
 
   void updatePosition(Duration newPosition) => position.value = newPosition;
 
   void updateSeeking(bool value) => seeking.value = value;
 
-  void updateRate(double value) =>
-      rate.value == value ? null : player.setRate(value);
+  void updateRate(double value) => rate == value ? null : player.setRate(value);
 
   return PlayerCore(
     player,
@@ -189,12 +165,13 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     subtitle.value,
     subtitles.value,
     externalSubtitles ?? [],
-    playing.value,
+    playing,
     position.value,
-    duration.value,
+    duration,
+    buffer,
     seeking.value,
-    completed.value,
-    rate.value,
+    completed,
+    rate,
     aspectRatio,
     seek,
     updatePosition,

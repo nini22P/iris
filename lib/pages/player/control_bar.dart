@@ -71,51 +71,79 @@ class ControlBar extends HookWidget {
                             decoration: TextDecoration.none),
                       ),
                       Expanded(
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            thumbColor: Theme.of(context)
-                                .colorScheme
-                                .onSurfaceVariant
-                                .withAlpha(222),
-                            thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: 6,
-                              disabledThumbRadius: 6,
-                              elevation: 0,
-                              pressedElevation: 0,
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              left: 0,
+                              top: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  thumbShape: const RoundSliderThumbShape(
+                                    disabledThumbRadius: 0,
+                                    elevation: 0,
+                                    pressedElevation: 0,
+                                  ),
+                                  overlayShape: const RoundSliderOverlayShape(
+                                    overlayRadius: 12,
+                                  ),
+                                  trackShape: const RoundedActiveTrackShape(),
+                                  trackHeight: 3,
+                                ),
+                                child: Slider(
+                                  value: playerCore.buffer.inSeconds.toDouble(),
+                                  min: 0,
+                                  max: playerCore.duration.inSeconds.toDouble(),
+                                  onChanged: null,
+                                ),
+                              ),
                             ),
-                            // overlayColor: iconColor?.withOpacity(0.25),
-                            overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 12),
-                            activeTrackColor: Theme.of(context)
-                                .colorScheme
-                                .onSurfaceVariant
-                                .withOpacity(0.75),
-                            inactiveTrackColor: Theme.of(context)
-                                .colorScheme
-                                .onSurfaceVariant
-                                .withOpacity(0.5),
-                            trackHeight: 4,
-                          ),
-                          child: Slider(
-                            value: playerCore.duration.inSeconds.toDouble() == 0
-                                ? 0
-                                : playerCore.position.inSeconds.toDouble(),
-                            min: 0,
-                            max: playerCore.duration.inSeconds.toDouble(),
-                            onChanged: (value) {
-                              showControl();
-                              playerCore.updateSeeking(true);
-                              playerCore.updatePosition(
-                                  Duration(seconds: value.toInt()));
-                            },
-                            onChangeEnd: (value) async {
-                              playerCore.updatePosition(
-                                  Duration(seconds: value.toInt()));
-                              await playerCore.player
-                                  .seek(Duration(seconds: value.toInt()));
-                              playerCore.updateSeeking(false);
-                            },
-                          ),
+                            SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                thumbColor: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 6,
+                                ),
+                                overlayShape: const RoundSliderOverlayShape(
+                                  overlayRadius: 12,
+                                ),
+                                activeTrackColor: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant
+                                    .withOpacity(0.75),
+                                inactiveTrackColor: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant
+                                    .withOpacity(0.35),
+                                trackHeight: 4,
+                              ),
+                              child: Slider(
+                                value: playerCore.duration.inSeconds
+                                            .toDouble() ==
+                                        0
+                                    ? 0
+                                    : playerCore.position.inSeconds.toDouble(),
+                                min: 0,
+                                max: playerCore.duration.inSeconds.toDouble(),
+                                onChanged: (value) {
+                                  showControl();
+                                  playerCore.updateSeeking(true);
+                                  playerCore.updatePosition(
+                                      Duration(seconds: value.toInt()));
+                                },
+                                onChangeEnd: (value) async {
+                                  playerCore.updatePosition(
+                                      Duration(seconds: value.toInt()));
+                                  await playerCore.player
+                                      .seek(Duration(seconds: value.toInt()));
+                                  playerCore.updateSeeking(false);
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       Text(
@@ -317,6 +345,65 @@ class ControlBar extends HookWidget {
           ]),
         ),
       ),
+    );
+  }
+}
+
+class RoundedActiveTrackShape extends SliderTrackShape
+    with BaseSliderTrackShape {
+  const RoundedActiveTrackShape();
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset offset, {
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required Animation<double> enableAnimation,
+    required TextDirection textDirection,
+    required Offset thumbCenter,
+    Offset? secondaryOffset,
+    bool isDiscrete = false,
+    bool isEnabled = false,
+    double additionalActiveTrackHeight = 2,
+  }) {
+    assert(sliderTheme.disabledActiveTrackColor != null);
+    assert(sliderTheme.disabledInactiveTrackColor != null);
+    assert(sliderTheme.activeTrackColor != null);
+    assert(sliderTheme.inactiveTrackColor != null);
+    assert(sliderTheme.thumbShape != null);
+    if (sliderTheme.trackHeight == null || sliderTheme.trackHeight! <= 0) {
+      return;
+    }
+
+    final ColorTween activeTrackColorTween = ColorTween(
+        begin: sliderTheme.disabledActiveTrackColor,
+        end: sliderTheme.activeTrackColor);
+    final Paint activePaint = Paint()
+      ..color = activeTrackColorTween.evaluate(enableAnimation)!;
+
+    final Rect trackRect = getPreferredRect(
+      parentBox: parentBox,
+      offset: offset,
+      sliderTheme: sliderTheme,
+      isEnabled: isEnabled,
+      isDiscrete: isDiscrete,
+    );
+    final Radius activeTrackRadius =
+        Radius.circular((trackRect.height + additionalActiveTrackHeight) / 2);
+
+    context.canvas.drawRRect(
+      RRect.fromLTRBAndCorners(
+        trackRect.left,
+        trackRect.top - (additionalActiveTrackHeight / 2),
+        thumbCenter.dx,
+        trackRect.bottom + (additionalActiveTrackHeight / 2),
+        topLeft: activeTrackRadius,
+        bottomLeft: activeTrackRadius,
+        topRight: activeTrackRadius,
+        bottomRight: activeTrackRadius,
+      ),
+      activePaint,
     );
   }
 }
