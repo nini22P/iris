@@ -166,7 +166,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     subtitles.value,
     externalSubtitles ?? [],
     playing,
-    position.value,
+    duration == Duration.zero ? Duration.zero : position.value,
     duration,
     buffer,
     seeking.value,

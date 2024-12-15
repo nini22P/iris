@@ -20,7 +20,7 @@ void main() async {
     await windowManager.ensureInitialized();
 
     WindowOptions windowOptions = const WindowOptions(
-      size: Size(800, 600),
+      size: Size(1280, 720),
       minimumSize: Size(400, 240),
       center: true,
       backgroundColor: Colors.transparent,
