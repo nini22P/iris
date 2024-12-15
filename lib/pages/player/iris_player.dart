@@ -227,7 +227,6 @@ class IrisPlayer extends HookWidget {
                   }
                 },
                 onDoubleTapDown: (details) async {
-                  showControl();
                   if (details.kind == PointerDeviceKind.touch) {
                     double position = details.globalPosition.dx / width;
                     if (position > 0.75) {
@@ -235,9 +234,12 @@ class IrisPlayer extends HookWidget {
                     } else if (position < 0.25) {
                       playerController.backward();
                     } else {
-                      player.state.playing == true
-                          ? player.pause()
-                          : player.play();
+                      if (playerCore.playing == true) {
+                        playerController.pause();
+                        showControl();
+                      } else {
+                        playerController.play();
+                      }
                     }
                   } else {
                     if (isDesktop) {
