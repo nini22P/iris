@@ -101,8 +101,8 @@ class IrisPlayer extends HookWidget {
       return;
     }, [playerCore.title]);
 
-    void onKeyDown(KeyEvent event) async {
-      if (playerCore.duration != Duration.zero) {
+    void onKeyEvent(KeyEvent event) async {
+      if (event.runtimeType == KeyDownEvent) {
         if (HardwareKeyboard.instance.isControlPressed) {
           switch (event.logicalKey) {
             case LogicalKeyboardKey.arrowLeft:
@@ -132,12 +132,6 @@ class IrisPlayer extends HookWidget {
           case LogicalKeyboardKey.mediaTrackNext:
             playerController.next();
             break;
-          case LogicalKeyboardKey.arrowLeft:
-            playerController.backward();
-            break;
-          case LogicalKeyboardKey.arrowRight:
-            playerController.forward();
-            break;
           case LogicalKeyboardKey.enter:
           case LogicalKeyboardKey.f11:
             windowManager.setFullScreen(!await windowManager.isFullScreen());
@@ -153,15 +147,25 @@ class IrisPlayer extends HookWidget {
             break;
         }
       }
+
+      if (event.runtimeType == KeyDownEvent ||
+          event.runtimeType == KeyRepeatEvent) {
+        switch (event.logicalKey) {
+          case LogicalKeyboardKey.arrowLeft:
+            playerController.backward();
+            break;
+          case LogicalKeyboardKey.arrowRight:
+            playerController.forward();
+            break;
+          default:
+            break;
+        }
+      }
     }
 
     return KeyboardListener(
       focusNode: focusNode,
-      onKeyEvent: (event) {
-        if (event.runtimeType == KeyDownEvent) {
-          onKeyDown(event);
-        }
-      },
+      onKeyEvent: onKeyEvent,
       child: Stack(
         children: [
           // Video
