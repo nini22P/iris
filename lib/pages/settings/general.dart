@@ -4,8 +4,8 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/l10n/languages.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/widgets/dialog/show_language_dialog.dart';
-import 'package:iris/widgets/dialog/show_theme_color_dialog.dart';
+import 'package:iris/pages/dialog/show_language_dialog.dart';
+import 'package:iris/pages/dialog/show_theme_color_dialog.dart';
 
 class General extends HookWidget {
   const General({super.key});

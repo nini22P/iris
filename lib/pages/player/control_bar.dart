@@ -12,7 +12,7 @@ import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/utils/resize_window.dart';
-import 'package:iris/widgets/show_popup.dart';
+import 'package:iris/pages/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
 import 'package:window_manager/window_manager.dart';
 

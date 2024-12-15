@@ -5,8 +5,8 @@ import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/models/storages/webdav_storage.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/widgets/dialog/show_local_dialog.dart';
-import 'package:iris/widgets/dialog/show_webdav_dialog.dart';
+import 'package:iris/pages/dialog/show_local_dialog.dart';
+import 'package:iris/pages/dialog/show_webdav_dialog.dart';
 
 class FavoriteStoragesList extends HookWidget {
   const FavoriteStoragesList({super.key});

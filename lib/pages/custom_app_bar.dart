@@ -40,7 +40,7 @@ class CustomAppBar extends HookWidget {
                 child: Text(
                   title!.isEmpty ? INFO.title : title!,
                   maxLines: 1,
-                  textAlign: !isDesktop && actions != null
+                  textAlign: !isDesktop && actions == null
                       ? TextAlign.center
                       : TextAlign.start,
                   style: TextStyle(

@@ -15,9 +15,9 @@ import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/path.dart';
 import 'package:iris/utils/resize_window.dart';
-import 'package:iris/widgets/custom_app_bar.dart';
+import 'package:iris/pages/custom_app_bar.dart';
 import 'package:iris/pages/player/control_bar.dart';
-import 'package:iris/widgets/show_popup.dart';
+import 'package:iris/pages/show_popup.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:window_manager/window_manager.dart';
@@ -334,10 +334,10 @@ class IrisPlayer extends HookWidget {
                 child: CustomAppBar(
                   title: playerCore.title,
                   playerCore: playerCore,
-                  actions: [
-                    width > 600
-                        ? const SizedBox(width: 8)
-                        : Row(
+                  actions: width > 600
+                      ? null
+                      : [
+                          Row(
                             children: [
                               IconButton(
                                 tooltip: t.open_file,
@@ -411,7 +411,7 @@ class IrisPlayer extends HookWidget {
                               ),
                             ],
                           ),
-                  ],
+                        ],
                 ),
               ),
             ),

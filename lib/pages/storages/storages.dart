@@ -8,8 +8,8 @@ import 'package:iris/pages/storages/files.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/path_converter.dart';
-import 'package:iris/widgets/dialog/show_local_dialog.dart';
-import 'package:iris/widgets/dialog/show_webdav_dialog.dart';
+import 'package:iris/pages/dialog/show_local_dialog.dart';
+import 'package:iris/pages/dialog/show_webdav_dialog.dart';
 import 'package:iris/pages/storages/storages_list.dart';
 
 class Storages extends HookWidget {
