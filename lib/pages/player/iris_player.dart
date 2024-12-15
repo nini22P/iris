@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
 import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/pages/player/subtitles_menu_button.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -26,11 +28,16 @@ class IrisPlayer extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
+    final focusNode = useFocusNode();
     final player = useMemoized(() => Player());
     final controller = useMemoized(() => VideoController(player));
 
     useEffect(() {
       return player.dispose;
+    }, []);
+
+    useEffect(() {
+      focusNode.requestFocus();
     }, []);
 
     bool isDesktop = useMemoized(
@@ -93,253 +100,314 @@ class IrisPlayer extends HookWidget {
       return;
     }, [playerCore.title]);
 
-    return Stack(
-      children: [
-        // Video
-        Positioned(
-          left: 0,
-          top: 0,
-          right: 0,
-          bottom: 0,
-          child: MouseRegion(
-            cursor: isShowControl.value || !playerCore.playing
-                ? SystemMouseCursors.basic
-                : SystemMouseCursors.none,
-            onHover: (event) {
-              if (event.kind != PointerDeviceKind.touch) {
-                showControl();
-              }
-            },
-            child: GestureDetector(
-              onTap: () {
-                if (isShowControl.value) {
-                  hideControl();
-                } else {
+    void onKeyDown(KeyEvent event) async {
+      if (playerCore.duration != Duration.zero) {
+        if (HardwareKeyboard.instance.isControlPressed) {
+          switch (event.logicalKey) {
+            case LogicalKeyboardKey.arrowLeft:
+              playerController.previous();
+              break;
+            case LogicalKeyboardKey.arrowRight:
+              playerController.next();
+              break;
+            default:
+              break;
+          }
+          return;
+        }
+
+        switch (event.logicalKey) {
+          case LogicalKeyboardKey.space:
+          case LogicalKeyboardKey.mediaPlayPause:
+            if (playerCore.playing) {
+              playerController.pause();
+            } else {
+              playerController.play();
+            }
+            break;
+          case LogicalKeyboardKey.mediaTrackPrevious:
+            playerController.previous();
+            break;
+          case LogicalKeyboardKey.mediaTrackNext:
+            playerController.next();
+            break;
+          case LogicalKeyboardKey.arrowLeft:
+            playerController.backward();
+            break;
+          case LogicalKeyboardKey.arrowRight:
+            playerController.forward();
+            break;
+          case LogicalKeyboardKey.enter:
+          case LogicalKeyboardKey.f11:
+            windowManager.setFullScreen(!await windowManager.isFullScreen());
+            break;
+          case LogicalKeyboardKey.contextMenu:
+            showPopup(
+              context: context,
+              child: const PlayQueue(),
+              direction: PopupDirection.right,
+            );
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
+    return KeyboardListener(
+      focusNode: focusNode,
+      onKeyEvent: (event) {
+        if (event.runtimeType == KeyDownEvent) {
+          onKeyDown(event);
+        }
+      },
+      child: Stack(
+        children: [
+          // Video
+          Positioned(
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+            child: MouseRegion(
+              cursor: isShowControl.value || !playerCore.playing
+                  ? SystemMouseCursors.basic
+                  : SystemMouseCursors.none,
+              onHover: (event) {
+                if (event.kind != PointerDeviceKind.touch) {
                   showControl();
                 }
               },
-              onDoubleTapDown: (details) async {
-                showControl();
-                if (details.kind == PointerDeviceKind.touch) {
-                  double position = details.globalPosition.dx / width;
-                  if (position > 0.75) {
-                    int seconds = playerCore.position.inSeconds + 10;
-                    playerCore.seek(Duration(seconds: seconds));
-                  } else if (position < 0.25) {
-                    int seconds = playerCore.position.inSeconds - 10;
-                    playerCore.seek(Duration(seconds: seconds));
+              child: GestureDetector(
+                onTap: () {
+                  if (isShowControl.value) {
+                    hideControl();
                   } else {
-                    player.state.playing == true
-                        ? player.pause()
-                        : player.play();
-                  }
-                } else {
-                  if (isDesktop) {
-                    if (await windowManager.isFullScreen()) {
-                      await windowManager.setFullScreen(false);
-                      await resizeWindow(playerCore.aspectRatio);
-                    } else {
-                      await windowManager.setFullScreen(true);
-                    }
-                  }
-                }
-              },
-              // onLongPressDown: (details) {
-              //   if (details.kind == PointerDeviceKind.touch &&
-              //       playerCore.playing) {
-              //     playerCore.updateRate(2.0);
-              //   }
-              // },
-              // onLongPressUp: () => playerCore.updateRate(1.0),
-              // onLongPressEnd: (details) => playerCore.updateRate(1.0),
-              // onLongPressCancel: () => playerCore.updateRate(1.0),
-              onPanStart: (details) async {
-                if (isDesktop) {
-                  isHover.value = true;
-                  await windowManager.startDragging();
-                  if (isShowControl.value) {
-                    resetHideTimer();
-                  }
-                  isHover.value = false;
-                }
-              },
-              child: Video(
-                controller: controller,
-                controls: NoVideoControls,
-                subtitleViewConfiguration: SubtitleViewConfiguration(
-                  style: const TextStyle(
-                    height: 1.6,
-                    fontSize: 46.0,
-                    letterSpacing: 0.0,
-                    wordSpacing: 0.0,
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    fontWeight: FontWeight.normal,
-                    backgroundColor: Color.fromARGB(0, 0, 0, 0),
-                    shadows: [
-                      Shadow(
-                        color: Color.fromARGB(255, 0, 0, 0),
-                        offset: Offset(1.0, 1.0),
-                        blurRadius: 8.0,
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.center,
-                  padding: EdgeInsets.fromLTRB(0, 0, 0,
-                      isShowControl.value || !playerCore.playing ? 128 : 24),
-                ),
-              ),
-            ),
-          ),
-        ),
-        // AppBar
-        AnimatedPositioned(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOutCubicEmphasized,
-          top: isShowControl.value ? 0 : -64,
-          left: 0,
-          right: 0,
-          child: MouseRegion(
-            onHover: (event) {
-              if (event.kind != PointerDeviceKind.touch) {
-                isHover.value = true;
-                showControl();
-              }
-            },
-            child: GestureDetector(
-              onTap: () => showControl(),
-              onDoubleTap: () async {
-                if (isDesktop && await windowManager.isMaximized()) {
-                  await windowManager.unmaximize();
-                  await resizeWindow(playerCore.aspectRatio);
-                } else {
-                  await windowManager.maximize();
-                }
-              },
-              onPanStart: (details) async {
-                if (isDesktop) {
-                  isHover.value = true;
-                  await windowManager.startDragging();
-                  if (isShowControl.value) {
-                    resetHideTimer();
-                  }
-                  isHover.value = false;
-                }
-              },
-              child: CustomAppBar(
-                title: playerCore.title,
-                playerCore: playerCore,
-                actions: [
-                  width > 600
-                      ? const SizedBox(width: 8)
-                      : Row(
-                          children: [
-                            IconButton(
-                              tooltip: t.open_file,
-                              icon: const Icon(Icons.file_open_rounded),
-                              iconSize: 18,
-                              onPressed: () async {
-                                showControl();
-                                await pickFile();
-                                showControl();
-                              },
-                            ),
-                            // IconButton(
-                            //   tooltip: t.open_link,
-                            //   icon: const Icon(Icons.file_present_rounded),
-                            //   iconSize: 18,
-                            //   onPressed: () async {
-                            //     showControl();
-                            //     await pickFile();
-                            //     showControl();
-                            //   },
-                            // ),
-                            SubtitlesMenuButton(playerCore: playerCore),
-                            IconButton(
-                              tooltip: t.settings,
-                              icon: const Icon(Icons.settings_rounded),
-                              iconSize: 20,
-                              onPressed: () async {
-                                showControl();
-                                await showPopup(
-                                  context: context,
-                                  child: const Settings(),
-                                  direction: PopupDirection.right,
-                                );
-                              },
-                            ),
-                            Visibility(
-                              visible: isDesktop,
-                              child: FutureBuilder<bool>(
-                                future: () async {
-                                  return (isDesktop &&
-                                      await windowManager.isFullScreen());
-                                }(),
-                                builder: (BuildContext context,
-                                    AsyncSnapshot<bool> snapshot) {
-                                  final isFullScreen = snapshot.data ?? false;
-                                  return IconButton(
-                                    tooltip: isFullScreen
-                                        ? t.exit_fullscreen
-                                        : t.enter_fullscreen,
-                                    icon: Icon(
-                                      isFullScreen
-                                          ? Icons.close_fullscreen_rounded
-                                          : Icons.open_in_full_rounded,
-                                      size: 18,
-                                    ),
-                                    onPressed: () async {
-                                      showControl();
-                                      if (isFullScreen) {
-                                        await windowManager
-                                            .setFullScreen(false);
-                                        await resizeWindow(
-                                            playerCore.aspectRatio);
-                                      } else {
-                                        await windowManager.setFullScreen(true);
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        // ControlBar
-        AnimatedPositioned(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOutCubicEmphasized,
-          bottom: isShowControl.value ? 16 : -96,
-          left: 0,
-          right: 0,
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: SizedBox(
-              width: controlBarWidth,
-              child: MouseRegion(
-                onHover: (event) {
-                  if (event.kind != PointerDeviceKind.touch) {
-                    isHover.value = true;
                     showControl();
                   }
                 },
-                child: GestureDetector(
-                  onTap: () => showControl(),
-                  child: ControlBar(
-                    playerCore: playerCore,
-                    playerController: playerController,
-                    showControl: showControl,
+                onDoubleTapDown: (details) async {
+                  showControl();
+                  if (details.kind == PointerDeviceKind.touch) {
+                    double position = details.globalPosition.dx / width;
+                    if (position > 0.75) {
+                      playerController.forward();
+                    } else if (position < 0.25) {
+                      playerController.backward();
+                    } else {
+                      player.state.playing == true
+                          ? player.pause()
+                          : player.play();
+                    }
+                  } else {
+                    if (isDesktop) {
+                      if (await windowManager.isFullScreen()) {
+                        await windowManager.setFullScreen(false);
+                        await resizeWindow(playerCore.aspectRatio);
+                      } else {
+                        await windowManager.setFullScreen(true);
+                      }
+                    }
+                  }
+                },
+                // onLongPressDown: (details) {
+                //   if (details.kind == PointerDeviceKind.touch &&
+                //       playerCore.playing) {
+                //     playerCore.updateRate(2.0);
+                //   }
+                // },
+                // onLongPressUp: () => playerCore.updateRate(1.0),
+                // onLongPressEnd: (details) => playerCore.updateRate(1.0),
+                // onLongPressCancel: () => playerCore.updateRate(1.0),
+                onPanStart: (details) async {
+                  if (isDesktop) {
+                    isHover.value = true;
+                    await windowManager.startDragging();
+                    if (isShowControl.value) {
+                      resetHideTimer();
+                    }
+                    isHover.value = false;
+                  }
+                },
+                child: Video(
+                  controller: controller,
+                  controls: NoVideoControls,
+                  subtitleViewConfiguration: SubtitleViewConfiguration(
+                    style: const TextStyle(
+                      height: 1.6,
+                      fontSize: 46.0,
+                      letterSpacing: 0.0,
+                      wordSpacing: 0.0,
+                      color: Color.fromARGB(255, 255, 255, 255),
+                      fontWeight: FontWeight.normal,
+                      backgroundColor: Color.fromARGB(0, 0, 0, 0),
+                      shadows: [
+                        Shadow(
+                          color: Color.fromARGB(255, 0, 0, 0),
+                          offset: Offset(1.0, 1.0),
+                          blurRadius: 8.0,
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                    padding: EdgeInsets.fromLTRB(
+                        0, 0, 0, isShowControl.value ? 128 : 24),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+          // AppBar
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOutCubicEmphasized,
+            top: isShowControl.value ? 0 : -64,
+            left: 0,
+            right: 0,
+            child: MouseRegion(
+              onHover: (event) {
+                if (event.kind != PointerDeviceKind.touch) {
+                  isHover.value = true;
+                  showControl();
+                }
+              },
+              child: GestureDetector(
+                onTap: () => showControl(),
+                onDoubleTap: () async {
+                  if (isDesktop && await windowManager.isMaximized()) {
+                    await windowManager.unmaximize();
+                    await resizeWindow(playerCore.aspectRatio);
+                  } else {
+                    await windowManager.maximize();
+                  }
+                },
+                onPanStart: (details) async {
+                  if (isDesktop) {
+                    isHover.value = true;
+                    await windowManager.startDragging();
+                    if (isShowControl.value) {
+                      resetHideTimer();
+                    }
+                    isHover.value = false;
+                  }
+                },
+                child: CustomAppBar(
+                  title: playerCore.title,
+                  playerCore: playerCore,
+                  actions: [
+                    width > 600
+                        ? const SizedBox(width: 8)
+                        : Row(
+                            children: [
+                              IconButton(
+                                tooltip: t.open_file,
+                                icon: const Icon(Icons.file_open_rounded),
+                                iconSize: 18,
+                                onPressed: () async {
+                                  showControl();
+                                  await pickFile();
+                                  showControl();
+                                },
+                              ),
+                              // IconButton(
+                              //   tooltip: t.open_link,
+                              //   icon: const Icon(Icons.file_present_rounded),
+                              //   iconSize: 18,
+                              //   onPressed: () async {
+                              //     showControl();
+                              //     await pickFile();
+                              //     showControl();
+                              //   },
+                              // ),
+                              SubtitlesMenuButton(playerCore: playerCore),
+                              IconButton(
+                                tooltip: t.settings,
+                                icon: const Icon(Icons.settings_rounded),
+                                iconSize: 20,
+                                onPressed: () async {
+                                  showControl();
+                                  await showPopup(
+                                    context: context,
+                                    child: const Settings(),
+                                    direction: PopupDirection.right,
+                                  );
+                                },
+                              ),
+                              Visibility(
+                                visible: isDesktop,
+                                child: FutureBuilder<bool>(
+                                  future: () async {
+                                    return (isDesktop &&
+                                        await windowManager.isFullScreen());
+                                  }(),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<bool> snapshot) {
+                                    final isFullScreen = snapshot.data ?? false;
+                                    return IconButton(
+                                      tooltip: isFullScreen
+                                          ? t.exit_fullscreen
+                                          : t.enter_fullscreen,
+                                      icon: Icon(
+                                        isFullScreen
+                                            ? Icons.close_fullscreen_rounded
+                                            : Icons.open_in_full_rounded,
+                                        size: 18,
+                                      ),
+                                      onPressed: () async {
+                                        showControl();
+                                        if (isFullScreen) {
+                                          await windowManager
+                                              .setFullScreen(false);
+                                          await resizeWindow(
+                                              playerCore.aspectRatio);
+                                        } else {
+                                          await windowManager
+                                              .setFullScreen(true);
+                                        }
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // ControlBar
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOutCubicEmphasized,
+            bottom: isShowControl.value ? 16 : -96,
+            left: 0,
+            right: 0,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: SizedBox(
+                width: controlBarWidth,
+                child: MouseRegion(
+                  onHover: (event) {
+                    if (event.kind != PointerDeviceKind.touch) {
+                      isHover.value = true;
+                      showControl();
+                    }
+                  },
+                  child: GestureDetector(
+                    onTap: () => showControl(),
+                    child: ControlBar(
+                      playerCore: playerCore,
+                      playerController: playerController,
+                      showControl: showControl,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

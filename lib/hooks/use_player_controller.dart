@@ -9,12 +9,16 @@ class PlayerController {
   final VoidCallback pause;
   final VoidCallback previous;
   final VoidCallback next;
+  final VoidCallback backward;
+  final VoidCallback forward;
 
   PlayerController(
     this.play,
     this.pause,
     this.previous,
     this.next,
+    this.backward,
+    this.forward,
   );
 }
 
@@ -43,6 +47,16 @@ PlayerController usePlayerController(
     usePlayQueueStore().updateCurrentIndex(currentIndex + 1);
   }
 
+  void backward() {
+    int seconds = playerCore.position.inSeconds - 10;
+    playerCore.seek(Duration(seconds: seconds));
+  }
+
+  void forward() {
+    int seconds = playerCore.position.inSeconds + 10;
+    playerCore.seek(Duration(seconds: seconds));
+  }
+
   useEffect(() {
     if (playerCore.completed) {
       next();
@@ -55,5 +69,7 @@ PlayerController usePlayerController(
     pause,
     previous,
     next,
+    backward,
+    forward,
   );
 }
