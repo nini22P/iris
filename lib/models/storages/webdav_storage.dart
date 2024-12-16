@@ -17,6 +17,7 @@ class WebdavStorage implements Storage {
   String port;
   String username;
   String password;
+  bool https;
 
   WebdavStorage({
     required this.type,
@@ -26,6 +27,7 @@ class WebdavStorage implements Storage {
     required this.port,
     required this.username,
     required this.password,
+    required this.https,
   });
 
   @override
@@ -36,6 +38,7 @@ class WebdavStorage implements Storage {
     String? port,
     String? username,
     String? password,
+    bool? https,
   }) =>
       WebdavStorage(
         type: type,
@@ -45,12 +48,13 @@ class WebdavStorage implements Storage {
         port: port ?? this.port,
         username: username ?? this.username,
         password: password ?? this.password,
+        https: https ?? this.https,
       );
 
   Future<bool> test() async {
     try {
       var client = webdav.newClient(
-        "http://$url:$port",
+        "http${https ? 's' : ''}://$url:$port",
         user: username,
         password: password,
         debug: false,
@@ -73,7 +77,7 @@ class WebdavStorage implements Storage {
   @override
   Future<List<FileItem>> getFiles(List<String> path) async {
     var client = webdav.newClient(
-      "http://$url:$port",
+      "http${https ? 's' : ''}://$url:$port",
       user: username,
       password: password,
       debug: false,
@@ -89,7 +93,8 @@ class WebdavStorage implements Storage {
 
     var files = await client.readDir(path.join('/'));
 
-    final String baseUri = 'http://$url:$port/${path.join('/')}';
+    final String baseUri =
+        'http${https ? 's' : ''}://$url:$port/${path.join('/')}';
 
     return files
         .map((file) => FileItem(
@@ -118,6 +123,7 @@ class WebdavStorage implements Storage {
       'port': port,
       'username': username,
       'password': password,
+      'https': https,
     };
   }
 
@@ -130,6 +136,7 @@ class WebdavStorage implements Storage {
       port: json['port'],
       username: json['username'],
       password: json['password'],
+      https: json['https'] ?? false,
     );
   }
 }

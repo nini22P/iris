@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/models/storages/webdav_storage.dart';
 import 'package:iris/store/use_storage_store.dart';
@@ -39,11 +40,14 @@ class WebDAVDialog extends HookWidget {
     final name = useState(webdavStorage?.name ?? '');
     final url = useState(webdavStorage?.url ?? '');
     final basePath = useState(webdavStorage?.basePath ?? []);
-    final port = useState(webdavStorage?.port ?? '');
     final username = useState(webdavStorage?.username ?? '');
     final password = useState(webdavStorage?.password ?? '');
+    final https = useState(webdavStorage?.https ?? false);
 
     final isTested = useState(false);
+
+    final TextEditingController portController =
+        useTextEditingController(text: webdavStorage?.port ?? '');
 
     void add() async {
       if (isFavorite) return;
@@ -52,9 +56,10 @@ class WebDAVDialog extends HookWidget {
         name: name.value,
         url: url.value,
         basePath: basePath.value,
-        port: port.value,
+        port: portController.text,
         username: username.value,
         password: password.value,
+        https: https.value,
       ));
     }
 
@@ -67,9 +72,10 @@ class WebDAVDialog extends HookWidget {
               name: name.value,
               url: url.value,
               basePath: basePath.value,
-              port: port.value,
+              port: portController.text,
               username: username.value,
               password: password.value,
+              https: https.value,
             ));
       } else {
         await useStorageStore().updateFavoriteStorage(
@@ -79,23 +85,25 @@ class WebDAVDialog extends HookWidget {
               name: name.value,
               url: url.value,
               basePath: basePath.value,
-              port: port.value,
+              port: portController.text,
               username: username.value,
               password: password.value,
+              https: https.value,
             ));
       }
     }
 
     void testConnection() async {
       final bool isConnected = await WebdavStorage(
-              type: 'webdav',
-              name: name.value,
-              url: url.value,
-              basePath: basePath.value,
-              port: port.value,
-              username: username.value,
-              password: password.value)
-          .test();
+        type: 'webdav',
+        name: name.value,
+        url: url.value,
+        basePath: basePath.value,
+        port: portController.text,
+        username: username.value,
+        password: password.value,
+        https: https.value,
+      ).test();
       isTested.value = isConnected;
     }
 
@@ -114,7 +122,10 @@ class WebDAVDialog extends HookWidget {
                     labelText: t.name,
                   ),
                   initialValue: name.value,
-                  onChanged: (value) => name.value = value.trim(),
+                  onChanged: (value) {
+                    name.value = value.trim();
+                    isTested.value = false;
+                  },
                 ),
                 const SizedBox(height: 16.0),
                 TextFormField(
@@ -123,26 +134,85 @@ class WebDAVDialog extends HookWidget {
                     labelText: t.url,
                   ),
                   initialValue: url.value,
-                  onChanged: (value) => url.value = value.trim(),
+                  onChanged: (value) {
+                    url.value = value.trim().split('//').last;
+                    isTested.value = false;
+                  },
                 ),
                 const SizedBox(height: 16.0),
                 TextFormField(
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: t.path,
-                  ),
-                  initialValue: basePath.value.join('/'),
-                  onChanged: (value) => basePath.value = value.trim().split('/')
-                    ..removeWhere((s) => s.isEmpty),
-                ),
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: t.path,
+                    ),
+                    initialValue: basePath.value.join('/'),
+                    onChanged: (value) {
+                      basePath.value = value.trim().split('/')
+                        ..removeWhere((s) => s.isEmpty);
+
+                      isTested.value = false;
+                    }),
                 const SizedBox(height: 16.0),
-                TextFormField(
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: t.port,
-                  ),
-                  initialValue: port.value,
-                  onChanged: (value) => port.value = value.trim(),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          labelText: t.port,
+                        ),
+                        controller: portController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        onChanged: (value) {
+                          isTested.value = false;
+                          if (value == '443') {
+                            https.value = true;
+                          } else {
+                            https.value = false;
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    SizedBox(
+                      width: 96,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                        visualDensity:
+                            const VisualDensity(horizontal: -4, vertical: 0),
+                        title: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const Text('https'),
+                              Checkbox(
+                                value: https.value,
+                                onChanged: (_) {
+                                  isTested.value = false;
+                                  if (!https.value) {
+                                    portController.text = '443';
+                                  } else {
+                                    portController.text = '80';
+                                  }
+                                  https.value = !https.value;
+                                },
+                              ),
+                            ]),
+                        onTap: () {
+                          isTested.value = false;
+                          if (!https.value) {
+                            portController.text = '443';
+                          } else {
+                            portController.text = '80';
+                          }
+                          https.value = !https.value;
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16.0),
                 TextFormField(
@@ -151,7 +221,10 @@ class WebDAVDialog extends HookWidget {
                     labelText: t.username,
                   ),
                   initialValue: username.value,
-                  onChanged: (value) => username.value = value.trim(),
+                  onChanged: (value) {
+                    username.value = value.trim();
+                    isTested.value = false;
+                  },
                 ),
                 const SizedBox(height: 16.0),
                 TextFormField(
@@ -161,7 +234,10 @@ class WebDAVDialog extends HookWidget {
                   ),
                   initialValue: password.value,
                   obscureText: true,
-                  onChanged: (value) => password.value = value.trim(),
+                  onChanged: (value) {
+                    password.value = value.trim();
+                    isTested.value = false;
+                  },
                 ),
                 const SizedBox(height: 16.0),
               ],
