@@ -7,11 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
-import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/pages/player/play_queue.dart';
-import 'package:iris/pages/player/subtitles_menu_button.dart';
-import 'package:iris/pages/settings/settings.dart';
-import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/path.dart';
 import 'package:iris/utils/resize_window.dart';
@@ -29,7 +25,6 @@ class IrisPlayer extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = getLocalizations(context);
     final focusNode = useFocusNode();
     final player = useMemoized(
       () => Player(
@@ -88,9 +83,6 @@ class IrisPlayer extends HookWidget {
 
     final hideTimer = useRef<Timer?>(null);
 
-    double width = MediaQuery.of(context).size.width;
-    double controlBarWidth = width > 632 ? 600 : width - 32;
-
     useEffect(() {
       if (isDesktop) {
         resizeWindow(playerCore.aspectRatio);
@@ -136,8 +128,29 @@ class IrisPlayer extends HookWidget {
       return;
     }, [playerCore.title]);
 
+    useEffect(() {
+      if (isShowControl.value) {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      } else {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      }
+      return;
+    }, [isShowControl.value]);
+
+    useEffect(() {
+      SystemChrome.setSystemUIChangeCallback((value) async {
+        if (value) {
+          showControl();
+        }
+      });
+      return () {
+        SystemChrome.setSystemUIChangeCallback(null);
+      };
+    }, []);
+
     void onKeyEvent(KeyEvent event) async {
       if (event.runtimeType == KeyDownEvent) {
+        showControl();
         if (HardwareKeyboard.instance.isControlPressed) {
           switch (event.logicalKey) {
             case LogicalKeyboardKey.arrowLeft:
@@ -228,7 +241,8 @@ class IrisPlayer extends HookWidget {
                 },
                 onDoubleTapDown: (details) async {
                   if (details.kind == PointerDeviceKind.touch) {
-                    double position = details.globalPosition.dx / width;
+                    double position = details.globalPosition.dx /
+                        MediaQuery.of(context).size.width;
                     if (position > 0.75) {
                       playerController.forward();
                     } else if (position < 0.25) {
@@ -336,84 +350,6 @@ class IrisPlayer extends HookWidget {
                 child: CustomAppBar(
                   title: playerCore.title,
                   playerCore: playerCore,
-                  actions: width > 600
-                      ? null
-                      : [
-                          Row(
-                            children: [
-                              IconButton(
-                                tooltip: t.open_file,
-                                icon: const Icon(Icons.file_open_rounded),
-                                iconSize: 18,
-                                onPressed: () async {
-                                  showControl();
-                                  await pickFile();
-                                  showControl();
-                                },
-                              ),
-                              // IconButton(
-                              //   tooltip: t.open_link,
-                              //   icon: const Icon(Icons.file_present_rounded),
-                              //   iconSize: 18,
-                              //   onPressed: () async {
-                              //     showControl();
-                              //     await pickFile();
-                              //     showControl();
-                              //   },
-                              // ),
-                              SubtitlesMenuButton(playerCore: playerCore),
-                              IconButton(
-                                tooltip: t.settings,
-                                icon: const Icon(Icons.settings_rounded),
-                                iconSize: 20,
-                                onPressed: () async {
-                                  showControl();
-                                  await showPopup(
-                                    context: context,
-                                    child: const Settings(),
-                                    direction: PopupDirection.right,
-                                  );
-                                },
-                              ),
-                              Visibility(
-                                visible: isDesktop,
-                                child: FutureBuilder<bool>(
-                                  future: () async {
-                                    return (isDesktop &&
-                                        await windowManager.isFullScreen());
-                                  }(),
-                                  builder: (BuildContext context,
-                                      AsyncSnapshot<bool> snapshot) {
-                                    final isFullScreen = snapshot.data ?? false;
-                                    return IconButton(
-                                      tooltip: isFullScreen
-                                          ? t.exit_fullscreen
-                                          : t.enter_fullscreen,
-                                      icon: Icon(
-                                        isFullScreen
-                                            ? Icons.close_fullscreen_rounded
-                                            : Icons.open_in_full_rounded,
-                                        size: 18,
-                                      ),
-                                      onPressed: () async {
-                                        showControl();
-                                        if (isFullScreen) {
-                                          await windowManager
-                                              .setFullScreen(false);
-                                          await resizeWindow(
-                                              playerCore.aspectRatio);
-                                        } else {
-                                          await windowManager
-                                              .setFullScreen(true);
-                                        }
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
                 ),
               ),
             ),
@@ -422,13 +358,13 @@ class IrisPlayer extends HookWidget {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOutCubicEmphasized,
-            bottom: isShowControl.value ? 16 : -96,
+            bottom: isShowControl.value ? 0 : -96,
             left: 0,
             right: 0,
             child: Align(
               alignment: Alignment.bottomCenter,
               child: SizedBox(
-                width: controlBarWidth,
+                width: MediaQuery.of(context).size.width,
                 child: MouseRegion(
                   onHover: (event) {
                     if (event.kind != PointerDeviceKind.touch) {

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -181,6 +182,9 @@ class Files extends HookWidget {
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
           child: BreadCrumb.builder(
             itemCount: currentPath.length - basePath.length + 1,
+            overflow: Platform.isAndroid || Platform.isIOS
+                ? ScrollableOverflow(reverse: true)
+                : const WrapOverflow(),
             builder: (index) {
               return BreadCrumbItem(
                 content: TextButton(
@@ -193,7 +197,11 @@ class Files extends HookWidget {
                 ),
               );
             },
-            divider: const Icon(Icons.chevron_right_rounded),
+            divider: Icon(
+              Icons.chevron_right_rounded,
+              color:
+                  Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(222),
+            ),
           ),
         ),
         Divider(
