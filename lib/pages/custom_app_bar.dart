@@ -34,8 +34,8 @@ class CustomAppBar extends HookWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Theme.of(context).colorScheme.surface.withOpacity(0.6),
-            Theme.of(context).colorScheme.surface.withOpacity(0.2),
+            Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            Theme.of(context).colorScheme.surface.withOpacity(0.3),
             Theme.of(context).colorScheme.surface.withOpacity(0),
           ],
         ),

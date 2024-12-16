@@ -54,110 +54,23 @@ class ControlBar extends HookWidget {
           end: Alignment.bottomCenter,
           colors: [
             Theme.of(context).colorScheme.surface.withOpacity(0),
-            Theme.of(context).colorScheme.surface.withOpacity(0.2),
-            Theme.of(context).colorScheme.surface.withOpacity(0.6),
+            Theme.of(context).colorScheme.surface.withOpacity(0.3),
+            Theme.of(context).colorScheme.surface.withOpacity(0.8),
           ],
         ),
       ),
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
-            child: Row(
-              children: [
-                Text(
-                  formatDurationToMinutes(playerCore.position),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 14,
-                    height: 2,
-                    decoration: TextDecoration.none,
-                  ),
-                ),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            thumbShape: const RoundSliderThumbShape(
-                              disabledThumbRadius: 0,
-                              elevation: 0,
-                              pressedElevation: 0,
-                            ),
-                            overlayShape: const RoundSliderOverlayShape(
-                              overlayRadius: 12,
-                            ),
-                            trackShape: const RoundedActiveTrackShape(),
-                            trackHeight: 3,
-                          ),
-                          child: Slider(
-                            value: playerCore.buffer.inSeconds.toDouble(),
-                            min: 0,
-                            max: playerCore.duration.inSeconds.toDouble(),
-                            onChanged: null,
-                          ),
-                        ),
-                      ),
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          thumbColor:
-                              Theme.of(context).colorScheme.onSurfaceVariant,
-                          thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 6,
-                          ),
-                          overlayShape: const RoundSliderOverlayShape(
-                            overlayRadius: 12,
-                          ),
-                          activeTrackColor:
-                              Theme.of(context).colorScheme.onSurfaceVariant,
-                          inactiveTrackColor: Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant
-                              .withAlpha(99),
-                          trackHeight: 4,
-                        ),
-                        child: Slider(
-                          value: playerCore.duration.inSeconds.toDouble() == 0
-                              ? 0
-                              : playerCore.position.inSeconds.toDouble(),
-                          min: 0,
-                          max: playerCore.duration.inSeconds.toDouble(),
-                          onChanged: (value) {
-                            showControl();
-                            playerCore.updateSeeking(true);
-                            playerCore.updatePosition(
-                                Duration(seconds: value.toInt()));
-                          },
-                          onChangeEnd: (value) async {
-                            playerCore.updatePosition(
-                                Duration(seconds: value.toInt()));
-                            await playerCore.player
-                                .seek(Duration(seconds: value.toInt()));
-                            playerCore.updateSeeking(false);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  formatDurationToMinutes(playerCore.duration),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 14,
-                    height: 2,
-                    decoration: TextDecoration.none,
-                  ),
-                ),
-              ],
+          Visibility(
+            visible: MediaQuery.of(context).size.width < 800,
+            child: ControlBarSlider(
+              playerCore: playerCore,
+              showControl: showControl,
             ),
           ),
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(width: 8),
               Visibility(
@@ -215,7 +128,15 @@ class ControlBar extends HookWidget {
                   },
                 ),
               ),
-              const Spacer(),
+              Expanded(
+                child: Visibility(
+                  visible: MediaQuery.of(context).size.width >= 800,
+                  child: ControlBarSlider(
+                    playerCore: playerCore,
+                    showControl: showControl,
+                  ),
+                ),
+              ),
               Visibility(
                 visible: isDesktop,
                 child: IconButton(
@@ -325,6 +246,111 @@ class ControlBar extends HookWidget {
               ),
               const SizedBox(width: 8),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ControlBarSlider extends HookWidget {
+  const ControlBarSlider(
+      {super.key, required this.playerCore, required this.showControl});
+
+  final PlayerCore playerCore;
+  final void Function() showControl;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+      child: Row(
+        children: [
+          Text(
+            formatDurationToMinutes(playerCore.position),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              height: 2,
+              decoration: TextDecoration.none,
+            ),
+          ),
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      thumbShape: const RoundSliderThumbShape(
+                        disabledThumbRadius: 0,
+                        elevation: 0,
+                        pressedElevation: 0,
+                      ),
+                      overlayShape: const RoundSliderOverlayShape(
+                        overlayRadius: 12,
+                      ),
+                      trackShape: const RoundedActiveTrackShape(),
+                      trackHeight: 3,
+                    ),
+                    child: Slider(
+                      value: playerCore.buffer.inSeconds.toDouble(),
+                      min: 0,
+                      max: playerCore.duration.inSeconds.toDouble(),
+                      onChanged: null,
+                    ),
+                  ),
+                ),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    thumbColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 6,
+                    ),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 12,
+                    ),
+                    activeTrackColor:
+                        Theme.of(context).colorScheme.onSurfaceVariant,
+                    inactiveTrackColor: Theme.of(context)
+                        .colorScheme
+                        .onSurfaceVariant
+                        .withAlpha(99),
+                    trackHeight: 4,
+                  ),
+                  child: Slider(
+                    value: playerCore.duration.inSeconds.toDouble() == 0
+                        ? 0
+                        : playerCore.position.inSeconds.toDouble(),
+                    min: 0,
+                    max: playerCore.duration.inSeconds.toDouble(),
+                    onChanged: (value) {
+                      showControl();
+                      playerCore.updateSeeking(true);
+                      playerCore
+                          .updatePosition(Duration(seconds: value.toInt()));
+                    },
+                    onChangeEnd: (value) async {
+                      playerCore
+                          .updatePosition(Duration(seconds: value.toInt()));
+                      await playerCore.player
+                          .seek(Duration(seconds: value.toInt()));
+                      playerCore.updateSeeking(false);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            formatDurationToMinutes(playerCore.duration),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              height: 2,
+              decoration: TextDecoration.none,
+            ),
           ),
         ],
       ),
