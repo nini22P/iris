@@ -24,10 +24,8 @@ class PlayerCore {
   final bool completed;
   final double rate;
   final double? aspectRatio;
-  final void Function(Duration) seek;
   final void Function(Duration) updatePosition;
   final void Function(bool) updateSeeking;
-  final void Function(double) updateRate;
 
   PlayerCore(
     this.player,
@@ -46,10 +44,8 @@ class PlayerCore {
     this.completed,
     this.rate,
     this.aspectRatio,
-    this.seek,
     this.updatePosition,
     this.updateSeeking,
-    this.updateRate,
   );
 }
 
@@ -69,16 +65,16 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           : '',
       [currentFile]);
 
-  final seeking = useState(false);
+  ValueNotifier<bool> seeking = useState(false);
 
   bool playing = useStream(player.stream.playing).data ?? false;
-  final position = useState(Duration.zero);
+  ValueNotifier<Duration> position = useState(Duration.zero);
   Duration duration = useStream(player.stream.duration).data ?? Duration.zero;
   Duration buffer = useStream(player.stream.buffer).data ?? Duration.zero;
   bool completed = useStream(player.stream.completed).data ?? false;
-  final rate = useStream(player.stream.rate).data ?? 1.0;
+  double rate = useStream(player.stream.rate).data ?? 1.0;
   VideoParams? videoParams = useStream(player.stream.videoParams).data;
-  final aspectRatio =
+  double? aspectRatio =
       videoParams != null && videoParams.w != null && videoParams.h != null
           ? (videoParams.w! / videoParams.h!)
           : null;
@@ -144,17 +140,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     return null;
   }, [duration]);
 
-  void seek(Duration newPosition) => newPosition.inSeconds < 0
-      ? player.seek(Duration.zero)
-      : newPosition.inSeconds > duration.inSeconds
-          ? player.seek(duration)
-          : player.seek(newPosition);
-
   void updatePosition(Duration newPosition) => position.value = newPosition;
 
   void updateSeeking(bool value) => seeking.value = value;
-
-  void updateRate(double value) => rate == value ? null : player.setRate(value);
 
   return PlayerCore(
     player,
@@ -168,14 +156,12 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     playing,
     duration == Duration.zero ? Duration.zero : position.value,
     duration,
-    buffer,
+    duration == Duration.zero ? Duration.zero : buffer,
     seeking.value,
     completed,
     rate,
     aspectRatio,
-    seek,
     updatePosition,
     updateSeeking,
-    updateRate,
   );
 }

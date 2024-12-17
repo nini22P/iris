@@ -5,12 +5,14 @@ import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 
 class PlayerController {
-  final VoidCallback play;
-  final VoidCallback pause;
-  final VoidCallback previous;
-  final VoidCallback next;
-  final VoidCallback backward;
-  final VoidCallback forward;
+  final Future<void> Function() play;
+  final Future<void> Function() pause;
+  final Future<void> Function() previous;
+  final Future<void> Function() next;
+  final Future<void> Function(int) backward;
+  final Future<void> Function(int) forward;
+  final Future<void> Function(double) updateRate;
+  final Future<void> Function(Duration) seekTo;
 
   PlayerController(
     this.play,
@@ -19,6 +21,8 @@ class PlayerController {
     this.next,
     this.backward,
     this.forward,
+    this.updateRate,
+    this.seekTo,
   );
 }
 
@@ -27,35 +31,42 @@ PlayerController usePlayerController(
   final playQueue = playerCore.playQueue;
   final currentIndex = playerCore.currentIndex;
 
-  void play() {
-    useAppStore().updateAutoPlay(true);
-    playerCore.player.play();
+  Future<void> play() async {
+    await useAppStore().updateAutoPlay(true);
+    await playerCore.player.play();
   }
 
-  void pause() {
+  Future<void> pause() async {
     // useAppStore().updateAutoPlay(false);
-    playerCore.player.pause();
+    await playerCore.player.pause();
   }
 
-  void previous() {
+  Future<void> previous() async {
     if (currentIndex == 0) return;
-    usePlayQueueStore().updateCurrentIndex(currentIndex - 1);
+    await usePlayQueueStore().updateCurrentIndex(currentIndex - 1);
   }
 
-  void next() {
+  Future<void> next() async {
     if (currentIndex == playQueue.length - 1) return;
-    usePlayQueueStore().updateCurrentIndex(currentIndex + 1);
+    await usePlayQueueStore().updateCurrentIndex(currentIndex + 1);
   }
 
-  void backward() {
-    int seconds = playerCore.position.inSeconds - 10;
-    playerCore.seek(Duration(seconds: seconds));
+  Future<void> seekTo(Duration newPosition) async => newPosition.inSeconds < 0
+      ? await playerCore.player.seek(Duration.zero)
+      : newPosition.inSeconds > playerCore.duration.inSeconds
+          ? await playerCore.player.seek(playerCore.duration)
+          : await playerCore.player.seek(newPosition);
+
+  Future<void> backward(int seconds) async {
+    await seekTo(Duration(seconds: playerCore.position.inSeconds - seconds));
   }
 
-  void forward() {
-    int seconds = playerCore.position.inSeconds + 10;
-    playerCore.seek(Duration(seconds: seconds));
+  Future<void> forward(int seconds) async {
+    await seekTo(Duration(seconds: playerCore.position.inSeconds + seconds));
   }
+
+  Future<void> updateRate(double value) async =>
+      playerCore.rate == value ? null : await playerCore.player.setRate(value);
 
   useEffect(() {
     if (playerCore.completed) {
@@ -71,5 +82,7 @@ PlayerController usePlayerController(
     next,
     backward,
     forward,
+    updateRate,
+    seekTo,
   );
 }

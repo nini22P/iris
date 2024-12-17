@@ -40,6 +40,7 @@ class PlayQueue extends HookWidget {
             child: ScrollablePositionedList.builder(
               itemCount: playQueue.length,
               itemBuilder: (context, index) => ListTile(
+                autofocus: index == currentIndex,
                 contentPadding: const EdgeInsets.fromLTRB(12, 0, 8, 0),
                 visualDensity:
                     const VisualDensity(horizontal: -4, vertical: -4),
@@ -71,9 +72,6 @@ class PlayQueue extends HookWidget {
                     const Spacer(),
                   ],
                 ),
-                tileColor: currentIndex == index
-                    ? Theme.of(context).colorScheme.onSurface.withAlpha(20)
-                    : null,
                 onTap: () {
                   usePlayQueueStore().updateCurrentIndex(index);
                   Navigator.of(context).pop();
@@ -100,7 +98,7 @@ class PlayQueue extends HookWidget {
               ),
               const Spacer(),
               IconButton(
-                tooltip: t.close,
+                tooltip: '${t.close} ( Escape )',
                 icon: const Icon(Icons.close_rounded),
                 onPressed: () => Navigator.of(context).pop(),
               ),

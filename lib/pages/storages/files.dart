@@ -259,7 +259,7 @@ class Files extends HookWidget {
               ),
               const SizedBox(width: 4),
               IconButton(
-                tooltip: t.close,
+                tooltip: '${t.close} ( Escape )',
                 icon: const Icon(Icons.close_rounded),
                 onPressed: () => Navigator.of(context).pop(),
               ),

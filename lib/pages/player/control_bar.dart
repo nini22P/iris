@@ -5,7 +5,7 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/models/storages/local_storage.dart';
-import 'package:iris/pages/player/subtitles_menu_button.dart';
+import 'package:iris/pages/player/subtitles.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -13,6 +13,7 @@ import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/utils/resize_window.dart';
 import 'package:iris/pages/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
 String formatDurationToMinutes(Duration duration) {
@@ -65,6 +66,7 @@ class ControlBar extends HookWidget {
             visible: MediaQuery.of(context).size.width < 800,
             child: ControlBarSlider(
               playerCore: playerCore,
+              playerController: playerController,
               showControl: showControl,
             ),
           ),
@@ -76,7 +78,7 @@ class ControlBar extends HookWidget {
               Visibility(
                 visible: playQueueLength > 1,
                 child: IconButton(
-                  tooltip: t.previous,
+                  tooltip: '${t.previous} ( Ctrl + ← )',
                   icon: const Icon(
                     Icons.skip_previous_rounded,
                     size: 26,
@@ -90,7 +92,8 @@ class ControlBar extends HookWidget {
                 ),
               ),
               IconButton(
-                tooltip: playerCore.playing == true ? t.pause : t.play,
+                tooltip:
+                    '${playerCore.playing == true ? t.pause : t.play} ( Space )',
                 icon: Icon(
                   playerCore.playing == true
                       ? Icons.pause_rounded
@@ -114,7 +117,7 @@ class ControlBar extends HookWidget {
               Visibility(
                 visible: playQueueLength > 1,
                 child: IconButton(
-                  tooltip: t.next,
+                  tooltip: '${t.next} ( Ctrl + → )',
                   icon: const Icon(
                     Icons.skip_next_rounded,
                     size: 26,
@@ -133,6 +136,7 @@ class ControlBar extends HookWidget {
                   visible: MediaQuery.of(context).size.width >= 800,
                   child: ControlBarSlider(
                     playerCore: playerCore,
+                    playerController: playerController,
                     showControl: showControl,
                   ),
                 ),
@@ -140,7 +144,7 @@ class ControlBar extends HookWidget {
               Visibility(
                 visible: isDesktop,
                 child: IconButton(
-                  tooltip: t.open_file,
+                  tooltip: '${t.open_file} ( O )',
                   icon: const Icon(
                     Icons.file_open_rounded,
                     size: 16.5,
@@ -165,7 +169,7 @@ class ControlBar extends HookWidget {
               //   ),
               // ),
               IconButton(
-                tooltip: t.storages,
+                tooltip: '${t.storages} ( F )',
                 icon: const Icon(
                   Icons.storage_rounded,
                   size: 17,
@@ -180,7 +184,7 @@ class ControlBar extends HookWidget {
                 },
               ),
               IconButton(
-                tooltip: t.play_queue,
+                tooltip: '${t.play_queue} ( P )',
                 icon: Transform.translate(
                   offset: const Offset(0, 1),
                   child: const Icon(
@@ -197,7 +201,23 @@ class ControlBar extends HookWidget {
                   );
                 },
               ),
-              SubtitlesMenuButton(playerCore: playerCore),
+              IconButton(
+                tooltip: '${t.subtitles} ( S )',
+                icon: Icon(
+                  playerCore.subtitle == SubtitleTrack.no()
+                      ? Icons.subtitles_off_rounded
+                      : Icons.subtitles_rounded,
+                  size: 19,
+                ),
+                onPressed: () async {
+                  showControl();
+                  await showPopup(
+                    context: context,
+                    child: Subtitles(playerCore: playerCore),
+                    direction: PopupDirection.right,
+                  );
+                },
+              ),
               Visibility(
                 visible: isDesktop,
                 child: FutureBuilder<bool>(
@@ -208,8 +228,9 @@ class ControlBar extends HookWidget {
                       (BuildContext context, AsyncSnapshot<bool> snapshot) {
                     final isFullScreen = snapshot.data ?? false;
                     return IconButton(
-                      tooltip:
-                          isFullScreen ? t.exit_fullscreen : t.enter_fullscreen,
+                      tooltip: isFullScreen
+                          ? '${t.exit_fullscreen} ( Escape, F11, Enter )'
+                          : '${t.enter_fullscreen} ( F11, Enter )',
                       icon: Icon(
                         isFullScreen
                             ? Icons.close_fullscreen_rounded
@@ -230,7 +251,7 @@ class ControlBar extends HookWidget {
                 ),
               ),
               IconButton(
-                tooltip: t.settings,
+                tooltip: '${t.settings} ( Ctrl + P )',
                 icon: const Icon(
                   Icons.settings_rounded,
                   size: 20,
@@ -254,11 +275,18 @@ class ControlBar extends HookWidget {
 }
 
 class ControlBarSlider extends HookWidget {
-  const ControlBarSlider(
-      {super.key, required this.playerCore, required this.showControl});
+  const ControlBarSlider({
+    super.key,
+    required this.playerCore,
+    required this.playerController,
+    required this.showControl,
+    this.disabled = false,
+  });
 
   final PlayerCore playerCore;
+  final PlayerController playerController;
   final void Function() showControl;
+  final bool disabled;
 
   @override
   Widget build(BuildContext context) {
@@ -266,12 +294,14 @@ class ControlBarSlider extends HookWidget {
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
       child: Row(
         children: [
-          Text(
-            formatDurationToMinutes(playerCore.position),
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              height: 2,
-              decoration: TextDecoration.none,
+          Visibility(
+            visible: !disabled,
+            child: Text(
+              formatDurationToMinutes(playerCore.position),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                height: 2,
+              ),
             ),
           ),
           Expanded(
@@ -306,8 +336,8 @@ class ControlBarSlider extends HookWidget {
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     thumbColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                    thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 6,
+                    thumbShape: RoundSliderThumbShape(
+                      enabledThumbRadius: disabled ? 0 : 6,
                     ),
                     overlayShape: const RoundSliderOverlayShape(
                       overlayRadius: 12,
@@ -318,6 +348,8 @@ class ControlBarSlider extends HookWidget {
                         .colorScheme
                         .onSurfaceVariant
                         .withAlpha(99),
+                    trackShape:
+                        disabled ? const RoundedActiveTrackShape() : null,
                     trackHeight: 4,
                   ),
                   child: Slider(
@@ -326,17 +358,17 @@ class ControlBarSlider extends HookWidget {
                         : playerCore.position.inSeconds.toDouble(),
                     min: 0,
                     max: playerCore.duration.inSeconds.toDouble(),
+                    onChangeStart: (value) {
+                      playerCore.updateSeeking(true);
+                    },
                     onChanged: (value) {
                       showControl();
-                      playerCore.updateSeeking(true);
                       playerCore
                           .updatePosition(Duration(seconds: value.toInt()));
                     },
                     onChangeEnd: (value) async {
-                      playerCore
-                          .updatePosition(Duration(seconds: value.toInt()));
-                      await playerCore.player
-                          .seek(Duration(seconds: value.toInt()));
+                      await playerController
+                          .seekTo(Duration(seconds: value.toInt()));
                       playerCore.updateSeeking(false);
                     },
                   ),
@@ -344,12 +376,14 @@ class ControlBarSlider extends HookWidget {
               ],
             ),
           ),
-          Text(
-            formatDurationToMinutes(playerCore.duration),
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              height: 2,
-              decoration: TextDecoration.none,
+          Visibility(
+            visible: !disabled,
+            child: Text(
+              formatDurationToMinutes(playerCore.duration),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                height: 2,
+              ),
             ),
           ),
         ],

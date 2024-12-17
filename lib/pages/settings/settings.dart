@@ -61,7 +61,7 @@ class Settings extends HookWidget {
                     tabs: settingsTabs.map((e) => Tab(text: e.title)).toList()),
                 const Spacer(),
                 IconButton(
-                  tooltip: t.close,
+                  tooltip: '${t.close} ( Escape )',
                   icon: const Icon(Icons.close_rounded),
                   onPressed: () => Navigator.of(context).pop(),
                 ),

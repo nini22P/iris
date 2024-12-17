@@ -108,7 +108,7 @@ class Storages extends HookWidget {
                       },
                     ),
                     IconButton(
-                      tooltip: t.close,
+                      tooltip: '${t.close} ( Escape )',
                       icon: const Icon(Icons.close_rounded),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
