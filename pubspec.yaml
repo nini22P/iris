@@ -57,6 +57,7 @@ dependencies:
   google_fonts: ^6.2.1
   dynamic_color: ^1.7.0
   window_size: ^0.1.0
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:

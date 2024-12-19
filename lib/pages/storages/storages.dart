@@ -79,6 +79,7 @@ class Storages extends HookWidget {
                                 showLocalDialog(
                                   context,
                                   localStorage: LocalStorage(
+                                    id: 'local',
                                     type: 'local',
                                     name: pathConverter(selectedDirectory).last,
                                     basePath: pathConverter(selectedDirectory),

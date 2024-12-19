@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/models/storages/webdav_storage.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:uuid/uuid.dart';
 
 Future<void> showWebDAVDialog(BuildContext context,
         {WebdavStorage? webdavStorage, bool? isFavorite}) async =>
@@ -37,6 +38,7 @@ class WebDAVDialog extends HookWidget {
                     .favoriteStorages
                     .contains(webdavStorage!)));
 
+    final id = useMemoized(() => webdavStorage?.id ?? const Uuid().v4());
     final name = useState(webdavStorage?.name ?? '');
     final url = useState(webdavStorage?.url ?? '');
     final basePath = useState(webdavStorage?.basePath ?? []);
@@ -51,50 +53,58 @@ class WebDAVDialog extends HookWidget {
 
     void add() async {
       if (isFavorite) return;
-      await useStorageStore().addStorage(WebdavStorage(
-        type: 'webdav',
-        name: name.value,
-        url: url.value,
-        basePath: basePath.value,
-        port: portController.text,
-        username: username.value,
-        password: password.value,
-        https: https.value,
-      ));
+      await useStorageStore().addStorage(
+        WebdavStorage(
+          id: id,
+          type: 'webdav',
+          name: name.value,
+          url: url.value,
+          basePath: basePath.value,
+          port: portController.text,
+          username: username.value,
+          password: password.value,
+          https: https.value,
+        ),
+      );
     }
 
     void update() async {
       if (!isFavorite) {
         await useStorageStore().updateStorage(
-            useStorageStore().state.storages.indexOf(webdavStorage!),
-            WebdavStorage(
-              type: 'webdav',
-              name: name.value,
-              url: url.value,
-              basePath: basePath.value,
-              port: portController.text,
-              username: username.value,
-              password: password.value,
-              https: https.value,
-            ));
+          useStorageStore().state.storages.indexOf(webdavStorage!),
+          WebdavStorage(
+            id: id,
+            type: 'webdav',
+            name: name.value,
+            url: url.value,
+            basePath: basePath.value,
+            port: portController.text,
+            username: username.value,
+            password: password.value,
+            https: https.value,
+          ),
+        );
       } else {
         await useStorageStore().updateFavoriteStorage(
-            useStorageStore().state.storages.indexOf(webdavStorage!),
-            WebdavStorage(
-              type: 'webdav',
-              name: name.value,
-              url: url.value,
-              basePath: basePath.value,
-              port: portController.text,
-              username: username.value,
-              password: password.value,
-              https: https.value,
-            ));
+          useStorageStore().state.storages.indexOf(webdavStorage!),
+          WebdavStorage(
+            id: id,
+            type: 'webdav',
+            name: name.value,
+            url: url.value,
+            basePath: basePath.value,
+            port: portController.text,
+            username: username.value,
+            password: password.value,
+            https: https.value,
+          ),
+        );
       }
     }
 
     void testConnection() async {
       final bool isConnected = await WebdavStorage(
+        id: id,
         type: 'webdav',
         name: name.value,
         url: url.value,

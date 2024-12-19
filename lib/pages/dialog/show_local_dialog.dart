@@ -40,30 +40,37 @@ class LocalDialog extends HookWidget {
 
     void add() async {
       if (isFavorite) return;
-      await useStorageStore().addStorage(LocalStorage(
-        type: 'local',
-        name: name.value,
-        basePath: basePath.value,
-      ));
+      await useStorageStore().addStorage(
+        LocalStorage(
+          id: 'local',
+          type: 'local',
+          name: name.value,
+          basePath: basePath.value,
+        ),
+      );
     }
 
     void update() async {
       if (!isFavorite) {
         await useStorageStore().updateStorage(
-            useStorageStore().state.storages.indexOf(localStorage!),
-            LocalStorage(
-              type: 'local',
-              name: name.value,
-              basePath: basePath.value,
-            ));
+          useStorageStore().state.storages.indexOf(localStorage!),
+          LocalStorage(
+            id: 'local',
+            type: 'local',
+            name: name.value,
+            basePath: basePath.value,
+          ),
+        );
       } else {
         await useStorageStore().updateFavoriteStorage(
-            useStorageStore().state.favoriteStorages.indexOf(localStorage!),
-            LocalStorage(
-              type: 'local',
-              name: name.value,
-              basePath: basePath.value,
-            ));
+          useStorageStore().state.favoriteStorages.indexOf(localStorage!),
+          LocalStorage(
+            id: 'local',
+            type: 'local',
+            name: name.value,
+            basePath: basePath.value,
+          ),
+        );
       }
     }
 

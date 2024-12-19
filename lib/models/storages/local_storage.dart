@@ -13,6 +13,8 @@ import 'package:iris/utils/check_file_type.dart';
 
 class LocalStorage implements Storage {
   @override
+  String id = 'local';
+  @override
   String type = 'local';
   @override
   String name;
@@ -20,6 +22,7 @@ class LocalStorage implements Storage {
   List<String> basePath;
 
   LocalStorage({
+    required this.id,
     required this.type,
     required this.name,
     required this.basePath,
@@ -31,6 +34,7 @@ class LocalStorage implements Storage {
     List<String>? basePath,
   }) =>
       LocalStorage(
+        id: id,
         type: type,
         name: name ?? this.name,
         basePath: basePath ?? this.basePath,
@@ -63,6 +67,7 @@ class LocalStorage implements Storage {
   @override
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'type': type,
       'name': name,
       'basePath': basePath,
@@ -71,6 +76,7 @@ class LocalStorage implements Storage {
 
   factory LocalStorage.fromJson(Map<String, dynamic> json) {
     return LocalStorage(
+        id: json['id'] ?? 'local',
         type: json['type'],
         name: json['name'],
         basePath: List<String>.from(json['basePath']));
@@ -85,6 +91,7 @@ Future<void> pickFile() async {
     final filePath = pathConverter(result.files.first.path!);
     final basePath = filePath.sublist(0, filePath.length - 1);
     final files = await LocalStorage(
+      id: 'local',
       type: 'local',
       name: result.files.first.name,
       basePath: basePath,

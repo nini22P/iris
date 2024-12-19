@@ -2,11 +2,14 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:iris/utils/check_file_type.dart';
 import 'package:iris/utils/find_sub_title.dart';
+import 'package:uuid/uuid.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart';
 
 class WebdavStorage implements Storage {
+  @override
+  String id;
   @override
   String type = 'webdav';
   @override
@@ -20,6 +23,7 @@ class WebdavStorage implements Storage {
   bool https;
 
   WebdavStorage({
+    required this.id,
     required this.type,
     required this.name,
     required this.url,
@@ -41,6 +45,7 @@ class WebdavStorage implements Storage {
     bool? https,
   }) =>
       WebdavStorage(
+        id: id,
         type: type,
         name: name ?? this.name,
         url: url ?? this.url,
@@ -116,6 +121,7 @@ class WebdavStorage implements Storage {
   @override
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'type': type,
       'name': name,
       'url': url,
@@ -129,6 +135,7 @@ class WebdavStorage implements Storage {
 
   factory WebdavStorage.fromJson(Map<String, dynamic> json) {
     return WebdavStorage(
+      id: json['id'] ?? const Uuid().v4(),
       type: json['type'],
       name: json['name'],
       url: json['url'],
