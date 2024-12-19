@@ -103,9 +103,19 @@ class Files extends HookWidget {
                                   const EdgeInsets.fromLTRB(16, 0, 8, 0),
                               visualDensity: const VisualDensity(
                                   horizontal: 0, vertical: -4),
-                              leading: filteredFiles[index].isDir == true
-                                  ? const Icon(Icons.folder_rounded)
-                                  : const Icon(Icons.video_file_rounded),
+                              leading: () {
+                                switch (filteredFiles[index].type) {
+                                  case 'dir':
+                                    return const Icon(Icons.folder_rounded);
+                                  case 'video':
+                                    return const Icon(Icons.video_file_rounded);
+                                  case 'audio':
+                                    return const Icon(Icons.audio_file_rounded);
+                                  default:
+                                    return const Icon(
+                                        Icons.file_present_rounded);
+                                }
+                              }(),
                               title: Text(
                                 filteredFiles[index].name,
                                 maxLines: 3,
