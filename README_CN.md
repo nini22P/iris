@@ -1,7 +1,7 @@
 # Iris - 轻量级视频播放器
 
 ![ci](https://github.com/nini22P/Iris/actions/workflows/ci.yml/badge.svg)
-<a href="https://ifdian.net/a/nini22P"><img alt="Afdaian" style="height: 30px;" src="https://pic1.afdiancdn.com/static/img/welcome/button-sponsorme.png"></a>
+<a href="https://afdian.com/a/nini22P"><img alt="爱发电" style="height: 30px;" src="https://pic1.afdiancdn.com/static/img/welcome/button-sponsorme.png"></a>
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nini22p)
 
 [English](./README.md) | 中文
@@ -23,7 +23,7 @@
 
 如果您喜欢这个项目并希望支持我，可以通过以下方式赞助我：
 
-- [爱发电](https://ifdian.net/a/nini22P)
+- [爱发电](https://afdian.com/a/nini22P)
 - [Ko-fi](https://ko-fi.com/nini22p)
 
 感谢您的支持！
