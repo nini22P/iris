@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/file.dart';
+import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
+import 'package:iris/store/use_storage_store.dart';
+import 'package:iris/utils/files_filter.dart';
 import 'package:media_kit/media_kit.dart';
 
 class PlayerCore {
@@ -23,7 +27,8 @@ class PlayerCore {
   final bool seeking;
   final bool completed;
   final double rate;
-  final double? aspectRatio;
+  final double aspectRatio;
+  final FileItem? cover;
   final void Function(Duration) updatePosition;
   final void Function(bool) updateSeeking;
 
@@ -44,6 +49,7 @@ class PlayerCore {
     this.completed,
     this.rate,
     this.aspectRatio,
+    this.cover,
     this.updatePosition,
     this.updateSeeking,
   );
@@ -74,10 +80,10 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   bool completed = useStream(player.stream.completed).data ?? false;
   double rate = useStream(player.stream.rate).data ?? 1.0;
   VideoParams? videoParams = useStream(player.stream.videoParams).data;
-  double? aspectRatio =
+  double aspectRatio =
       videoParams != null && videoParams.w != null && videoParams.h != null
           ? (videoParams.w! / videoParams.h!)
-          : null;
+          : 0;
 
   final subtitle = useState(SubtitleTrack.no());
   final subtitles = useState<List<SubtitleTrack>>([]);
@@ -92,6 +98,43 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       position.value = positionStream.data!;
     }
   }
+
+  final storages = useStorageStore().select(context, (state) => state.storages);
+
+  final List<String> dir = useMemoized(
+    () => (currentFile == null) ? [] : ([...currentFile.path]..removeLast()),
+    [currentFile],
+  );
+
+  final Storage? storage = useMemoized(() {
+    if (currentFile == null) return null;
+
+    if (currentFile.storageId == 'local') {
+      return LocalStorage(
+        id: 'local',
+        name: 'Local',
+        type: 'local',
+        basePath: dir,
+      );
+    }
+
+    final filtered =
+        storages.where((storage) => storage.id == currentFile.storageId);
+
+    return filtered.firstOrNull;
+  }, [currentFile, dir, storages]);
+
+  final getCover = useMemoized(() async {
+    if (currentFile?.type != 'audio') return null;
+
+    final files = await storage?.getFiles(dir);
+
+    if (files == null) return null;
+
+    return filesFilter(files, ['image']).firstOrNull;
+  }, [currentFile, dir]);
+
+  final cover = useFuture(getCover).data;
 
   useEffect(() {
     final subscription = player.stream.track.listen((event) {
@@ -161,6 +204,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     completed,
     rate,
     aspectRatio,
+    cover,
     updatePosition,
     updateSeeking,
   );

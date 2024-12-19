@@ -40,7 +40,7 @@ class Formats {
     'wmv',
   ];
 
-  static const List<String> picture = [
+  static const List<String> image = [
     'avif',
     'bmp',
     'exif',
@@ -63,7 +63,7 @@ String checkFileType(String name) {
   final fileTypeMap = {
     'audio': Formats.audio,
     'video': Formats.video,
-    'picture': Formats.picture,
+    'image': Formats.image,
   };
 
   for (var entry in fileTypeMap.entries) {

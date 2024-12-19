@@ -8,6 +8,7 @@ import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_storage_store.dart';
+import 'package:iris/utils/files_filter.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -34,8 +35,8 @@ class Files extends HookWidget {
 
     final title = storage.name;
 
-    final getFiles =
-        useMemoized(() async => storage.getFiles(currentPath), [currentPath]);
+    final getFiles = useMemoized(
+        () async => await storage.getFiles(currentPath), [currentPath]);
 
     final result = useFuture(getFiles);
 
@@ -44,9 +45,7 @@ class Files extends HookWidget {
     final error = result.error != null;
 
     final filteredFiles = useMemoized(
-        () =>
-            files.where((file) => file.isDir || file.type == 'video').toList(),
-        [files]);
+        () => filesFilter(files, ['dir', 'video', 'audio']), [files]);
 
     ItemScrollController itemScrollController = ItemScrollController();
     ScrollOffsetController scrollOffsetController = ScrollOffsetController();
@@ -56,7 +55,7 @@ class Files extends HookWidget {
 
     void play(List<FileItem> files, int index) async {
       final clickedFile = files[index];
-      final playQueue = files.where((file) => file.type == 'video').toList();
+      final playQueue = filesFilter(files, ['video', 'audio']);
       final newIndex = playQueue.indexOf(clickedFile);
 
       await useAppStore().updateAutoPlay(true);

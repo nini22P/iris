@@ -82,6 +82,9 @@ class IrisPlayer extends HookWidget {
     PlayerController playerController =
         usePlayerController(context, playerCore);
 
+    final mediaType = useMemoized(() => playerCore.currentFile?.type ?? 'video',
+        [playerCore.currentFile]);
+
     final isHover = useState(false);
     final isTouch = useState(false);
     final isLongPress = useState(false);
@@ -450,6 +453,70 @@ class IrisPlayer extends HookWidget {
             top: 0,
             right: 0,
             bottom: 0,
+            child: playerCore.cover != null
+                ? IgnorePointer(
+                    child: Stack(
+                      children: [
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height,
+                          child: playerCore.cover!.storageId == 'local'
+                              ? Image.file(
+                                  File(playerCore.cover!.uri),
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.network(
+                                  playerCore.cover!.uri,
+                                  headers: playerCore.cover!.auth != null
+                                      ? {
+                                          'authorization':
+                                              playerCore.cover!.auth!
+                                        }
+                                      : null,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                        BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
+                          child: Container(color: Colors.transparent),
+                        ),
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width / 2,
+                              height: MediaQuery.of(context).size.height / 2,
+                              child: playerCore.cover!.storageId == 'local'
+                                  ? Image.file(
+                                      File(playerCore.cover!.uri),
+                                      fit: BoxFit.contain,
+                                    )
+                                  : Image.network(
+                                      playerCore.cover!.uri,
+                                      headers: playerCore.cover!.auth != null
+                                          ? {
+                                              'authorization':
+                                                  playerCore.cover!.auth!
+                                            }
+                                          : null,
+                                      fit: BoxFit.contain,
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : Container(),
+          ),
+          Positioned(
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
             child: Center(
               child: playerCore.rate != 1.0 && isTouch.value
                   ? Container(
@@ -478,7 +545,9 @@ class IrisPlayer extends HookWidget {
             right: -28,
             bottom: -16,
             height: 32,
-            child: isShowProgress.value && !isShowControl.value
+            child: isShowProgress.value &&
+                    !isShowControl.value &&
+                    mediaType != 'audio'
                 ? ControlBarSlider(
                     playerCore: playerCore,
                     playerController: playerController,
@@ -490,7 +559,9 @@ class IrisPlayer extends HookWidget {
           Positioned(
             left: 12,
             bottom: 4,
-            child: isShowProgress.value && !isShowControl.value
+            child: isShowProgress.value &&
+                    !isShowControl.value &&
+                    mediaType != 'audio'
                 ? Text(
                     '${formatDurationToMinutes(playerCore.position)} / ${formatDurationToMinutes(playerCore.duration)}',
                     style: TextStyle(
@@ -513,7 +584,7 @@ class IrisPlayer extends HookWidget {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOutCubicEmphasized,
-            top: isShowControl.value ? 0 : -72,
+            top: isShowControl.value || mediaType == 'audio' ? 0 : -72,
             left: 0,
             right: 0,
             child: MouseRegion(
@@ -554,7 +625,7 @@ class IrisPlayer extends HookWidget {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOutCubicEmphasized,
-            bottom: isShowControl.value ? 0 : -96,
+            bottom: isShowControl.value || mediaType == 'audio' ? 0 : -96,
             left: 0,
             right: 0,
             child: Align(

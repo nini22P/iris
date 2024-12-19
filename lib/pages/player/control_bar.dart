@@ -339,6 +339,10 @@ class ControlBarSlider extends HookWidget {
                     thumbShape: RoundSliderThumbShape(
                       enabledThumbRadius: disabled ? 0 : 6,
                     ),
+                    disabledThumbColor: Theme.of(context)
+                        .colorScheme
+                        .onSurfaceVariant
+                        .withAlpha(222),
                     overlayShape: const RoundSliderOverlayShape(
                       overlayRadius: 12,
                     ),

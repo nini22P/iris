@@ -271,7 +271,7 @@ class WebDAVDialog extends HookWidget {
                   isEdit ? update() : add();
                 }
               : null,
-          child: Text(t.ok),
+          child: Text(isEdit ? t.save : t.add),
         ),
       ],
     );

@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
-import 'package:iris/utils/file_filter.dart';
-import 'package:iris/utils/file_sort.dart';
+import 'package:iris/utils/files_filter.dart';
+import 'package:iris/utils/files_sort.dart';
 import 'package:iris/utils/find_sub_title.dart';
 import 'package:iris/utils/path_converter.dart';
 import 'package:path/path.dart' as p;
@@ -46,12 +46,15 @@ class LocalStorage implements Storage {
     final files = directory
         .listSync()
         .map((entity) => FileItem(
+              storageId: id,
               name: p.basename(entity.path),
               uri: pathConverter(entity.path).join('/'),
-              path: path,
+              path: [...path, p.basename(entity.path)],
               isDir: entity is Directory,
               size: entity is File ? entity.lengthSync() : 0,
-              type: checkFileType(p.basename(entity.path)),
+              type: entity is Directory
+                  ? 'dir'
+                  : checkFileType(p.basename(entity.path)),
               subtitles: findSubTitle(
                   directory
                       .listSync()
@@ -61,7 +64,7 @@ class LocalStorage implements Storage {
                   entity.path),
             ))
         .toList();
-    return fileSort(files, true);
+    return filesSort(files, true);
   }
 
   @override
@@ -84,8 +87,9 @@ class LocalStorage implements Storage {
 }
 
 Future<void> pickFile() async {
-  FilePickerResult? result = await FilePicker.platform
-      .pickFiles(type: FileType.custom, allowedExtensions: Formats.video);
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: [...Formats.video, ...Formats.audio]);
 
   if (result != null) {
     final filePath = pathConverter(result.files.first.path!);
@@ -97,9 +101,9 @@ Future<void> pickFile() async {
       basePath: basePath,
     ).getFiles(basePath);
 
-    final playQueue = fileFilter(files, 'video');
+    final playQueue = filesFilter(files, ['video', 'audio']);
     final clickedFile = playQueue
-        .where((file) => file.uri == filePath.join('/').toString())
+        .where((file) => file.path.join('/') == filePath.join('/'))
         .first;
     final index = playQueue.indexOf(clickedFile);
 

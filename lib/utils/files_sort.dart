@@ -1,6 +1,6 @@
 import 'package:iris/models/file.dart';
 
-List<FileItem> fileSort(List<FileItem> files, bool directoryFirst) {
+List<FileItem> filesSort(List<FileItem> files, bool directoryFirst) {
   if (directoryFirst) {
     final dirs_ = files.where((file) => file.isDir).toList();
     final files_ = files.where((file) => !file.isDir).toList();

@@ -1,4 +1,5 @@
 class FileItem {
+  final String storageId;
   final String name;
   final String uri;
   final List<String> path;
@@ -9,6 +10,7 @@ class FileItem {
   final List<Subtitle>? subtitles;
 
   FileItem({
+    required this.storageId,
     required this.name,
     required this.uri,
     required this.path,
@@ -21,6 +23,7 @@ class FileItem {
 
   Map<String, dynamic> toJson() {
     return {
+      'storageId': storageId,
       'name': name,
       'uri': uri,
       'path': path,
@@ -35,6 +38,7 @@ class FileItem {
 
   factory FileItem.fromJson(Map<String, dynamic> json) {
     return FileItem(
+      storageId: json['storageId'],
       name: json['name'],
       uri: json['uri'],
       path: List<String>.from(json['path']),

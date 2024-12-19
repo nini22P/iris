@@ -11,6 +11,11 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
     return;
   }
 
+  if (videoAspectRatio == 0) {
+    windowManager.setAspectRatio(0);
+    return;
+  }
+
   bool autoResize = useAppStore().state.autoResize;
 
   if (!autoResize) return;
