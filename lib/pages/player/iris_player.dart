@@ -578,25 +578,59 @@ class IrisPlayer extends HookWidget {
           ),
           Positioned(
             left: 12,
-            bottom: 4,
+            top: 12,
             child: isShowProgress.value &&
                     !isShowControl.value &&
                     mediaType != 'audio'
-                ? Text(
-                    '${formatDurationToMinutes(playerCore.position)} / ${formatDurationToMinutes(playerCore.duration)}',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 16,
-                      height: 2,
-                      decoration: TextDecoration.none,
-                      shadows: const [
-                        Shadow(
-                          color: Colors.black,
-                          offset: Offset(0, 0),
-                          blurRadius: 1,
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        playerCore.title,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 20,
+                          height: 1,
+                          decoration: TextDecoration.none,
+                          shadows: const [
+                            Shadow(
+                              color: Colors.black,
+                              offset: Offset(0, 0),
+                              blurRadius: 1,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  )
+                : const SizedBox(),
+          ),
+          Positioned(
+            left: 12,
+            bottom: 6,
+            child: isShowProgress.value &&
+                    !isShowControl.value &&
+                    mediaType != 'audio'
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${formatDurationToMinutes(playerCore.position)} / ${formatDurationToMinutes(playerCore.duration)}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 16,
+                          height: 2,
+                          decoration: TextDecoration.none,
+                          shadows: const [
+                            Shadow(
+                              color: Colors.black,
+                              offset: Offset(0, 0),
+                              blurRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   )
                 : const SizedBox(),
           ),
