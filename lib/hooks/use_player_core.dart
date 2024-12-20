@@ -131,7 +131,13 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
 
     if (files == null) return null;
 
-    return filesFilter(files, ['image']).firstOrNull;
+    final images = filesFilter(files, ['image']);
+
+    return images
+            .where(
+                (image) => image.name.split('.').first.toLowerCase() == 'cover')
+            .firstOrNull ??
+        images.firstOrNull;
   }, [currentFile, dir]);
 
   final cover = useFuture(getCover).data;
@@ -177,8 +183,6 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     } else if (subtitles.value.isNotEmpty) {
       log('Set subtitle: ${subtitles.value[0].title}');
       player.setSubtitleTrack(subtitles.value[0]);
-    } else {
-      player.setSubtitleTrack(SubtitleTrack.no());
     }
     return null;
   }, [duration]);

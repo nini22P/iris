@@ -45,7 +45,7 @@ class Files extends HookWidget {
     final error = result.error != null;
 
     final filteredFiles = useMemoized(
-        () => filesFilter(files, ['dir', 'video', 'audio']), [files]);
+        () => filesFilter(files, ['dir', 'video', 'audio', 'image']), [files]);
 
     ItemScrollController itemScrollController = ItemScrollController();
     ScrollOffsetController scrollOffsetController = ScrollOffsetController();
@@ -108,9 +108,11 @@ class Files extends HookWidget {
                                   case 'dir':
                                     return const Icon(Icons.folder_rounded);
                                   case 'video':
-                                    return const Icon(Icons.video_file_rounded);
+                                    return const Icon(Icons.movie_rounded);
                                   case 'audio':
-                                    return const Icon(Icons.audio_file_rounded);
+                                    return const Icon(Icons.audiotrack_rounded);
+                                  case 'image':
+                                    return const Icon(Icons.image_rounded);
                                   default:
                                     return const Icon(
                                         Icons.file_present_rounded);
@@ -179,8 +181,11 @@ class Files extends HookWidget {
                                     filteredFiles[index].name
                                   ]);
                                 } else {
-                                  play(filteredFiles, index);
-                                  Navigator.pop(context);
+                                  if (filteredFiles[index].type == 'video' ||
+                                      filteredFiles[index].type == 'audio') {
+                                    play(filteredFiles, index);
+                                    Navigator.pop(context);
+                                  }
                                 }
                               },
                             ),

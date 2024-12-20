@@ -61,30 +61,7 @@ class CustomAppBar extends HookWidget {
               children: [
                 ...actions ?? [],
                 if (isDesktop) ...[
-                  FutureBuilder<bool>(
-                    future: windowManager.isAlwaysOnTop(),
-                    builder: (context, snapshot) {
-                      bool isAlwaysOnTop = snapshot.data ?? false;
-                      return IconButton(
-                        tooltip: isAlwaysOnTop
-                            ? t.always_on_top_on
-                            : t.always_on_top_off,
-                        icon: Icon(
-                          isAlwaysOnTop
-                              ? Icons.push_pin_rounded
-                              : Icons.push_pin_outlined,
-                          size: 18,
-                        ),
-                        onPressed: () =>
-                            windowManager.setAlwaysOnTop(!isAlwaysOnTop),
-                      );
-                    },
-                  ),
                   const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () => windowManager.minimize(),
-                    icon: const Icon(Icons.remove_rounded),
-                  ),
                   FutureBuilder<Map<String, bool>>(
                     future: () async {
                       final isFullScreen =
@@ -106,33 +83,85 @@ class CustomAppBar extends HookWidget {
                       final isMaximized =
                           snapshot.data?['isMaximized'] ?? false;
 
-                      return IconButton(
-                        onPressed: () async {
-                          if (isFullScreen) {
-                            await windowManager.setFullScreen(false);
-                            await resizeWindow(playerCore.aspectRatio);
-                          } else if (isMaximized) {
-                            await windowManager.unmaximize();
-                            await resizeWindow(playerCore.aspectRatio);
-                          } else {
-                            await windowManager.maximize();
-                          }
-                        },
-                        icon: isFullScreen
-                            ? const Icon(Icons.close_fullscreen_rounded,
-                                size: 20)
-                            : isMaximized
-                                ? const RotatedBox(
-                                    quarterTurns: 2,
-                                    child: Icon(
-                                      Icons.filter_none_rounded,
-                                      size: 18,
-                                    ),
-                                  )
-                                : const Icon(
-                                    Icons.crop_din_rounded,
-                                    size: 20,
+                      return Row(
+                        children: [
+                          Visibility(
+                            visible: !isFullScreen,
+                            child: FutureBuilder<bool>(
+                              future: windowManager.isAlwaysOnTop(),
+                              builder: (context, snapshot) {
+                                bool isAlwaysOnTop = snapshot.data ?? false;
+                                return IconButton(
+                                  tooltip: isAlwaysOnTop
+                                      ? t.always_on_top_on
+                                      : t.always_on_top_off,
+                                  icon: Icon(
+                                    isAlwaysOnTop
+                                        ? Icons.push_pin_rounded
+                                        : Icons.push_pin_outlined,
+                                    size: 18,
                                   ),
+                                  onPressed: () => windowManager
+                                      .setAlwaysOnTop(!isAlwaysOnTop),
+                                );
+                              },
+                            ),
+                          ),
+                          Visibility(
+                            visible: isFullScreen,
+                            child: IconButton(
+                              tooltip: isFullScreen
+                                  ? '${t.exit_fullscreen} ( Escape, F11, Enter )'
+                                  : '${t.enter_fullscreen} ( F11, Enter )',
+                              icon: Icon(
+                                isFullScreen
+                                    ? Icons.close_fullscreen_rounded
+                                    : Icons.open_in_full_rounded,
+                                size: 18,
+                              ),
+                              onPressed: () async {
+                                if (isFullScreen) {
+                                  await windowManager.setFullScreen(false);
+                                  await resizeWindow(playerCore.aspectRatio);
+                                } else {
+                                  await windowManager.setFullScreen(true);
+                                }
+                              },
+                            ),
+                          ),
+                          Visibility(
+                            visible: !isFullScreen,
+                            child: IconButton(
+                              onPressed: () => windowManager.minimize(),
+                              icon: const Icon(Icons.remove_rounded),
+                            ),
+                          ),
+                          Visibility(
+                            visible: !isFullScreen,
+                            child: IconButton(
+                              onPressed: () async {
+                                if (isMaximized) {
+                                  await windowManager.unmaximize();
+                                  await resizeWindow(playerCore.aspectRatio);
+                                } else {
+                                  await windowManager.maximize();
+                                }
+                              },
+                              icon: isMaximized
+                                  ? const RotatedBox(
+                                      quarterTurns: 2,
+                                      child: Icon(
+                                        Icons.filter_none_rounded,
+                                        size: 18,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.crop_din_rounded,
+                                      size: 20,
+                                    ),
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),

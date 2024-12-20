@@ -43,70 +43,74 @@ class Popup<T> extends PopupRoute<T> {
             ? 2
             : 1;
 
-    return Stack(
-      children: [
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: GestureDetector(
-            onPanStart: (details) {
-              if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-                windowManager.startDragging();
-              }
-            },
-            onTap: () => Navigator.of(context).pop(),
+    return SafeArea(
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: GestureDetector(
+              onPanStart: (details) {
+                if (Platform.isWindows ||
+                    Platform.isLinux ||
+                    Platform.isMacOS) {
+                  windowManager.startDragging();
+                }
+              },
+              onTap: () => Navigator.of(context).pop(),
+            ),
           ),
-        ),
-        Positioned(
-          top: Platform.isWindows || Platform.isLinux || Platform.isMacOS
-              ? 64
-              : 16,
-          left: direction == PopupDirection.left ? 16 : null,
-          right: direction == PopupDirection.right ? 16 : null,
-          bottom: 16,
-          child: AnimatedBuilder(
-            animation: animation,
-            builder: (context, child) {
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: direction == PopupDirection.left
-                      ? const Offset(-1.0, 0.0)
-                      : const Offset(1.0, 0.0),
-                  end: Offset.zero,
-                ).animate(CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeInOutCubicEmphasized,
-                )),
-                child: child,
-              );
-            },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Material(
-                  color:
-                      Theme.of(context).colorScheme.surface.withOpacity(0.75),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: screenWidth / size - 32,
-                    ),
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: child,
-                        ),
-                      ],
+          Positioned(
+            top: Platform.isWindows || Platform.isLinux || Platform.isMacOS
+                ? 48
+                : 8,
+            left: direction == PopupDirection.left ? 8 : null,
+            right: direction == PopupDirection.right ? 8 : null,
+            bottom: 8,
+            child: AnimatedBuilder(
+              animation: animation,
+              builder: (context, child) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: direction == PopupDirection.left
+                        ? const Offset(-1.0, 0.0)
+                        : const Offset(1.0, 0.0),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeInOutCubicEmphasized,
+                  )),
+                  child: child,
+                );
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Material(
+                    color:
+                        Theme.of(context).colorScheme.surface.withOpacity(0.75),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: screenWidth / size - 16,
+                      ),
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: child,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

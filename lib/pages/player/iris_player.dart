@@ -8,11 +8,13 @@ import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
 import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/pages/player/subtitles.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/pages/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
+import 'package:iris/utils/format_duration_to_minutes.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/path.dart';
 import 'package:iris/utils/resize_window.dart';
@@ -146,6 +148,13 @@ class IrisPlayer extends HookWidget {
       controlHideTimer.value?.cancel();
     }
 
+    Future<void> showControlForHover(Future<void> callback) async {
+      showControl();
+      isHover.value = true;
+      await callback;
+      showControl();
+    }
+
     void showProgress() {
       isShowProgress.value = true;
       resetBottomProgressTimer();
@@ -169,13 +178,13 @@ class IrisPlayer extends HookWidget {
     }, [playerCore.title]);
 
     useEffect(() {
-      if (isShowControl.value) {
+      if (isShowControl.value || mediaType == 'audio') {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       } else {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       }
       return;
-    }, [isShowControl.value]);
+    }, [isShowControl.value, mediaType]);
 
     useEffect(() {
       SystemChrome.setSystemUIChangeCallback((value) async {
@@ -201,11 +210,12 @@ class IrisPlayer extends HookWidget {
               playerController.next();
               break;
             case LogicalKeyboardKey.keyP:
-              showControl();
-              await showPopup(
-                context: context,
-                child: const Settings(),
-                direction: PopupDirection.right,
+              showControlForHover(
+                showPopup(
+                  context: context,
+                  child: const Settings(),
+                  direction: PopupDirection.right,
+                ),
               );
               break;
             default:
@@ -238,27 +248,30 @@ class IrisPlayer extends HookWidget {
             showControl();
             break;
           case LogicalKeyboardKey.keyF:
-            showControl();
-            await showPopup(
-              context: context,
-              child: const Storages(),
-              direction: PopupDirection.right,
+            showControlForHover(
+              showPopup(
+                context: context,
+                child: const Storages(),
+                direction: PopupDirection.right,
+              ),
             );
             break;
           case LogicalKeyboardKey.keyP:
-            showControl();
-            await showPopup(
-              context: context,
-              child: const PlayQueue(),
-              direction: PopupDirection.right,
+            showControlForHover(
+              showPopup(
+                context: context,
+                child: const PlayQueue(),
+                direction: PopupDirection.right,
+              ),
             );
             break;
           case LogicalKeyboardKey.keyS:
-            showControl();
-            await showPopup(
-              context: context,
-              child: Subtitles(playerCore: playerCore),
-              direction: PopupDirection.right,
+            showControlForHover(
+              showPopup(
+                context: context,
+                child: Subtitles(playerCore: playerCore),
+                direction: PopupDirection.right,
+              ),
             );
             break;
           case LogicalKeyboardKey.escape:
@@ -398,12 +411,7 @@ class IrisPlayer extends HookWidget {
                 },
                 onPanStart: (details) async {
                   if (isDesktop && details.kind != PointerDeviceKind.touch) {
-                    isHover.value = true;
-                    await windowManager.startDragging();
-                    if (isShowControl.value) {
-                      resetControlHideTimer();
-                    }
-                    isHover.value = false;
+                    showControlForHover(windowManager.startDragging());
                   } else if (details.kind == PointerDeviceKind.touch) {
                     isTouch.value = true;
                     playerCore.updateSeeking(true);
@@ -444,55 +452,30 @@ class IrisPlayer extends HookWidget {
                 child: Video(
                   controller: controller,
                   controls: NoVideoControls,
+                  wakelock: mediaType == 'video',
                 ),
               ),
             ),
           ),
+          // Audio
           Positioned(
             left: 0,
             top: 0,
             right: 0,
             bottom: 0,
-            child: playerCore.cover != null
+            child: mediaType == 'audio'
                 ? IgnorePointer(
                     child: Stack(
                       children: [
-                        SizedBox(
+                        Container(
+                          color: Colors.grey[800],
                           width: MediaQuery.of(context).size.width,
                           height: MediaQuery.of(context).size.height,
-                          child: playerCore.cover!.storageId == 'local'
-                              ? Image.file(
-                                  File(playerCore.cover!.uri),
-                                  fit: BoxFit.cover,
-                                )
-                              : Image.network(
-                                  playerCore.cover!.uri,
-                                  headers: playerCore.cover!.auth != null
-                                      ? {
-                                          'authorization':
-                                              playerCore.cover!.auth!
-                                        }
-                                      : null,
-                                  fit: BoxFit.cover,
-                                ),
-                        ),
-                        BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
-                          child: Container(color: Colors.transparent),
-                        ),
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          right: 0,
-                          bottom: 0,
-                          child: Center(
-                            child: SizedBox(
-                              width: MediaQuery.of(context).size.width / 2,
-                              height: MediaQuery.of(context).size.height / 2,
-                              child: playerCore.cover!.storageId == 'local'
+                          child: playerCore.cover != null
+                              ? playerCore.cover?.storageId == 'local'
                                   ? Image.file(
                                       File(playerCore.cover!.uri),
-                                      fit: BoxFit.contain,
+                                      fit: BoxFit.cover,
                                     )
                                   : Image.network(
                                       playerCore.cover!.uri,
@@ -502,8 +485,45 @@ class IrisPlayer extends HookWidget {
                                                   playerCore.cover!.auth!
                                             }
                                           : null,
-                                      fit: BoxFit.contain,
-                                    ),
+                                      fit: BoxFit.cover,
+                                    )
+                              : null,
+                        ),
+                        BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
+                          child: Container(color: Colors.transparent),
+                        ),
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          right: MediaQuery.of(context).size.width > 800
+                              ? MediaQuery.of(context).size.width / 2
+                              : 0,
+                          bottom: 0,
+                          child: Center(
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height / 2,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: playerCore.cover != null
+                                    ? playerCore.cover!.storageId == 'local'
+                                        ? Image.file(
+                                            File(playerCore.cover!.uri),
+                                            fit: BoxFit.contain,
+                                          )
+                                        : Image.network(
+                                            playerCore.cover!.uri,
+                                            headers: playerCore.cover!.auth !=
+                                                    null
+                                                ? {
+                                                    'authorization':
+                                                        playerCore.cover!.auth!
+                                                  }
+                                                : null,
+                                            fit: BoxFit.contain,
+                                          )
+                                    : null,
+                              ),
                             ),
                           ),
                         ),
@@ -606,12 +626,7 @@ class IrisPlayer extends HookWidget {
                 },
                 onPanStart: (details) async {
                   if (isDesktop) {
-                    isHover.value = true;
-                    await windowManager.startDragging();
-                    if (isShowControl.value) {
-                      resetControlHideTimer();
-                    }
-                    isHover.value = false;
+                    showControlForHover(windowManager.startDragging());
                   }
                 },
                 child: CustomAppBar(
@@ -645,6 +660,7 @@ class IrisPlayer extends HookWidget {
                       playerCore: playerCore,
                       playerController: playerController,
                       showControl: showControl,
+                      showControlForHover: showControlForHover,
                     ),
                   ),
                 ),
