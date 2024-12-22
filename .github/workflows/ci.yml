@@ -22,16 +22,47 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - name: Build Flutter application
+      - name: Build Flutter application for Windows
         run: flutter build windows
-      - name: Move files
+      - name: Create ZIP archive
         run: |
           # Create a directory to hold the files
-          mkdir Release\windows\Iris
+          mkdir Iris
           # Move the build output to the Iris directory
-          Move-Item -Path "build\windows\x64\runner\Release\*" -Destination "Release\windows\Iris" -Force
+          Move-Item -Path "build\windows\x64\runner\Release\*" -Destination "Iris" -Force
+          # Create a ZIP file
+          Compress-Archive -Path "Iris" -DestinationPath "Iris_windows.zip"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Iris_Windows
-          path: Release\windows
+          name: Iris_windows
+          path: Iris_windows.zip
+
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Decode and save keystore
+        run: |
+          echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/keystore.jks
+      - name: Save key.properties
+        run: |
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=keystore.jks" >> android/key.properties
+      - name: Build Flutter application for Android
+        run: flutter build apk
+      - name: Rename APK
+        run: mv build/app/outputs/flutter-apk/app-release.apk Iris_android.apk
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Iris_android
+          path: Iris_android.apk
