@@ -55,7 +55,7 @@ jobs:
           java-version: 21
       - name: Decode and save keystore
         run: |
-          echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/keystore.jks
+          echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
       - name: Save key.properties
         run: |
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
