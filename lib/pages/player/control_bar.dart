@@ -49,9 +49,9 @@ class ControlBar extends HookWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Theme.of(context).colorScheme.surface.withOpacity(0),
-            Theme.of(context).colorScheme.surface.withOpacity(0.3),
-            Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            Theme.of(context).colorScheme.surface.withValues(alpha: 0),
+            Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
+            Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
           ],
         ),
       ),

@@ -1,3 +1,5 @@
+<img height="100px" width="100px" alt="icon" src="./assets/images/icon.svg"/>
+
 # Iris - A lightweight video player
 
 ![ci](https://github.com/nini22P/Iris/actions/workflows/ci.yml/badge.svg)

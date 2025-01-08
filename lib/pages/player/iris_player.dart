@@ -450,9 +450,10 @@ class IrisPlayer extends HookWidget {
                   }
                 },
                 child: Video(
+                  key: ValueKey(playerCore.currentFile?.uri),
                   controller: controller,
                   controls: NoVideoControls,
-                  wakelock: mediaType == 'video',
+                  // wakelock: mediaType == 'video',
                 ),
               ),
             ),

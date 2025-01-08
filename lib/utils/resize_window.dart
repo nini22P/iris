@@ -25,7 +25,9 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
   Rect bounds = await windowManager.getBounds();
 
   if (bounds.size.aspectRatio.toStringAsFixed(2) ==
-      videoAspectRatio.toStringAsFixed(2)) return;
+      videoAspectRatio.toStringAsFixed(2)) {
+    return;
+  }
 
   Screen? screen = await getCurrentScreen();
 

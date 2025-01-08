@@ -41,7 +41,10 @@ class Storages extends HookWidget {
                 ),
               ),
               Divider(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.25),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.25),
                 height: 0,
               ),
               Container(

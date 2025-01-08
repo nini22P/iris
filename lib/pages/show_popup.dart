@@ -90,8 +90,10 @@ class Popup<T> extends PopupRoute<T> {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Material(
-                    color:
-                        Theme.of(context).colorScheme.surface.withOpacity(0.75),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surface
+                        .withValues(alpha: 0.75),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: screenWidth / size - 16,

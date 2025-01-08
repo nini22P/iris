@@ -27,31 +27,32 @@ class CustomAppBar extends HookWidget {
 
     return Container(
       padding: isDesktop
-          ? const EdgeInsets.fromLTRB(16, 4, 4, 8)
-          : const EdgeInsets.all(8),
+          ? const EdgeInsets.fromLTRB(12, 4, 4, 8)
+          : const EdgeInsets.fromLTRB(16, 8, 8, 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Theme.of(context).colorScheme.surface.withOpacity(0.8),
-            Theme.of(context).colorScheme.surface.withOpacity(0.3),
-            Theme.of(context).colorScheme.surface.withOpacity(0),
+            Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+            Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
+            Theme.of(context).colorScheme.surface.withValues(alpha: 0),
           ],
         ),
       ),
       child: SafeArea(
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Image.asset('assets/images/icon.png', width: 24, height: 24),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 title!.isEmpty ? INFO.title : title!,
                 maxLines: 1,
-                textAlign: !isDesktop && actions == null
-                    ? TextAlign.center
-                    : TextAlign.start,
+                textAlign: TextAlign.start,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   overflow: TextOverflow.ellipsis,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -172,9 +173,9 @@ class CustomAppBar extends HookWidget {
                       overlayColor: WidgetStateProperty.resolveWith<Color?>(
                           (Set<WidgetState> states) {
                         if (states.contains(WidgetState.pressed)) {
-                          return Colors.red.withOpacity(0.4);
+                          return Colors.red.withValues(alpha: 0.4);
                         } else if (states.contains(WidgetState.hovered)) {
-                          return Colors.red.withOpacity(0.5);
+                          return Colors.red.withValues(alpha: 0.5);
                         }
                         return null;
                       }),

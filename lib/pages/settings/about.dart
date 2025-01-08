@@ -26,10 +26,11 @@ class About extends HookWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          const ListTile(
-            leading: Icon(null),
-            title: Text(INFO.title),
-            subtitle: Text(INFO.description),
+          ListTile(
+            leading:
+                Image.asset('assets/images/icon.png', width: 24, height: 24),
+            title: const Text(INFO.title),
+            subtitle: const Text(INFO.description),
           ),
           ListTile(
             leading: const Icon(Icons.info_rounded),
