@@ -71,3 +71,60 @@ jobs:
         with:
           name: Iris_android
           path: Iris_android.apk
+
+  release:
+    name: Release
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-android]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get version
+        id: yq
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.version' 'pubspec.yaml'
+      - name: Print version
+        run: echo ${{ steps.yq.outputs.result }}
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Iris_windows
+          path: artifacts
+      - name: Download Android artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Iris_android
+          path: artifacts
+      - name: Create or Replace Tag
+        id: create_tag
+        run: |
+          TAG_NAME="v${{ steps.yq.outputs.result }}"
+          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          # Check if the tag exists
+          if git show-ref --quiet "refs/tags/$TAG_NAME"; then
+            echo "Tag $TAG_NAME already exists, deleting..."
+            if git tag -d "$TAG_NAME" && git push origin --delete "$TAG_NAME"; then
+              echo "Tag $TAG_NAME deleted."
+            else
+              echo "Failed to delete tag $TAG_NAME."
+              exit 1
+            fi
+          fi
+          echo "Creating new tag $TAG_NAME..."
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.create_tag.outputs.TAG_NAME }}
+          name: Iris ${{ steps.create_tag.outputs.TAG_NAME }}
+          body_path: CHANGELOG.md
+          draft: true
+          prerelease: false
+          files: |
+            artifacts/Iris_windows.zip
+            artifacts/Iris_android.apk
