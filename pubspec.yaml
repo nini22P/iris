@@ -58,6 +58,8 @@ dependencies:
   dynamic_color: ^1.7.0
   window_size: ^0.1.0
   uuid: ^4.5.1
+  flutter_markdown: ^0.7.5
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:

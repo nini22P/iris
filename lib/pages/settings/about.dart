@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/info.dart';
+import 'package:iris/pages/dialog/show_release_dialog.dart';
+import 'package:iris/utils/get_latest_release.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/url.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -38,6 +40,15 @@ class About extends HookWidget {
             subtitle: Text(
                 packageInfo.value != null ? packageInfo.value!.version : ''),
           ),
+          ListTile(
+              leading: const Icon(Icons.update_rounded),
+              title: Text(t.check_update),
+              onTap: () async {
+                final release = await getLatestRelease();
+                if (release != null && context.mounted) {
+                  showReleaseDialog(context, release: release);
+                }
+              }),
           ListTile(
             leading: const Icon(Icons.code_rounded),
             title: Text(t.source_code),

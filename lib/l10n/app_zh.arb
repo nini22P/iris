@@ -54,5 +54,8 @@
   "edit_webdav_storage": "编辑 WebDAV 存储",
   "auto_resize": "自动调整窗口比例",
   "always_on_top_on": "窗口置顶: 开",
-  "always_on_top_off": "窗口置顶: 关"
+  "always_on_top_off": "窗口置顶: 关",
+  "check_update": "检查更新",
+  "download": "下载",
+  "checked_new_version": "检查到新版本"
 }
