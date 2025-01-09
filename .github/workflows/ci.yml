@@ -1,4 +1,4 @@
-name: Build and Release
+name: CI
 on:
   push:
     paths-ignore:
@@ -97,22 +97,12 @@ jobs:
         with:
           name: Iris_android
           path: artifacts
-      - name: Create or Replace Tag
+      - name: Create Tag
         id: create_tag
         run: |
           VERSION="${{ steps.yq.outputs.result }}"
           TAG_NAME="v${VERSION%%+*}"
           echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_OUTPUT"
-          # Check if the tag exists
-          if git tag -l | grep -q "^$TAG_NAME$"; then
-            echo "Tag $TAG_NAME already exists, deleting..."
-            if git tag -d "$TAG_NAME" && git push origin --delete "$TAG_NAME"; then
-              echo "Tag $TAG_NAME deleted."
-            else
-              echo "Failed to delete tag $TAG_NAME."
-              exit 1
-            fi
-          fi
           echo "Creating new tag $TAG_NAME..."
           git tag "$TAG_NAME"
           git push origin "$TAG_NAME"
@@ -124,7 +114,7 @@ jobs:
           tag_name: ${{ steps.create_tag.outputs.TAG_NAME }}
           name: Iris ${{ steps.create_tag.outputs.TAG_NAME }}
           body_path: CHANGELOG.md
-          draft: true
+          draft: false
           prerelease: false
           files: |
             artifacts/Iris_windows.zip
