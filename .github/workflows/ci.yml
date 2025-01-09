@@ -1,5 +1,5 @@
-name: Build
-on: 
+name: Build and Release
+on:
   push:
     paths-ignore:
       - README.md
@@ -100,7 +100,8 @@ jobs:
       - name: Create or Replace Tag
         id: create_tag
         run: |
-          TAG_NAME="v${{ steps.yq.outputs.result }}"
+          VERSION="${{ steps.yq.outputs.result }}"
+          TAG_NAME="v${VERSION%%+*}"
           echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_OUTPUT"
           # Check if the tag exists
           if git show-ref --quiet "refs/tags/$TAG_NAME"; then
