@@ -104,7 +104,7 @@ jobs:
           TAG_NAME="v${VERSION%%+*}"
           echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_OUTPUT"
           # Check if the tag exists
-          if git show-ref --quiet "refs/tags/$TAG_NAME"; then
+          if git tag -l | grep -q "^$TAG_NAME$"; then
             echo "Tag $TAG_NAME already exists, deleting..."
             if git tag -d "$TAG_NAME" && git push origin --delete "$TAG_NAME"; then
               echo "Tag $TAG_NAME deleted."
