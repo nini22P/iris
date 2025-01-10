@@ -57,5 +57,7 @@
   "always_on_top_off": "Always On Top: Off",
   "check_update": "Check Update",
   "download": "Download",
-  "checked_new_version": "Checked New Version"
+  "download_and_update": "Download and Update",
+  "checked_new_version": "Checked New Version",
+  "no_new_version": "No New Version"
 }

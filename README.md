@@ -15,7 +15,7 @@ English | [中文](./README_CN.md)
 
 ## Download
 
-This application has not been officially released yet. If you want to experience it early, you can download the automatically built version from [GitHub Actions](https://github.com/nini22P/Iris/actions).
+Go to [Releases](https://github.com/nini22P/Iris/releases) to download.
 
 ## Contribution
 

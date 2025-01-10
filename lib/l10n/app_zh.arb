@@ -57,5 +57,7 @@
   "always_on_top_off": "窗口置顶: 关",
   "check_update": "检查更新",
   "download": "下载",
-  "checked_new_version": "检查到新版本"
+  "download_and_update": "下载并更新",
+  "checked_new_version": "检查到新版本",
+  "no_new_version": "没有新版本"
 }

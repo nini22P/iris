@@ -15,7 +15,7 @@
 
 ## 下载
 
-本应用还没有正式发布，如果想要抢先体验，可以前往 [GitHub Actions](https://github.com/nini22P/Iris/actions) 下载自动构建版本。
+前往 [Releases](https://github.com/nini22P/Iris/releases) 下载。
 
 ## 贡献
 

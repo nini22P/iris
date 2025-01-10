@@ -112,7 +112,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.create_tag.outputs.TAG_NAME }}
-          name: Iris ${{ steps.create_tag.outputs.TAG_NAME }}
           body_path: CHANGELOG.md
           draft: false
           prerelease: false

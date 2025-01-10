@@ -16,6 +16,7 @@ class About extends HookWidget {
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
     final packageInfo = useState<PackageInfo?>(null);
+    final noNewVersion = useState(false);
 
     useEffect(() {
       void getPackageInfo() async =>
@@ -43,10 +44,14 @@ class About extends HookWidget {
           ListTile(
               leading: const Icon(Icons.update_rounded),
               title: Text(t.check_update),
+              subtitle: noNewVersion.value ? Text(t.no_new_version) : null,
               onTap: () async {
+                noNewVersion.value = false;
                 final release = await getLatestRelease();
                 if (release != null && context.mounted) {
                   showReleaseDialog(context, release: release);
+                } else {
+                  noNewVersion.value = true;
                 }
               }),
           ListTile(
