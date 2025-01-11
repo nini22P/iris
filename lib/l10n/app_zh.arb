@@ -1,5 +1,6 @@
 {
   "@@locale": "zh",
+  "app_description": "轻量级视频播放器",
   "ok": "确定",
   "cancel": "取消",
   "close": "关闭",

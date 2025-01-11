@@ -1,5 +1,6 @@
 {
   "@@locale": "en",
+  "app_description": "A lightweight video player",
   "ok": "OK",
   "cancel": "Cancel",
   "close": "Close",

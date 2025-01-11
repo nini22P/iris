@@ -33,7 +33,7 @@ class About extends HookWidget {
             leading:
                 Image.asset('assets/images/icon.png', width: 24, height: 24),
             title: const Text(INFO.title),
-            subtitle: const Text(INFO.description),
+            subtitle: Text(t.app_description),
           ),
           ListTile(
             leading: const Icon(Icons.info_rounded),

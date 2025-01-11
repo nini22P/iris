@@ -201,10 +201,8 @@ class ControlBar extends HookWidget {
                 ),
                 IconButton(
                   tooltip: '${t.subtitle_and_audio_track} ( S )',
-                  icon: Icon(
-                    playerCore.subtitle == SubtitleTrack.no()
-                        ? Icons.subtitles_off_rounded
-                        : Icons.subtitles_rounded,
+                  icon: const Icon(
+                    Icons.subtitles_rounded,
                     size: 19,
                   ),
                   onPressed: () async {
