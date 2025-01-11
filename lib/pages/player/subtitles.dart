@@ -14,101 +14,59 @@ class Subtitles extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final externalSubtitles = useMemoized(
-        () => [...playerCore.externalSubtitles]..removeWhere((subtitle) =>
-            playerCore.subtitles.any((item) => item.title == subtitle.name)),
-        [playerCore.externalSubtitles, playerCore.subtitles]);
 
-    return Column(
+    final focusNode = useFocusNode();
+
+    useEffect(() {
+      focusNode.requestFocus();
+      return () => focusNode.unfocus();
+    }, []);
+
+    return ListView(
       children: [
-        Expanded(
-          child: Card(
-            child: ListView(
-              children: [
-                ListTile(
-                  autofocus: playerCore.subtitle == SubtitleTrack.no(),
-                  title: Text(
-                    t.off,
-                    style: playerCore.subtitle == SubtitleTrack.no()
-                        ? TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          )
-                        : TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                  ),
-                  onTap: () {
-                    playerCore.player.setSubtitleTrack(SubtitleTrack.no());
-                    Navigator.of(context).pop();
-                  },
-                ),
-                ...playerCore.subtitles.map(
-                  (subtitle) => ListTile(
-                    autofocus: playerCore.subtitle == subtitle,
-                    title: Text(
-                      '${subtitle.title ?? subtitle.language}',
-                      style: playerCore.subtitle == subtitle
-                          ? TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            )
-                          : TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+        ...playerCore.subtitles.map(
+          (subtitle) => ListTile(
+            focusNode: playerCore.subtitle == subtitle ? focusNode : null,
+            title: Text(
+              subtitle == SubtitleTrack.no()
+                  ? t.off
+                  : subtitle.title ??
+                      subtitle.language ??
+                      '${t.subtitle} ${subtitle.id}',
+              style: playerCore.subtitle == subtitle
+                  ? TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                    onTap: () {
-                      playerCore.player.setSubtitleTrack(subtitle);
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
-                ...externalSubtitles.map(
-                  (subtitle) => ListTile(
-                    title: Text(
-                      subtitle.name,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    onTap: () {
-                      log('Set external subtitle: ${subtitle.name}');
-                      playerCore.player.setSubtitleTrack(
-                        SubtitleTrack.uri(
-                          subtitle.uri,
-                          title: subtitle.name,
-                        ),
-                      );
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
-              ],
             ),
+            onTap: () {
+              log('Set subtitle: ${subtitle.title ?? subtitle.language ?? subtitle.id}');
+              playerCore.player.setSubtitleTrack(subtitle);
+              Navigator.of(context).pop();
+            },
           ),
         ),
-        Divider(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
-          height: 0,
-        ),
-        Container(
-          padding: const EdgeInsets.fromLTRB(16, 4, 4, 4),
-          child: Row(
-            children: [
-              Text(
-                t.subtitles,
-                style: const TextStyle(fontWeight: FontWeight.w500),
+        ...playerCore.externalSubtitles.map(
+          (subtitle) => ListTile(
+            title: Text(
+              subtitle.name,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              const Spacer(),
-              IconButton(
-                tooltip: '${t.close} ( Escape )',
-                icon: const Icon(Icons.close_rounded),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
+            ),
+            onTap: () {
+              log('Set external subtitle: ${subtitle.name}');
+              playerCore.player.setSubtitleTrack(
+                SubtitleTrack.uri(
+                  subtitle.uri,
+                  title: subtitle.name,
+                ),
+              );
+              Navigator.of(context).pop();
+            },
           ),
         ),
       ],

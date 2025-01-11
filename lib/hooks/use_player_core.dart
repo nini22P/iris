@@ -14,12 +14,12 @@ import 'package:media_kit/media_kit.dart';
 class PlayerCore {
   final Player player;
   final String title;
-  final List<FileItem> playQueue;
-  final int currentIndex;
   final FileItem? currentFile;
   final SubtitleTrack subtitle;
   final List<SubtitleTrack> subtitles;
   final List<Subtitle> externalSubtitles;
+  final AudioTrack audio;
+  final List<AudioTrack> audios;
   final bool playing;
   final Duration position;
   final Duration duration;
@@ -35,12 +35,12 @@ class PlayerCore {
   PlayerCore(
     this.player,
     this.title,
-    this.playQueue,
-    this.currentIndex,
     this.currentFile,
     this.subtitle,
     this.subtitles,
     this.externalSubtitles,
+    this.audio,
+    this.audios,
     this.playing,
     this.position,
     this.duration,
@@ -79,17 +79,33 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   Duration buffer = useStream(player.stream.buffer).data ?? Duration.zero;
   bool completed = useStream(player.stream.completed).data ?? false;
   double rate = useStream(player.stream.rate).data ?? 1.0;
+
+  Track? track = useStream(player.stream.track).data;
+  AudioTrack audio =
+      useMemoized(() => track?.audio ?? AudioTrack.no(), [track?.audio]);
+  SubtitleTrack subtitle = useMemoized(
+      () => track?.subtitle ?? SubtitleTrack.no(), [track?.subtitle]);
+
+  Tracks? tracks = useStream(player.stream.tracks).data;
+  List<AudioTrack> audios = useMemoized(
+      () => [...(tracks?.audio ?? [])]..removeWhere(
+          (audio) => [AudioTrack.auto(), AudioTrack.no()].contains(audio)),
+      [tracks?.audio]);
+  List<SubtitleTrack> subtitles = useMemoized(
+      () => [...(tracks?.subtitle ?? [])]
+        ..removeWhere((subtitle) => subtitle == SubtitleTrack.auto()),
+      [tracks?.subtitle]);
+
+  final List<Subtitle>? externalSubtitles = useMemoized(
+      () => [...currentFile?.subtitles ?? []]..removeWhere(
+          (subtitle) => subtitles.any((item) => item.title == subtitle.name)),
+      [currentFile?.subtitles, subtitles]);
+
   VideoParams? videoParams = useStream(player.stream.videoParams).data;
   double aspectRatio =
       videoParams != null && videoParams.w != null && videoParams.h != null
           ? (videoParams.w! / videoParams.h!)
           : 0;
-
-  final subtitle = useState(SubtitleTrack.no());
-  final subtitles = useState<List<SubtitleTrack>>([]);
-
-  final List<Subtitle>? externalSubtitles =
-      useMemoized(() => currentFile?.subtitles ?? [], [currentFile]);
 
   final positionStream = useStream(player.stream.position);
 
@@ -143,21 +159,6 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final cover = useFuture(getCover).data;
 
   useEffect(() {
-    final subscription = player.stream.track.listen((event) {
-      subtitle.value = event.subtitle;
-    });
-    return subscription.cancel;
-  }, []);
-
-  useEffect(() {
-    final subscription = player.stream.tracks.listen((event) {
-      subtitles.value = [...event.subtitle]..removeWhere((subtitle) =>
-          [SubtitleTrack.auto(), SubtitleTrack.no()].contains(subtitle));
-    });
-    return subscription.cancel;
-  }, []);
-
-  useEffect(() {
     if (currentFile == null || playQueue.isEmpty) return;
     log('Now playing: ${currentFile.name}, auto play: $autoPlay');
     player.open(
@@ -171,7 +172,14 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   }, [currentFile]);
 
   useEffect(() {
-    if (duration == Duration.zero) return;
+    if (duration == Duration.zero) {
+      player.setSubtitleTrack(SubtitleTrack.no());
+      return;
+    }
+    if (audios.isNotEmpty) {
+      log('Set audio track: ${audios[0].title ?? audios[0].language ?? audios[0].id}');
+      player.setAudioTrack(audios[0]);
+    }
     if (externalSubtitles!.isNotEmpty) {
       log('Set external subtitle: ${externalSubtitles[0].name}');
       player.setSubtitleTrack(
@@ -180,11 +188,13 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           title: externalSubtitles[0].name,
         ),
       );
-    } else if (subtitles.value.isNotEmpty) {
-      log('Set subtitle: ${subtitles.value[0].title}');
-      player.setSubtitleTrack(subtitles.value[0]);
+    } else if (subtitles.length > 1) {
+      log('Set subtitle: ${subtitles[1].title ?? subtitles[1].language ?? subtitles[1].id}');
+      player.setSubtitleTrack(subtitles[1]);
+    } else {
+      player.setSubtitleTrack(SubtitleTrack.no());
     }
-    return null;
+    return;
   }, [duration]);
 
   void updatePosition(Duration newPosition) => position.value = newPosition;
@@ -194,12 +204,12 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   return PlayerCore(
     player,
     title,
-    playQueue,
-    currentIndex,
     currentFile,
-    subtitle.value,
-    subtitles.value,
+    subtitle,
+    subtitles,
     externalSubtitles ?? [],
+    audio,
+    audios,
     playing,
     duration == Duration.zero ? Duration.zero : position.value,
     duration,

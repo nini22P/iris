@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
@@ -28,8 +29,10 @@ class PlayerController {
 
 PlayerController usePlayerController(
     BuildContext context, PlayerCore playerCore) {
-  final playQueue = playerCore.playQueue;
-  final currentIndex = playerCore.currentIndex;
+  final playQueue =
+      usePlayQueueStore().select(context, (state) => state.playQueue);
+  final currentIndex =
+      usePlayQueueStore().select(context, (state) => state.currentIndex);
 
   Future<void> play() async {
     await useAppStore().updateAutoPlay(true);

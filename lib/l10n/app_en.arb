@@ -20,7 +20,7 @@
   "remove_favorite": "Remove Favorite",
   "local_storage": "Local Storage",
   "connection_test": "Connection Test",
-  "subtitles": "Subtitles",
+  "subtitle": "Subtitle",
   "open_file": "Open File",
   "open_link": "Open Link",
   "play": "Play",
@@ -59,5 +59,7 @@
   "download": "Download",
   "download_and_update": "Download and Update",
   "checked_new_version": "Checked New Version",
-  "no_new_version": "No New Version"
+  "no_new_version": "No New Version",
+  "audio_track": "Audio Track",
+  "subtitle_and_audio_track": "Subtitle and Audio Track"
 }

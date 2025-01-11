@@ -10,7 +10,7 @@ import 'package:iris/info.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/player/play_queue.dart';
-import 'package:iris/pages/player/subtitles.dart';
+import 'package:iris/pages/player/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/pages/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
@@ -43,6 +43,7 @@ class IrisPlayer extends HookWidget {
 
     useEffect(() {
       () async {
+        player.setSubtitleTrack(SubtitleTrack.no());
         if (Platform.isAndroid) {
           NativePlayer nativePlayer = player.platform as NativePlayer;
 
@@ -269,7 +270,7 @@ class IrisPlayer extends HookWidget {
             showControlForHover(
               showPopup(
                 context: context,
-                child: Subtitles(playerCore: playerCore),
+                child: SubtitleAndAudioTrack(playerCore: playerCore),
                 direction: PopupDirection.right,
               ),
             );

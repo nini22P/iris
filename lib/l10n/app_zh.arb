@@ -20,7 +20,7 @@
   "remove_favorite": "移除收藏",
   "local_storage": "本地存储",
   "connection_test": "连接测试",
-  "subtitles": "字幕",
+  "subtitle": "字幕",
   "open_file": "打开文件",
   "open_link": "打开链接",
   "play": "播放",
@@ -59,5 +59,7 @@
   "download": "下载",
   "download_and_update": "下载并更新",
   "checked_new_version": "检查到新版本",
-  "no_new_version": "没有新版本"
+  "no_new_version": "没有新版本",
+  "audio_track": "音轨",
+  "subtitle_and_audio_track": "字幕和音轨"
 }
