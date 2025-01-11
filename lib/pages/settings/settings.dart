@@ -6,11 +6,11 @@ import 'package:iris/pages/settings/libraries.dart';
 import 'package:iris/pages/settings/play.dart';
 import 'package:iris/utils/get_localizations.dart';
 
-class SettingsTab {
+class ITab {
   final String title;
   final Widget child;
 
-  const SettingsTab({
+  const ITab({
     required this.title,
     required this.child,
   });
@@ -25,21 +25,21 @@ class Settings extends HookWidget {
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
 
-    List<SettingsTab> settingsTabs = [
-      SettingsTab(title: t.general, child: const General()),
-      SettingsTab(title: t.play, child: const Play()),
-      SettingsTab(title: t.about, child: const About()),
-      SettingsTab(title: t.libraries, child: const Libraries()),
+    List<ITab> tabs = [
+      ITab(title: t.general, child: const General()),
+      ITab(title: t.play, child: const Play()),
+      ITab(title: t.about, child: const About()),
+      ITab(title: t.libraries, child: const Libraries()),
     ];
 
-    final tabController = useTabController(initialLength: settingsTabs.length);
+    final tabController = useTabController(initialLength: tabs.length);
 
     return Column(
       children: [
         Expanded(
           child: TabBarView(
             controller: tabController,
-            children: settingsTabs.map((e) => Card(child: e.child)).toList(),
+            children: tabs.map((e) => Card(child: e.child)).toList(),
           ),
         ),
         Divider(
@@ -58,7 +58,7 @@ class Settings extends HookWidget {
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
                     dividerColor: Colors.transparent,
-                    tabs: settingsTabs.map((e) => Tab(text: e.title)).toList()),
+                    tabs: tabs.map((e) => Tab(text: e.title)).toList()),
                 const Spacer(),
                 IconButton(
                   tooltip: '${t.close} ( Escape )',

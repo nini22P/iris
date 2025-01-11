@@ -172,28 +172,32 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   }, [currentFile]);
 
   useEffect(() {
-    if (duration == Duration.zero) {
-      player.setSubtitleTrack(SubtitleTrack.no());
-      return;
-    }
-    if (audios.isNotEmpty) {
-      log('Set audio track: ${audios[0].title ?? audios[0].language ?? audios[0].id}');
-      player.setAudioTrack(audios[0]);
-    }
-    if (externalSubtitles!.isNotEmpty) {
-      log('Set external subtitle: ${externalSubtitles[0].name}');
-      player.setSubtitleTrack(
-        SubtitleTrack.uri(
-          externalSubtitles[0].uri,
-          title: externalSubtitles[0].name,
-        ),
-      );
-    } else if (subtitles.length > 1) {
-      log('Set subtitle: ${subtitles[1].title ?? subtitles[1].language ?? subtitles[1].id}');
-      player.setSubtitleTrack(subtitles[1]);
-    } else {
-      player.setSubtitleTrack(SubtitleTrack.no());
-    }
+    () async {
+      if (duration == Duration.zero) {
+        await player.setSubtitleTrack(SubtitleTrack.no());
+        return;
+      }
+      if (externalSubtitles!.isNotEmpty) {
+        log('Set external subtitle: ${externalSubtitles[0].name}');
+        await player.setSubtitleTrack(
+          SubtitleTrack.uri(
+            externalSubtitles[0].uri,
+            title: externalSubtitles[0].name,
+          ),
+        );
+      } else if (subtitles.length > 1) {
+        log('Set subtitle: ${subtitles[1].title ?? subtitles[1].language ?? subtitles[1].id}');
+        await player.setSubtitleTrack(subtitles[1]);
+      } else {
+        await player.setSubtitleTrack(SubtitleTrack.no());
+      }
+      if (audios.isNotEmpty) {
+        Future.delayed(const Duration(milliseconds: 3000)).then((_) async {
+          log('Set audio track: ${audios[0].title ?? audios[0].language ?? audios[0].id}');
+          await player.setAudioTrack(audios[0]);
+        });
+      }
+    }();
     return;
   }, [duration]);
 
