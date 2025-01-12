@@ -1,6 +1,8 @@
 name: CI
 on:
   push:
+    branches: 
+      - main
     paths-ignore:
       - README.md
       - README_CN.md
@@ -87,6 +89,18 @@ jobs:
           cmd: yq '.version' 'pubspec.yaml'
       - name: Print version
         run: echo ${{ steps.yq.outputs.result }}
+      - name: Create Tag
+        id: create_tag
+        run: |
+          VERSION="${{ steps.yq.outputs.result }}"
+          TAG_NAME="v${VERSION%%+*}"
+          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "Creating new tag $TAG_NAME..."
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+      - name: Eextract log
+        id: extract_log
+        run: python extract_log.py ${{ steps.create_tag.outputs.TAG_NAME }}
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
@@ -97,22 +111,13 @@ jobs:
         with:
           name: Iris_android
           path: artifacts
-      - name: Create Tag
-        id: create_tag
-        run: |
-          VERSION="${{ steps.yq.outputs.result }}"
-          TAG_NAME="v${VERSION%%+*}"
-          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_OUTPUT"
-          echo "Creating new tag $TAG_NAME..."
-          git tag "$TAG_NAME"
-          git push origin "$TAG_NAME"
       - name: Release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.create_tag.outputs.TAG_NAME }}
-          body_path: CHANGELOG.md
+          body: ${{ steps.extract_log.outputs.result }}
           draft: false
           prerelease: false
           files: |

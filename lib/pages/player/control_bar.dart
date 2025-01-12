@@ -6,7 +6,7 @@ import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
-import 'package:iris/pages/player/subtitles.dart';
+import 'package:iris/pages/player/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -14,7 +14,6 @@ import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/utils/resize_window.dart';
 import 'package:iris/pages/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
 class ControlBar extends HookWidget {
@@ -200,18 +199,16 @@ class ControlBar extends HookWidget {
                   },
                 ),
                 IconButton(
-                  tooltip: '${t.subtitles} ( S )',
-                  icon: Icon(
-                    playerCore.subtitle == SubtitleTrack.no()
-                        ? Icons.subtitles_off_rounded
-                        : Icons.subtitles_rounded,
+                  tooltip: '${t.subtitle_and_audio_track} ( S )',
+                  icon: const Icon(
+                    Icons.subtitles_rounded,
                     size: 19,
                   ),
                   onPressed: () async {
                     showControlForHover(
                       showPopup(
                         context: context,
-                        child: Subtitles(playerCore: playerCore),
+                        child: SubtitleAndAudioTrack(playerCore: playerCore),
                         direction: PopupDirection.right,
                       ),
                     );

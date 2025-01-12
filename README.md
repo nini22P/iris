@@ -15,7 +15,7 @@ English | [中文](./README_CN.md)
 
 ## Download
 
-Go to [Releases](https://github.com/nini22P/Iris/releases) to download.
+[Windows](https://github.com/nini22P/Iris/releases/latest/download/Iris_windows.zip) | [Android](https://github.com/nini22P/Iris/releases/latest/download/Iris_android.apk)
 
 ## Contribution
 

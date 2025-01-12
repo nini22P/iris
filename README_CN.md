@@ -15,7 +15,7 @@
 
 ## 下载
 
-前往 [Releases](https://github.com/nini22P/Iris/releases) 下载。
+[Windows](https://github.com/nini22P/Iris/releases/latest/download/Iris_windows.zip) | [Android](https://github.com/nini22P/Iris/releases/latest/download/Iris_android.apk)
 
 ## 贡献
 

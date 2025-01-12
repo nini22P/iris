@@ -12,6 +12,16 @@ import 'package:iris/pages/dialog/show_local_dialog.dart';
 import 'package:iris/pages/dialog/show_webdav_dialog.dart';
 import 'package:iris/pages/storages/storages_list.dart';
 
+class ITab {
+  final String title;
+  final Widget child;
+
+  const ITab({
+    required this.title,
+    required this.child,
+  });
+}
+
 class Storages extends HookWidget {
   const Storages({super.key});
 
@@ -21,7 +31,12 @@ class Storages extends HookWidget {
     final currentStorage =
         useStorageStore().select(context, (state) => state.currentStorage);
 
-    final tabController = useTabController(initialLength: 2);
+    List<ITab> tabs = [
+      ITab(title: t.storages, child: const StoragesList()),
+      ITab(title: t.favorites, child: const FavoriteStoragesList()),
+    ];
+
+    final tabController = useTabController(initialLength: tabs.length);
 
     return currentStorage != null
         ? Files(storage: currentStorage)
@@ -30,14 +45,7 @@ class Storages extends HookWidget {
               Expanded(
                 child: TabBarView(
                   controller: tabController,
-                  children: const [
-                    Card(
-                      child: StoragesList(),
-                    ),
-                    Card(
-                      child: FavoriteStoragesList(),
-                    ),
-                  ],
+                  children: tabs.map((tab) => Card(child: tab.child)).toList(),
                 ),
               ),
               Divider(
@@ -58,10 +66,7 @@ class Storages extends HookWidget {
                         isScrollable: true,
                         tabAlignment: TabAlignment.start,
                         dividerColor: Colors.transparent,
-                        tabs: [
-                          Tab(text: t.storages),
-                          Tab(text: t.favorites),
-                        ],
+                        tabs: tabs.map((tab) => Tab(text: tab.title)).toList(),
                       ),
                     ),
                     PopupMenuButton<String>(

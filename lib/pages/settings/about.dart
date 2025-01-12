@@ -33,13 +33,15 @@ class About extends HookWidget {
             leading:
                 Image.asset('assets/images/icon.png', width: 24, height: 24),
             title: const Text(INFO.title),
-            subtitle: const Text(INFO.description),
+            subtitle: Text(t.app_description),
           ),
           ListTile(
             leading: const Icon(Icons.info_rounded),
             title: Text(t.version),
             subtitle: Text(
                 packageInfo.value != null ? packageInfo.value!.version : ''),
+            onTap: () => launchURL(
+                '${INFO.githubUrl}/releases/tag/v${packageInfo.value?.version}'),
           ),
           ListTile(
               leading: const Icon(Icons.update_rounded),
