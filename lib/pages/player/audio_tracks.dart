@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/get_subtitle_title.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:media_kit/media_kit.dart';
 
@@ -27,11 +28,11 @@ class AudioTracks extends HookWidget {
           (audio) => ListTile(
             focusNode: playerCore.audio == audio ? focusNode : null,
             title: Text(
-              audio == AudioTrack.no()
-                  ? t.off
-                  : audio.title ??
-                      audio.language ??
-                      '${t.audio_track} ${audio.id}',
+              audio == AudioTrack.auto()
+                  ? t.auto
+                  : audio == AudioTrack.no()
+                      ? t.off
+                      : getTrackTitle(audio),
               style: playerCore.audio == audio
                   ? TextStyle(
                       fontWeight: FontWeight.bold,

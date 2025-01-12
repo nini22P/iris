@@ -14,7 +14,6 @@ import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/utils/resize_window.dart';
 import 'package:iris/pages/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
 class ControlBar extends HookWidget {

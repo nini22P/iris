@@ -87,10 +87,8 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       () => track?.subtitle ?? SubtitleTrack.no(), [track?.subtitle]);
 
   Tracks? tracks = useStream(player.stream.tracks).data;
-  List<AudioTrack> audios = useMemoized(
-      () => [...(tracks?.audio ?? [])]..removeWhere(
-          (audio) => [AudioTrack.auto(), AudioTrack.no()].contains(audio)),
-      [tracks?.audio]);
+  List<AudioTrack> audios =
+      useMemoized(() => (tracks?.audio ?? []), [tracks?.audio]);
   List<SubtitleTrack> subtitles = useMemoized(
       () => [...(tracks?.subtitle ?? [])]
         ..removeWhere((subtitle) => subtitle == SubtitleTrack.auto()),
@@ -190,12 +188,6 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
         await player.setSubtitleTrack(subtitles[1]);
       } else {
         await player.setSubtitleTrack(SubtitleTrack.no());
-      }
-      if (audios.isNotEmpty) {
-        Future.delayed(const Duration(milliseconds: 3000)).then((_) async {
-          log('Set audio track: ${audios[0].title ?? audios[0].language ?? audios[0].id}');
-          await player.setAudioTrack(audios[0]);
-        });
       }
     }();
     return;
