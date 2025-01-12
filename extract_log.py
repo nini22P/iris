@@ -24,7 +24,12 @@ def extract_log(version):
         changelog_lines.pop()
 
     output = "".join(changelog_lines).strip()
-    print(output)
+
+    output_file = f"CHANGELOG_{version}.md"
+    with open(output_file, "w", encoding="utf-8") as file:
+        file.write(output)
+
+    print(f"Changelog for {version} saved to {output_file}")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
