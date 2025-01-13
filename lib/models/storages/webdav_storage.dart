@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:iris/utils/check_file_type.dart';
-import 'package:iris/utils/find_sub_title.dart';
+import 'package:iris/utils/find_subtitle.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 import 'package:iris/models/file.dart';
@@ -111,7 +111,7 @@ class WebdavStorage implements Storage {
               size: file.size ?? 0,
               type: file.isDir ?? false ? 'dir' : checkFileType(file.name!),
               auth: auth,
-              subtitles: findSubTitle(
+              subtitles: findSubtitle(
                   files.map((file) => file.name as String).toList(),
                   file.name as String,
                   baseUri),
