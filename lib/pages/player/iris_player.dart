@@ -15,6 +15,7 @@ import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/pages/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
 import 'package:iris/utils/format_duration_to_minutes.dart';
+import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/path.dart';
 import 'package:iris/utils/resize_window.dart';
@@ -77,9 +78,6 @@ class IrisPlayer extends HookWidget {
       focusNode.requestFocus();
       return;
     }, []);
-
-    bool isDesktop = useMemoized(
-        (() => Platform.isWindows || Platform.isLinux || Platform.isMacOS));
 
     PlayerCore playerCore = usePlayerCore(context, player);
     PlayerController playerController =

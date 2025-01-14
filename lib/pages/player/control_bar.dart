@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
@@ -11,6 +10,7 @@ import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/pages/player/play_queue.dart';
+import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/utils/resize_window.dart';
 import 'package:iris/pages/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
@@ -33,8 +33,6 @@ class ControlBar extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    bool isDesktop = useMemoized(
-        (() => Platform.isWindows || Platform.isLinux || Platform.isMacOS));
 
     final playQueueLength =
         usePlayQueueStore().select(context, (state) => state.playQueue.length);
