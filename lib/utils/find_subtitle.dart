@@ -1,7 +1,7 @@
 import 'package:iris/models/file.dart';
 import 'package:iris/utils/check_file_type.dart';
 
-List<Subtitle> findSubTitle(
+List<Subtitle> findSubtitle(
   List<String> files,
   String name,
   String baseUri,
@@ -12,13 +12,16 @@ List<Subtitle> findSubTitle(
     String baseName =
         name.split('.').sublist(0, name.split('.').length - 1).join('.');
 
-    List<String> subtitleExtensions = ['.ass', '.srt', '.vtt', '.sub'];
+    List<String> subtitleExtensions = ['ass', 'srt', 'vtt', 'sub'];
 
     for (String file in files) {
-      if (file.split('.')[0].contains(baseName) &&
+      if (file.startsWith(baseName) &&
           subtitleExtensions.any((ext) => file.endsWith(ext))) {
-        String subTitleName =
-            file.split('.').sublist(1, file.split('.').length - 1).join('.');
+        String subTitleName = file
+            .replaceAll(baseName, '')
+            .split('.')
+            .where((e) => e.isNotEmpty && !subtitleExtensions.contains(e))
+            .join('.');
         foundSubTitles.add(Subtitle(
           name: subTitleName.isEmpty ? file : subTitleName,
           uri: '$baseUri/$file',

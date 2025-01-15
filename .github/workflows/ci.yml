@@ -99,7 +99,6 @@ jobs:
           git tag "$TAG_NAME"
           git push origin "$TAG_NAME"
       - name: Eextract log
-        id: extract_log
         run: python extract_log.py ${{ steps.create_tag.outputs.TAG_NAME }}
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
@@ -117,7 +116,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.create_tag.outputs.TAG_NAME }}
-          body: ${{ steps.extract_log.outputs.result }}
+          body_path: CHANGELOG_${{ steps.create_tag.outputs.TAG_NAME }}.md
           draft: false
           prerelease: false
           files: |

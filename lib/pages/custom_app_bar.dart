@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/utils/resize_window.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -21,9 +21,6 @@ class CustomAppBar extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-
-    bool isDesktop = useMemoized(
-        (() => Platform.isWindows || Platform.isLinux || Platform.isMacOS));
 
     return Container(
       padding: isDesktop

@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/is_desktop.dart';
 import 'package:window_manager/window_manager.dart';
 
 class Play extends HookWidget {
@@ -13,8 +12,6 @@ class Play extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    bool isDesktop = useMemoized(
-        (() => Platform.isWindows || Platform.isLinux || Platform.isMacOS));
 
     final autoResize =
         useAppStore().select(context, (state) => state.autoResize);

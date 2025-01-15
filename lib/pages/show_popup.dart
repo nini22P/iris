@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:iris/utils/is_desktop.dart';
 import 'package:window_manager/window_manager.dart';
 
 enum PopupDirection { left, right }
@@ -63,9 +64,7 @@ class Popup<T> extends PopupRoute<T> {
             ),
           ),
           Positioned(
-            top: Platform.isWindows || Platform.isLinux || Platform.isMacOS
-                ? 48
-                : 8,
+            top: isDesktop ? 48 : 8,
             left: direction == PopupDirection.left ? 8 : null,
             right: direction == PopupDirection.right ? 8 : null,
             bottom: 8,

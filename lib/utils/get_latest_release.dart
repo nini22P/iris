@@ -7,9 +7,17 @@ import 'package:package_info_plus/package_info_plus.dart';
 class Release {
   final String version;
   final String url;
+  final String downloadUrl;
+  final int size;
   final String changeLog;
 
-  Release({required this.version, required this.url, required this.changeLog});
+  Release({
+    required this.version,
+    required this.url,
+    required this.downloadUrl,
+    required this.size,
+    required this.changeLog,
+  });
 }
 
 Future<Release?> getLatestRelease() async {
@@ -37,16 +45,29 @@ Future<Release?> getLatestRelease() async {
         final List<dynamic> assets = data['assets'];
 
         final String version = data['tag_name'] ?? 'Unknown version';
-        final String url = assets
-            .where((assets) =>
-                assets['name'].toString().toLowerCase().contains(platform))
-            .first['browser_download_url'];
+
+        final String url =
+            data['html_url'] ?? 'https://github.com/nini22P/Iris/releases/';
+
+        final filtteredAssets = assets.where((assets) =>
+            assets['name'].toString().toLowerCase().contains(platform));
+
+        final downloadUrl = filtteredAssets.first['browser_download_url'];
+
+        final size = filtteredAssets.first['size'];
+
         final String changeLog = data['body'];
 
         final bool isUpdate = isVersionUpdated(packageInfo.version, version);
 
         if (isUpdate) {
-          return Release(version: version, url: url, changeLog: changeLog);
+          return Release(
+            version: version,
+            url: url,
+            downloadUrl: downloadUrl,
+            size: size,
+            changeLog: changeLog,
+          );
         } else {
           return null;
         }

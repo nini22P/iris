@@ -4,7 +4,7 @@ import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/files_filter.dart';
 import 'package:iris/utils/files_sort.dart';
-import 'package:iris/utils/find_sub_title.dart';
+import 'package:iris/utils/find_subtitle.dart';
 import 'package:iris/utils/path_converter.dart';
 import 'package:path/path.dart' as p;
 import 'package:iris/models/file.dart';
@@ -55,7 +55,7 @@ class LocalStorage implements Storage {
               type: entity is Directory
                   ? 'dir'
                   : checkFileType(p.basename(entity.path)),
-              subtitles: findSubTitle(
+              subtitles: findSubtitle(
                   directory
                       .listSync()
                       .map((entity) => p.basename(entity.path))
