@@ -1,6 +1,6 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:iris/store/use_app_store.dart';
-import 'package:iris/utils/logger.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart';
 
@@ -41,7 +41,7 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
 
   if (size.width < screenWidth / screen.scaleFactor &&
       size.height < screenHeight / screen.scaleFactor) {
-    logger('Window resize: $size');
+    log('Window resize: $size');
 
     windowManager.setBounds(
       null,
@@ -68,7 +68,7 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
       double width = height * videoAspectRatio;
       Size size = Size(width, height);
 
-      logger('Window resize: $size');
+      log('Window resize: $size');
 
       windowManager.setBounds(
         null,
@@ -81,7 +81,7 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
       double height = width / videoAspectRatio;
       Size size = Size(width, height);
 
-      logger('Window resize: $size');
+      log('Window resize: $size');
 
       windowManager.setBounds(
         null,

@@ -1,4 +1,4 @@
-## 1.0.3
+## v1.0.3
 ### Changelog
 * Improve Windows version installation updates
 * Fixes an issue where subtitles may not be found
@@ -6,6 +6,7 @@
 ### 更新日志
 * 改进 Windows 版本安装更新
 * 修复可能无法找到字幕的问题
+
 
 ## v1.0.2
 ### Changelog

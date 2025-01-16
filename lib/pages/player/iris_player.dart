@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hive/hive.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
+import 'package:iris/models/hive/media_info.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/player/play_queue.dart';
@@ -16,7 +19,6 @@ import 'package:iris/pages/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
 import 'package:iris/utils/format_duration_to_minutes.dart';
 import 'package:iris/utils/is_desktop.dart';
-import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/path.dart';
 import 'package:iris/utils/resize_window.dart';
 import 'package:iris/pages/custom_app_bar.dart';
@@ -54,7 +56,7 @@ class IrisPlayer extends HookWidget {
           final Directory fontsDirectory = Directory(fontsDir);
           if (!await fontsDirectory.exists()) {
             await fontsDirectory.create(recursive: true);
-            logger('fonts directory created');
+            log('fonts directory created');
           }
 
           final File file = File("$fontsDir/NotoSansCJKsc-Medium.otf");
@@ -64,7 +66,7 @@ class IrisPlayer extends HookWidget {
             final Uint8List buffer = data.buffer.asUint8List();
             await file.create(recursive: true);
             await file.writeAsBytes(buffer);
-            logger('NotoSansCJKsc-Medium.otf copied');
+            log('NotoSansCJKsc-Medium.otf copied');
           }
 
           await nativePlayer.setProperty("sub-fonts-dir", fontsDir);
@@ -148,6 +150,18 @@ class IrisPlayer extends HookWidget {
     }
 
     Future<void> showControlForHover(Future<void> callback) async {
+      // 打开面板时保存当前播放进度
+      if (playerCore.currentFile?.type == 'video' &&
+          playerCore.duration != Duration.zero) {
+        final id = playerCore.currentFile!.getID();
+        final mediaInfoBox = Hive.box<MediaInfo>('mediaInfoBox');
+        mediaInfoBox.put(
+            id,
+            MediaInfo(
+              position: playerCore.position,
+              duration: playerCore.duration,
+            ));
+      }
       showControl();
       isHover.value = true;
       await callback;

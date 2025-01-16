@@ -21,6 +21,8 @@ class FileItem {
     this.subtitles,
   });
 
+  String getID() => '$storageId:${path.join('/')}';
+
   Map<String, dynamic> toJson() {
     return {
       'storageId': storageId,

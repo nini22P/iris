@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
-import 'package:iris/utils/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class Release {
@@ -28,7 +28,7 @@ Future<Release?> getLatestRelease() async {
   } else if (Platform.isAndroid) {
     platform = 'android';
   } else {
-    logger('Unsupported platform');
+    log('Unsupported platform');
     return null;
   }
 
@@ -72,11 +72,11 @@ Future<Release?> getLatestRelease() async {
           return null;
         }
       } else {
-        logger('Failed to load latest release: ${response.statusCode}');
+        log('Failed to load latest release: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      logger('Error fetching latest release: $e');
+      log('Error fetching latest release: $e');
       return null;
     }
   } else {

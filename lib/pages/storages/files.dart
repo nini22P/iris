@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:hive/hive.dart';
 import 'package:iris/models/file.dart';
+import 'package:iris/models/hive/media_info.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
@@ -11,6 +13,7 @@ import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/files_filter.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/widgets/subtitle_chip.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class Files extends HookWidget {
@@ -21,6 +24,8 @@ class Files extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
+    final mediaInfoBox = Hive.box<MediaInfo>('mediaInfoBox');
+
     final basePath = storage.basePath;
 
     final currentPath =
@@ -45,7 +50,7 @@ class Files extends HookWidget {
     final error = result.error != null;
 
     final filteredFiles = useMemoized(
-        () => filesFilter(files, ['dir', 'video', 'audio', 'image']), [files]);
+        () => filesFilter(files, ['dir', 'video', 'audio']), [files]);
 
     ItemScrollController itemScrollController = ItemScrollController();
     ScrollOffsetController scrollOffsetController = ScrollOffsetController();
@@ -134,7 +139,30 @@ class Files extends HookWidget {
                                           ),
                                         ),
                                         const Spacer(),
-                                        const SizedBox(width: 16),
+                                        () {
+                                          final mediaInfo = mediaInfoBox.get(
+                                              filteredFiles[index].getID());
+                                          if (mediaInfo != null) {
+                                            if ((mediaInfo.duration
+                                                        .inMilliseconds -
+                                                    mediaInfo.position
+                                                        .inMilliseconds) <=
+                                                5000) {
+                                              return SubtitleChip(text: '100%');
+                                            }
+                                            final String progress = (mediaInfo
+                                                        .position
+                                                        .inMilliseconds /
+                                                    mediaInfo.duration
+                                                        .inMilliseconds *
+                                                    100)
+                                                .toStringAsFixed(0);
+                                            return SubtitleChip(
+                                                text: '$progress %');
+                                          } else {
+                                            return const SizedBox();
+                                          }
+                                        }(),
                                         ...filteredFiles[index]
                                             .subtitles!
                                             .map((subtitle) => subtitle.uri
@@ -143,31 +171,15 @@ class Files extends HookWidget {
                                                 .toUpperCase())
                                             .toSet()
                                             .toList()
-                                            .map((subTitleType) => Row(
+                                            .map((subtitleType) => Row(
                                                   mainAxisSize:
                                                       MainAxisSize.min,
                                                   children: [
                                                     const SizedBox(width: 8),
-                                                    Container(
-                                                      decoration: BoxDecoration(
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .inversePrimary,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8),
-                                                      ),
-                                                      padding: const EdgeInsets
-                                                          .fromLTRB(8, 4, 8, 4),
-                                                      child: Text(
-                                                        subTitleType,
-                                                        style: const TextStyle(
-                                                          fontSize: 10,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    )
+                                                    SubtitleChip(
+                                                      text: subtitleType,
+                                                      primary: true,
+                                                    ),
                                                   ],
                                                 )),
                                       ],

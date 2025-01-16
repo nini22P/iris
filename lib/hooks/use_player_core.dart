@@ -2,7 +2,9 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iris/models/file.dart';
+import 'package:iris/models/hive/media_info.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -56,6 +58,8 @@ class PlayerCore {
 }
 
 PlayerCore usePlayerCore(BuildContext context, Player player) {
+  final mediaInfoBox = Hive.box<MediaInfo>('mediaInfoBox');
+
   final playQueue =
       usePlayQueueStore().select(context, (state) => state.playQueue);
   final currentIndex =
@@ -157,7 +161,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final cover = useFuture(getCover).data;
 
   useEffect(() {
-    if (currentFile == null || playQueue.isEmpty) return;
+    if (currentFile == null || playQueue.isEmpty) return () {};
     log('Now playing: ${currentFile.name}, auto play: $autoPlay');
     player.open(
       Media(currentFile.uri,
@@ -166,7 +170,19 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
               : {}),
       play: autoPlay,
     );
-    return null;
+    return () {
+      if (player.state.duration == Duration.zero ||
+          currentFile.type != 'video') {
+        return;
+      }
+      log('Save media info: ${currentFile.name} position: ${player.state.position} duration: ${player.state.duration}');
+      mediaInfoBox.put(
+          currentFile.getID(),
+          MediaInfo(
+            position: player.state.position,
+            duration: player.state.duration,
+          ));
+    };
   }, [currentFile]);
 
   useEffect(() {
@@ -175,6 +191,18 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
         await player.setSubtitleTrack(SubtitleTrack.no());
         return;
       }
+      // 查询播放历史
+      if (currentFile?.type == 'video') {
+        MediaInfo? mediaInfo = mediaInfoBox.get(currentFile?.getID());
+        if (mediaInfo != null) {
+          if (mediaInfo.duration == duration &&
+              (duration.inMilliseconds - mediaInfo.position.inMilliseconds) >
+                  5000) {
+            await player.seek(mediaInfo.position);
+          }
+        }
+      }
+      // 设置字幕
       if (externalSubtitles!.isNotEmpty) {
         log('Set external subtitle: ${externalSubtitles[0].name}');
         await player.setSubtitleTrack(
