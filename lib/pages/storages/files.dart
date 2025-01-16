@@ -26,6 +26,9 @@ class Files extends HookWidget {
     final t = getLocalizations(context);
     final mediaInfoBox = Hive.box<MediaInfo>('mediaInfoBox');
 
+    final refreshState = useState(false);
+    void refresh() => refreshState.value = !refreshState.value;
+
     final basePath = storage.basePath;
 
     final currentPath =
@@ -41,7 +44,8 @@ class Files extends HookWidget {
     final title = storage.name;
 
     final getFiles = useMemoized(
-        () async => await storage.getFiles(currentPath), [currentPath]);
+        () async => await storage.getFiles(currentPath),
+        [currentPath, refreshState.value]);
 
     final result = useFuture(getFiles);
 
@@ -67,14 +71,10 @@ class Files extends HookWidget {
       await usePlayQueueStore().updatePlayQueue(playQueue, newIndex);
     }
 
-    final refreshState = useState(false);
-
     final isFavorited = useMemoized(
         () => useStorageStore().state.favoriteStorages.any((favoriteStorage) =>
             favoriteStorage.basePath.join('/') == currentPath.join('/')),
         [currentPath, refreshState.value]);
-
-    void refresh() => refreshState.value = !refreshState.value;
 
     void back() {
       if (currentPath.length > basePath.length) {
@@ -250,6 +250,11 @@ class Files extends HookWidget {
                   useStorageStore().updateCurrentStorage(null);
                   useStorageStore().updateCurrentPath([]);
                 },
+              ),
+              IconButton(
+                tooltip: t.refresh,
+                icon: const Icon(Icons.refresh),
+                onPressed: refresh,
               ),
               IconButton(
                 tooltip: isFavorited ? t.remove_favorite : t.add_favorite,
