@@ -4,7 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iris/models/file.dart';
-import 'package:iris/models/hive/media_info.dart';
+import 'package:iris/models/hive/progress.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -60,7 +60,7 @@ class PlayerCore {
 }
 
 PlayerCore usePlayerCore(BuildContext context, Player player) {
-  final mediaInfoBox = Hive.box<MediaInfo>('mediaInfoBox');
+  final progressBox = Hive.box<Progress>('progressBox');
 
   final playQueue =
       usePlayQueueStore().select(context, (state) => state.playQueue);
@@ -178,9 +178,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
         return;
       }
       log('Save progress: ${currentFile.name} position: ${player.state.position} duration: ${player.state.duration}');
-      mediaInfoBox.put(
+      progressBox.put(
           currentFile.getID(),
-          MediaInfo(
+          Progress(
             position: player.state.position,
             duration: player.state.duration,
           ));
@@ -195,14 +195,14 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       }
       // 查询播放进度
       if (currentFile?.type == 'video') {
-        MediaInfo? mediaInfo = mediaInfoBox.get(currentFile?.getID());
-        if (mediaInfo != null) {
-          if (mediaInfo.duration.inMilliseconds == duration.inMilliseconds &&
-              (mediaInfo.duration.inMilliseconds -
-                      mediaInfo.position.inMilliseconds) >
+        Progress? progress = progressBox.get(currentFile?.getID());
+        if (progress != null) {
+          if (progress.duration.inMilliseconds == duration.inMilliseconds &&
+              (progress.duration.inMilliseconds -
+                      progress.position.inMilliseconds) >
                   5000) {
-            log('Resume progress: ${currentFile?.name} position: ${mediaInfo.position} duration: ${mediaInfo.duration}');
-            await player.seek(mediaInfo.position);
+            log('Resume progress: ${currentFile?.name} position: ${progress.position} duration: ${progress.duration}');
+            await player.seek(progress.position);
           }
         }
       }
@@ -234,9 +234,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
         player.state.duration != Duration.zero) {
       final id = currentFile!.getID();
       log('Save progress: ${currentFile.name} position: ${player.state.position} duration: ${player.state.duration}');
-      await mediaInfoBox.put(
+      await progressBox.put(
           id,
-          MediaInfo(
+          Progress(
             position: player.state.position,
             duration: player.state.duration,
           ));

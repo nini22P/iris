@@ -5,7 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iris/info.dart';
 import 'package:iris/models/hive/duration_adapter.dart';
-import 'package:iris/models/hive/media_info.dart';
+import 'package:iris/models/hive/progress.dart';
 import 'package:iris/pages/home_page.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/theme.dart';
@@ -43,8 +43,8 @@ void main() async {
   await Hive.initFlutter(appSupportDir.path);
   Hive
     ..registerAdapter(DurationAdapter())
-    ..registerAdapter(MediaInfoAdapter());
-  await Hive.openBox<MediaInfo>('mediaInfoBox');
+    ..registerAdapter(ProgressAdapter());
+  await Hive.openBox<Progress>('progressBox');
 
   runApp(const StoreScope(child: MyApp()));
 }
