@@ -164,7 +164,10 @@ class CustomAppBar extends HookWidget {
                     },
                   ),
                   IconButton(
-                    onPressed: () => windowManager.close(),
+                    onPressed: () async {
+                      await playerCore.saveProgress();
+                      windowManager.close();
+                    },
                     icon: const Icon(Icons.close_rounded),
                     style: ButtonStyle(
                       overlayColor: WidgetStateProperty.resolveWith<Color?>(

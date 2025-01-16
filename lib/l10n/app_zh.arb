@@ -28,6 +28,7 @@
   "edit_local_storage": "编辑本地存储",
   "edit_webdav_storage": "编辑 WebDAV 存储",
   "enter_fullscreen": "进入全屏",
+  "exit_app_back_again": "再次点击返回键将退出应用。",
   "exit_fullscreen": "退出全屏",
   "favorites": "收藏",
   "general": "通用",

@@ -33,6 +33,7 @@ class PlayerCore {
   final FileItem? cover;
   final void Function(Duration) updatePosition;
   final void Function(bool) updateSeeking;
+  final Future<void> Function() saveProgress;
 
   PlayerCore(
     this.player,
@@ -54,6 +55,7 @@ class PlayerCore {
     this.cover,
     this.updatePosition,
     this.updateSeeking,
+    this.saveProgress,
   );
 }
 
@@ -175,7 +177,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           currentFile.type != 'video') {
         return;
       }
-      log('Save media info: ${currentFile.name} position: ${player.state.position} duration: ${player.state.duration}');
+      log('Save progress: ${currentFile.name} position: ${player.state.position} duration: ${player.state.duration}');
       mediaInfoBox.put(
           currentFile.getID(),
           MediaInfo(
@@ -191,13 +193,15 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
         await player.setSubtitleTrack(SubtitleTrack.no());
         return;
       }
-      // 查询播放历史
+      // 查询播放进度
       if (currentFile?.type == 'video') {
         MediaInfo? mediaInfo = mediaInfoBox.get(currentFile?.getID());
         if (mediaInfo != null) {
-          if (mediaInfo.duration == duration &&
-              (duration.inMilliseconds - mediaInfo.position.inMilliseconds) >
+          if (mediaInfo.duration.inMilliseconds == duration.inMilliseconds &&
+              (mediaInfo.duration.inMilliseconds -
+                      mediaInfo.position.inMilliseconds) >
                   5000) {
+            log('Resume progress: ${currentFile?.name} position: ${mediaInfo.position} duration: ${mediaInfo.duration}');
             await player.seek(mediaInfo.position);
           }
         }
@@ -225,6 +229,20 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
 
   void updateSeeking(bool value) => seeking.value = value;
 
+  Future<void> saveProgress() async {
+    if (currentFile?.type == 'video' &&
+        player.state.duration != Duration.zero) {
+      final id = currentFile!.getID();
+      log('Save progress: ${currentFile.name} position: ${player.state.position} duration: ${player.state.duration}');
+      await mediaInfoBox.put(
+          id,
+          MediaInfo(
+            position: player.state.position,
+            duration: player.state.duration,
+          ));
+    }
+  }
+
   return PlayerCore(
     player,
     title,
@@ -245,5 +263,6 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     cover,
     updatePosition,
     updateSeeking,
+    saveProgress,
   );
 }
