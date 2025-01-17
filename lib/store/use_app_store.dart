@@ -22,6 +22,11 @@ class AppStore extends PersistentStore<AppState> {
     save(state);
   }
 
+  Future<void> updateFit(BoxFit fit) async {
+    set(state.copyWith(fit: fit));
+    save(state);
+  }
+
   Future<void> updateThemeMode(ThemeMode themeMode) async {
     set(state.copyWith(themeMode: themeMode));
     save(state);

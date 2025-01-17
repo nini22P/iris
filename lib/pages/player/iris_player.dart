@@ -41,6 +41,7 @@ class IrisPlayer extends HookWidget {
     final t = getLocalizations(context);
     final shuffle = useAppStore().select(context, (state) => state.shuffle);
     final repeat = useAppStore().select(context, (state) => state.repeat);
+    final fit = useAppStore().select(context, (state) => state.fit);
 
     final playQueue =
         usePlayQueueStore().select(context, (state) => state.playQueue);
@@ -344,6 +345,25 @@ class IrisPlayer extends HookWidget {
                 : playerController.shufflePlayQueue();
             useAppStore().updateShuffle(!shuffle);
             break;
+          case LogicalKeyboardKey.keyC:
+            showControl();
+            switch (fit) {
+              case BoxFit.contain:
+                useAppStore().updateFit(BoxFit.fill);
+                break;
+              case BoxFit.fill:
+                useAppStore().updateFit(BoxFit.cover);
+                break;
+              case BoxFit.cover:
+                useAppStore().updateFit(BoxFit.none);
+                break;
+              case BoxFit.none:
+                useAppStore().updateFit(BoxFit.contain);
+                break;
+              default:
+                break;
+            }
+            break;
           default:
             break;
         }
@@ -529,9 +549,10 @@ class IrisPlayer extends HookWidget {
                     }
                   },
                   child: Video(
-                    key: ValueKey(currentPlay?.file.uri),
+                    key: ValueKey(currentPlay?.file.getID()),
                     controller: controller,
                     controls: NoVideoControls,
+                    fit: fit,
                     // wakelock: mediaType == 'video',
                   ),
                 ),

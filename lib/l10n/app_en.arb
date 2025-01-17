@@ -20,6 +20,7 @@
   "close": "Close",
   "confirmUpdate": "Confirm update",
   "connection_test": "Connection Test",
+  "crop": "Crop",
   "dark": "Datk",
   "download": "Download",
   "download_and_update": "Download and Update",
@@ -31,6 +32,7 @@
   "exit_app_back_again": "Press back again to exit.",
   "exit_fullscreen": "Exit Fullscreen",
   "favorites": "Favorites",
+  "fit": "Fit",
   "general": "General",
   "home": "Home",
   "language": "Language",
@@ -68,6 +70,7 @@
   "shuffle": "Shuffle",
   "source_code": "Source Code",
   "storages": "Storages",
+  "stretch": "Stretch",
   "subtitle": "Subtitle",
   "subtitle_and_audio_track": "Subtitle and Audio Track",
   "system": "System",
@@ -75,5 +78,6 @@
   "unable_to_fetch_files": "Unable to fetch files.",
   "url": "URL",
   "username": "Username",
-  "version": "Version"
+  "version": "Version",
+  "video_zoom": "Video zoom"
 }

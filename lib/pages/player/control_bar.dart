@@ -43,6 +43,7 @@ class ControlBar extends HookWidget {
         useAppStore().select(context, (state) => state.shuffle);
     final Repeat repeat =
         useAppStore().select(context, (state) => state.repeat);
+    final BoxFit fit = useAppStore().select(context, (state) => state.fit);
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -73,29 +74,6 @@ class ControlBar extends HookWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(width: 8),
-                Visibility(
-                  visible: MediaQuery.of(context).size.width >= 600,
-                  child: IconButton(
-                    tooltip: '${t.shuffle}: ${shuffle ? t.on : t.off} ( X )',
-                    icon: Icon(
-                      Icons.shuffle_rounded,
-                      size: 18,
-                      color: !shuffle
-                          ? Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant
-                              .withValues(alpha: 0.6)
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    onPressed: () {
-                      showControl();
-                      shuffle
-                          ? playerController.sortPlayQueue()
-                          : playerController.shufflePlayQueue();
-                      useAppStore().updateShuffle(!shuffle);
-                    },
-                  ),
-                ),
                 Visibility(
                   visible: playQueueLength > 1,
                   child: IconButton(
@@ -175,6 +153,65 @@ class ControlBar extends HookWidget {
                           break;
                         case Repeat.all:
                           useAppStore().updateRepeat(Repeat.none);
+                          break;
+                      }
+                    },
+                  ),
+                ),
+                Visibility(
+                  visible: MediaQuery.of(context).size.width >= 600,
+                  child: IconButton(
+                    tooltip: '${t.shuffle}: ${shuffle ? t.on : t.off} ( X )',
+                    icon: Icon(
+                      Icons.shuffle_rounded,
+                      size: 18,
+                      color: !shuffle
+                          ? Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant
+                              .withValues(alpha: 0.6)
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: () {
+                      showControl();
+                      shuffle
+                          ? playerController.sortPlayQueue()
+                          : playerController.shufflePlayQueue();
+                      useAppStore().updateShuffle(!shuffle);
+                    },
+                  ),
+                ),
+                Visibility(
+                  visible: MediaQuery.of(context).size.width >= 600,
+                  child: IconButton(
+                    tooltip:
+                        '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'} ( C )',
+                    icon: Icon(
+                      fit == BoxFit.contain
+                          ? Icons.fit_screen_rounded
+                          : fit == BoxFit.fill
+                              ? Icons.aspect_ratio_rounded
+                              : fit == BoxFit.cover
+                                  ? Icons.crop_landscape_rounded
+                                  : Icons.crop_free_rounded,
+                      size: 18,
+                    ),
+                    onPressed: () {
+                      showControl();
+                      switch (fit) {
+                        case BoxFit.contain:
+                          useAppStore().updateFit(BoxFit.fill);
+                          break;
+                        case BoxFit.fill:
+                          useAppStore().updateFit(BoxFit.cover);
+                          break;
+                        case BoxFit.cover:
+                          useAppStore().updateFit(BoxFit.none);
+                          break;
+                        case BoxFit.none:
+                          useAppStore().updateFit(BoxFit.contain);
+                          break;
+                        default:
                           break;
                       }
                     },
@@ -394,6 +431,42 @@ class ControlBar extends HookWidget {
                                       break;
                                     case Repeat.all:
                                       useAppStore().updateRepeat(Repeat.none);
+                                      break;
+                                  }
+                                },
+                              ),
+                              PopupMenuItem(
+                                child: ListTile(
+                                  mouseCursor: SystemMouseCursors.click,
+                                  leading: Icon(
+                                    fit == BoxFit.contain
+                                        ? Icons.fit_screen_rounded
+                                        : fit == BoxFit.fill
+                                            ? Icons.aspect_ratio_rounded
+                                            : fit == BoxFit.cover
+                                                ? Icons.crop_landscape_rounded
+                                                : Icons.crop_free_rounded,
+                                    size: 18,
+                                  ),
+                                  title: Text(
+                                      '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'}'),
+                                ),
+                                onTap: () {
+                                  showControl();
+                                  switch (fit) {
+                                    case BoxFit.contain:
+                                      useAppStore().updateFit(BoxFit.fill);
+                                      break;
+                                    case BoxFit.fill:
+                                      useAppStore().updateFit(BoxFit.cover);
+                                      break;
+                                    case BoxFit.cover:
+                                      useAppStore().updateFit(BoxFit.none);
+                                      break;
+                                    case BoxFit.none:
+                                      useAppStore().updateFit(BoxFit.contain);
+                                      break;
+                                    default:
                                       break;
                                   }
                                 },

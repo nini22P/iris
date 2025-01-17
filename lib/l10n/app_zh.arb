@@ -20,6 +20,7 @@
   "close": "关闭",
   "confirmUpdate": "确认更新",
   "connection_test": "连接测试",
+  "crop": "裁切",
   "dark": "暗色",
   "download": "下载",
   "download_and_update": "下载并更新",
@@ -31,6 +32,7 @@
   "exit_app_back_again": "再次点击返回退出应用。",
   "exit_fullscreen": "退出全屏",
   "favorites": "收藏",
+  "fit": "适应",
   "general": "通用",
   "home": "主页",
   "language": "语言",
@@ -68,6 +70,7 @@
   "shuffle": "随机",
   "source_code": "源码",
   "storages": "存储",
+  "stretch": "拉伸",
   "subtitle": "字幕",
   "subtitle_and_audio_track": "字幕和音轨",
   "system": "系统",
@@ -75,5 +78,6 @@
   "unable_to_fetch_files": "无法获取文件",
   "url": "URL",
   "username": "用户名",
-  "version": "版本"
+  "version": "版本",
+  "video_zoom": "视频缩放"
 }
