@@ -98,11 +98,7 @@ class Popup<T> extends PopupRoute<T> {
                         maxWidth: screenWidth / size - 16,
                       ),
                       child: Column(
-                        children: [
-                          Expanded(
-                            child: child,
-                          ),
-                        ],
+                        children: [Expanded(child: child)],
                       ),
                     ),
                   ),

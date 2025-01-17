@@ -24,7 +24,6 @@ class HomePage extends HookWidget {
         data: ThemeData.dark(useMaterial3: true).copyWith(
           colorScheme: const ColorScheme.dark(),
           textTheme: GoogleFonts.notoSansScTextTheme(),
-          cardTheme: baseTheme(context).cardTheme,
           popupMenuTheme: baseTheme(context).popupMenuTheme,
           listTileTheme: baseTheme(context).listTileTheme,
         ),

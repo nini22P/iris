@@ -45,7 +45,15 @@ class Storages extends HookWidget {
               Expanded(
                 child: TabBarView(
                   controller: tabController,
-                  children: tabs.map((tab) => Card(child: tab.child)).toList(),
+                  children: tabs
+                      .map((tab) => Card(
+                          color: Colors.transparent,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: tab.child))
+                      .toList(),
                 ),
               ),
               Divider(

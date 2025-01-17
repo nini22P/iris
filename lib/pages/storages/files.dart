@@ -97,6 +97,11 @@ class Files extends HookWidget {
                   : filteredFiles.isEmpty
                       ? const Center()
                       : Card(
+                          color: Colors.transparent,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           child: ScrollablePositionedList.builder(
                             itemScrollController: itemScrollController,
                             scrollOffsetController: scrollOffsetController,
@@ -172,17 +177,18 @@ class Files extends HookWidget {
                                                 .toUpperCase())
                                             .toSet()
                                             .toList()
-                                            .map((subtitleType) => Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    const SizedBox(width: 8),
-                                                    SubtitleChip(
-                                                      text: subtitleType,
-                                                      primary: true,
-                                                    ),
-                                                  ],
-                                                )),
+                                            .map(
+                                              (subtitleType) => Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const SizedBox(width: 8),
+                                                  SubtitleChip(
+                                                    text: subtitleType,
+                                                    primary: true,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                       ],
                                     )
                                   : null,

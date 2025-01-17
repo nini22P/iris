@@ -36,7 +36,16 @@ class SubtitleAndAudioTrack extends HookWidget {
         Expanded(
           child: TabBarView(
             controller: tabController,
-            children: tabs.map((e) => Card(child: e.child)).toList(),
+            children: tabs
+                .map((e) => Card(
+                      color: Colors.transparent,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: e.child,
+                    ))
+                .toList(),
           ),
         ),
         Divider(
