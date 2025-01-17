@@ -103,9 +103,6 @@ class IrisPlayer extends HookWidget {
     PlayerController playerController =
         usePlayerController(context, playerCore);
 
-    final mediaType =
-        useMemoized(() => currentPlay?.file.type ?? 'video', [currentPlay]);
-
     final isHover = useState(false);
     final isTouch = useState(false);
     final isLongPress = useState(false);
@@ -219,13 +216,13 @@ class IrisPlayer extends HookWidget {
     }, [playerCore.title]);
 
     useEffect(() {
-      if (isShowControl.value || mediaType == 'audio') {
+      if (isShowControl.value || currentPlay?.file.type == ContentType.audio) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       } else {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       }
       return;
-    }, [isShowControl.value, mediaType]);
+    }, [isShowControl.value, currentPlay?.file.type]);
 
     useEffect(() {
       SystemChrome.setSystemUIChangeCallback((value) async {
@@ -564,7 +561,7 @@ class IrisPlayer extends HookWidget {
               top: 0,
               right: 0,
               bottom: 0,
-              child: mediaType == 'audio'
+              child: currentPlay?.file.type == ContentType.audio
                   ? IgnorePointer(
                       child: Stack(
                         children: [
@@ -670,7 +667,7 @@ class IrisPlayer extends HookWidget {
               height: 32,
               child: isShowProgress.value &&
                       !isShowControl.value &&
-                      mediaType != 'audio'
+                      currentPlay?.file.type != ContentType.audio
                   ? ControlBarSlider(
                       playerCore: playerCore,
                       playerController: playerController,
@@ -684,7 +681,7 @@ class IrisPlayer extends HookWidget {
               top: 12,
               child: isShowProgress.value &&
                       !isShowControl.value &&
-                      mediaType != 'audio'
+                      currentPlay?.file.type != ContentType.audio
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -714,7 +711,7 @@ class IrisPlayer extends HookWidget {
               bottom: 6,
               child: isShowProgress.value &&
                       !isShowControl.value &&
-                      mediaType != 'audio'
+                      currentPlay?.file.type != ContentType.audio
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -743,7 +740,10 @@ class IrisPlayer extends HookWidget {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOutCubicEmphasized,
-              top: isShowControl.value || mediaType == 'audio' ? 0 : -72,
+              top: isShowControl.value ||
+                      currentPlay?.file.type == ContentType.audio
+                  ? 0
+                  : -72,
               left: 0,
               right: 0,
               child: MouseRegion(
@@ -782,7 +782,10 @@ class IrisPlayer extends HookWidget {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOutCubicEmphasized,
-              bottom: isShowControl.value || mediaType == 'audio' ? 0 : -96,
+              bottom: isShowControl.value ||
+                      currentPlay?.file.type == ContentType.audio
+                  ? 0
+                  : -96,
               left: 0,
               right: 0,
               child: Align(

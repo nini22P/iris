@@ -38,6 +38,13 @@ class ControlBar extends HookWidget {
 
     final int playQueueLength =
         usePlayQueueStore().select(context, (state) => state.playQueue.length);
+    final playQueue =
+        usePlayQueueStore().select(context, (state) => state.playQueue);
+    final currentIndex =
+        usePlayQueueStore().select(context, (state) => state.currentIndex);
+    final currentPlayIndex = useMemoized(
+        () => playQueue.indexWhere((element) => element.index == currentIndex),
+        [playQueue, currentIndex]);
 
     final bool shuffle =
         useAppStore().select(context, (state) => state.shuffle);
@@ -78,14 +85,22 @@ class ControlBar extends HookWidget {
                   visible: playQueueLength > 1,
                   child: IconButton(
                     tooltip: '${t.previous} ( Ctrl + ← )',
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.skip_previous_rounded,
-                      size: 26,
+                      size: 28,
+                      color: currentPlayIndex == 0
+                          ? Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant
+                              .withValues(alpha: 0.6)
+                          : null,
                     ),
-                    onPressed: () {
-                      showControl();
-                      playerController.previous();
-                    },
+                    onPressed: currentPlayIndex == 0
+                        ? null
+                        : () {
+                            showControl();
+                            playerController.previous();
+                          },
                   ),
                 ),
                 IconButton(
@@ -95,7 +110,7 @@ class ControlBar extends HookWidget {
                     playerCore.playing == true
                         ? Icons.pause_rounded
                         : Icons.play_arrow_rounded,
-                    size: 32,
+                    size: 36,
                   ),
                   onPressed: () {
                     showControl();
@@ -115,14 +130,22 @@ class ControlBar extends HookWidget {
                   visible: playQueueLength > 1,
                   child: IconButton(
                     tooltip: '${t.next} ( Ctrl + → )',
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.skip_next_rounded,
-                      size: 26,
+                      size: 28,
+                      color: currentPlayIndex == playQueueLength - 1
+                          ? Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant
+                              .withValues(alpha: 0.6)
+                          : null,
                     ),
-                    onPressed: () {
-                      showControl();
-                      playerController.next();
-                    },
+                    onPressed: currentPlayIndex == playQueueLength - 1
+                        ? null
+                        : () {
+                            showControl();
+                            playerController.next();
+                          },
                   ),
                 ),
                 Visibility(
@@ -134,7 +157,7 @@ class ControlBar extends HookWidget {
                       repeat == Repeat.one
                           ? Icons.repeat_one_rounded
                           : Icons.repeat_rounded,
-                      size: 18,
+                      size: 20,
                       color: repeat == Repeat.none
                           ? Theme.of(context)
                               .colorScheme
@@ -164,7 +187,7 @@ class ControlBar extends HookWidget {
                     tooltip: '${t.shuffle}: ${shuffle ? t.on : t.off} ( X )',
                     icon: Icon(
                       Icons.shuffle_rounded,
-                      size: 18,
+                      size: 20,
                       color: !shuffle
                           ? Theme.of(context)
                               .colorScheme
@@ -194,7 +217,7 @@ class ControlBar extends HookWidget {
                               : fit == BoxFit.cover
                                   ? Icons.crop_landscape_rounded
                                   : Icons.crop_free_rounded,
-                      size: 18,
+                      size: 20,
                     ),
                     onPressed: () {
                       showControl();
@@ -244,7 +267,7 @@ class ControlBar extends HookWidget {
                   tooltip: '${t.storages} ( F )',
                   icon: const Icon(
                     Icons.storage_rounded,
-                    size: 17,
+                    size: 18,
                   ),
                   onPressed: () async {
                     showControlForHover(
@@ -259,10 +282,10 @@ class ControlBar extends HookWidget {
                 IconButton(
                   tooltip: '${t.play_queue} ( P )',
                   icon: Transform.translate(
-                    offset: const Offset(0, 1),
+                    offset: const Offset(0, 1.5),
                     child: const Icon(
                       Icons.playlist_play_rounded,
-                      size: 26,
+                      size: 28,
                     ),
                   ),
                   onPressed: () async {
@@ -279,7 +302,7 @@ class ControlBar extends HookWidget {
                   tooltip: '${t.subtitle_and_audio_track} ( S )',
                   icon: const Icon(
                     Icons.subtitles_rounded,
-                    size: 19,
+                    size: 20,
                   ),
                   onPressed: () async {
                     showControlForHover(
@@ -308,7 +331,7 @@ class ControlBar extends HookWidget {
                           isFullScreen
                               ? Icons.close_fullscreen_rounded
                               : Icons.open_in_full_rounded,
-                          size: 18,
+                          size: 19,
                         ),
                         onPressed: () async {
                           showControl();
@@ -374,37 +397,12 @@ class ControlBar extends HookWidget {
                           ? [
                               PopupMenuItem(
                                 child: ListTile(
-                                    mouseCursor: SystemMouseCursors.click,
-                                    leading: Icon(
-                                      Icons.shuffle_rounded,
-                                      size: 18,
-                                      color: !shuffle
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant
-                                              .withValues(alpha: 0.6)
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant,
-                                    ),
-                                    title: Text(
-                                        '${t.shuffle}: ${shuffle ? t.on : t.off}')),
-                                onTap: () {
-                                  showControl();
-                                  shuffle
-                                      ? playerController.sortPlayQueue()
-                                      : playerController.shufflePlayQueue();
-                                  useAppStore().updateShuffle(!shuffle);
-                                },
-                              ),
-                              PopupMenuItem(
-                                child: ListTile(
                                   mouseCursor: SystemMouseCursors.click,
                                   leading: Icon(
                                     repeat == Repeat.one
                                         ? Icons.repeat_one_rounded
                                         : Icons.repeat_rounded,
-                                    size: 18,
+                                    size: 20,
                                     color: repeat == Repeat.none
                                         ? Theme.of(context)
                                             .colorScheme
@@ -437,6 +435,31 @@ class ControlBar extends HookWidget {
                               ),
                               PopupMenuItem(
                                 child: ListTile(
+                                    mouseCursor: SystemMouseCursors.click,
+                                    leading: Icon(
+                                      Icons.shuffle_rounded,
+                                      size: 20,
+                                      color: !shuffle
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant
+                                              .withValues(alpha: 0.6)
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                    ),
+                                    title: Text(
+                                        '${t.shuffle}: ${shuffle ? t.on : t.off}')),
+                                onTap: () {
+                                  showControl();
+                                  shuffle
+                                      ? playerController.sortPlayQueue()
+                                      : playerController.shufflePlayQueue();
+                                  useAppStore().updateShuffle(!shuffle);
+                                },
+                              ),
+                              PopupMenuItem(
+                                child: ListTile(
                                   mouseCursor: SystemMouseCursors.click,
                                   leading: Icon(
                                     fit == BoxFit.contain
@@ -446,7 +469,7 @@ class ControlBar extends HookWidget {
                                             : fit == BoxFit.cover
                                                 ? Icons.crop_landscape_rounded
                                                 : Icons.crop_free_rounded,
-                                    size: 18,
+                                    size: 20,
                                   ),
                                   title: Text(
                                       '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'}'),
