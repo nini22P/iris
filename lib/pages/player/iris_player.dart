@@ -18,12 +18,12 @@ import 'package:iris/pages/storages/storages.dart';
 import 'package:iris/utils/format_duration_to_minutes.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/is_desktop.dart';
-import 'package:iris/utils/path.dart';
 import 'package:iris/utils/resize_window.dart';
 import 'package:iris/pages/custom_app_bar.dart';
 import 'package:iris/pages/player/control_bar.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 class IrisPlayer extends HookWidget {
@@ -50,8 +50,8 @@ class IrisPlayer extends HookWidget {
         if (Platform.isAndroid) {
           NativePlayer nativePlayer = player.platform as NativePlayer;
 
-          final String dataDir = await getDataPath();
-          final String fontsDir = "$dataDir/fonts";
+          final appSupportDir = await getApplicationSupportDirectory();
+          final String fontsDir = "${appSupportDir.path}/fonts";
 
           final Directory fontsDirectory = Directory(fontsDir);
           if (!await fontsDirectory.exists()) {
