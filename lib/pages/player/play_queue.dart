@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:hive/hive.dart';
 import 'package:iris/models/hive/progress.dart';
+import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -21,6 +22,10 @@ class PlayQueue extends HookWidget {
     final currentIndex =
         usePlayQueueStore().select(context, (state) => state.currentIndex);
 
+    final int currentPlayIndex = useMemoized(
+        () => playQueue.indexWhere((element) => element.index == currentIndex),
+        [playQueue, currentIndex]);
+
     ItemScrollController itemScrollController = ItemScrollController();
     ScrollOffsetController scrollOffsetController = ScrollOffsetController();
     ItemPositionsListener itemPositionsListener =
@@ -31,7 +36,7 @@ class PlayQueue extends HookWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (itemScrollController.isAttached && playQueue.isNotEmpty) {
           itemScrollController.jumpTo(
-              index: currentIndex - 3 < 0 ? 0 : currentIndex - 1);
+              index: currentPlayIndex - 3 < 0 ? 0 : currentPlayIndex - 1);
         }
       });
       return;
@@ -49,7 +54,7 @@ class PlayQueue extends HookWidget {
             child: ScrollablePositionedList.builder(
               itemCount: playQueue.length,
               itemBuilder: (context, index) => ListTile(
-                autofocus: index == currentIndex,
+                autofocus: currentPlayIndex == index,
                 contentPadding: const EdgeInsets.fromLTRB(12, 0, 8, 0),
                 visualDensity:
                     const VisualDensity(horizontal: -4, vertical: -4),
@@ -62,10 +67,10 @@ class PlayQueue extends HookWidget {
                 ),
                 minLeadingWidth: 14,
                 title: Text(
-                  playQueue[index].name,
+                  playQueue[index].file.name,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: currentIndex == index
+                  style: currentPlayIndex == index
                       ? TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
@@ -74,14 +79,14 @@ class PlayQueue extends HookWidget {
                 ),
                 subtitle: Row(
                   children: [
-                    Text("${fileSizeConvert(playQueue[index].size)} MB",
+                    Text("${fileSizeConvert(playQueue[index].file.size)} MB",
                         style: const TextStyle(
                           fontSize: 13,
                         )),
                     const Spacer(),
                     () {
                       final Progress? progress =
-                          progressBox.get(playQueue[index].getID());
+                          progressBox.get(playQueue[index].file.getID());
                       if (progress != null) {
                         if ((progress.duration.inMilliseconds -
                                 progress.position.inMilliseconds) <=
@@ -99,6 +104,7 @@ class PlayQueue extends HookWidget {
                       }
                     }(),
                     ...playQueue[index]
+                        .file
                         .subtitles!
                         .map((subtitle) =>
                             subtitle.uri.split('.').last.toUpperCase())
@@ -119,7 +125,9 @@ class PlayQueue extends HookWidget {
                   ],
                 ),
                 onTap: () {
-                  usePlayQueueStore().updateCurrentIndex(index);
+                  useAppStore().updateAutoPlay(true);
+                  usePlayQueueStore()
+                      .updateCurrentIndex(playQueue[index].index);
                   Navigator.of(context).pop();
                 },
               ),

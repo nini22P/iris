@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/utils/get_subtitle_title.dart';
 import 'package:media_kit/media_kit.dart';
 
 class Subtitles extends HookWidget {
@@ -29,7 +28,9 @@ class Subtitles extends HookWidget {
           (subtitle) => ListTile(
             focusNode: playerCore.subtitle == subtitle ? focusNode : null,
             title: Text(
-              subtitle == SubtitleTrack.no() ? t.off : getTrackTitle(subtitle),
+              subtitle == SubtitleTrack.no()
+                  ? t.off
+                  : subtitle.title ?? subtitle.language ?? subtitle.id,
               style: playerCore.subtitle == subtitle
                   ? TextStyle(
                       fontWeight: FontWeight.bold,
@@ -49,7 +50,7 @@ class Subtitles extends HookWidget {
         ...playerCore.externalSubtitles.map(
           (subtitle) => ListTile(
             title: Text(
-              getTrackLanguage(subtitle.name) ?? subtitle.name,
+              subtitle.name,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),

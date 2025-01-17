@@ -1,12 +1,12 @@
 import 'package:iris/models/file.dart';
-import 'package:iris/utils/check_file_type.dart';
+import 'package:iris/utils/check_content_type.dart';
 
 List<Subtitle> findSubtitle(
   List<String> files,
   String name,
   String baseUri,
 ) {
-  if (checkFileType(name) == 'video') {
+  if (checkContentType(name) == ContentType.video) {
     List<Subtitle> foundSubTitles = [];
 
     String baseName =

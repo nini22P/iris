@@ -1,3 +1,11 @@
+enum ContentType {
+  dir,
+  video,
+  audio,
+  image,
+  other,
+}
+
 class FileItem {
   final String storageId;
   final String name;
@@ -5,7 +13,7 @@ class FileItem {
   final List<String> path;
   final bool isDir;
   final int size;
-  final String type;
+  final ContentType type;
   final String? auth;
   final List<Subtitle>? subtitles;
 
@@ -31,10 +39,9 @@ class FileItem {
       'path': path,
       'isDir': isDir,
       'size': size,
-      'type': type,
+      'type': type.name, // 保存枚举的 name
       'auth': auth,
-      'subtitles':
-          subtitles != null ? subtitles!.map((s) => s.toJson()).toList() : [],
+      'subtitles': subtitles?.map((s) => s.toJson()).toList() ?? [],
     };
   }
 
@@ -46,10 +53,11 @@ class FileItem {
       path: List<String>.from(json['path']),
       isDir: json['isDir'],
       size: json['size'],
-      type: json['type'],
+      type: ContentType.values.firstWhere((e) => e.name == json['type'],
+          orElse: () => ContentType.other),
       auth: json['auth'],
-      subtitles: (json['subtitles'] as List)
-          .map((subTitleJson) => Subtitle.fromJson(subTitleJson))
+      subtitles: (json['subtitles'] as List?)
+          ?.map((subTitleJson) => Subtitle.fromJson(subTitleJson))
           .toList(),
     );
   }
@@ -75,6 +83,30 @@ class Subtitle {
     return Subtitle(
       name: json['name'],
       uri: json['uri'],
+    );
+  }
+}
+
+class PlayQueueItem {
+  final FileItem file;
+  final int index;
+
+  PlayQueueItem({
+    required this.file,
+    required this.index,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'file': file.toJson(),
+      'index': index,
+    };
+  }
+
+  factory PlayQueueItem.fromJson(Map<String, dynamic> json) {
+    return PlayQueueItem(
+      file: FileItem.fromJson(json['file']),
+      index: json['index'],
     );
   }
 }

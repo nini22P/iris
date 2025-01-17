@@ -9,7 +9,7 @@ import 'package:iris/utils/path_converter.dart';
 import 'package:path/path.dart' as p;
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart';
-import 'package:iris/utils/check_file_type.dart';
+import 'package:iris/utils/check_content_type.dart';
 
 class LocalStorage implements Storage {
   @override
@@ -53,8 +53,8 @@ class LocalStorage implements Storage {
               isDir: entity is Directory,
               size: entity is File ? entity.lengthSync() : 0,
               type: entity is Directory
-                  ? 'dir'
-                  : checkFileType(p.basename(entity.path)),
+                  ? ContentType.dir
+                  : checkContentType(p.basename(entity.path)),
               subtitles: findSubtitle(
                   directory
                       .listSync()
@@ -101,11 +101,18 @@ Future<void> pickFile() async {
       basePath: basePath,
     ).getFiles(basePath);
 
-    final playQueue = filesFilter(files, ['video', 'audio']);
-    final clickedFile = playQueue
+    final List<FileItem> filteredFiles =
+        filesFilter(files, [ContentType.video, ContentType.audio]);
+    final List<PlayQueueItem> playQueue = filteredFiles
+        .asMap()
+        .entries
+        .map((entry) => PlayQueueItem(file: entry.value, index: entry.key))
+        .toList();
+
+    final clickedFile = filteredFiles
         .where((file) => file.path.join('/') == filePath.join('/'))
         .first;
-    final index = playQueue.indexOf(clickedFile);
+    final index = filteredFiles.indexOf(clickedFile);
 
     if (playQueue.isEmpty || index < 0) return;
 

@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:collection/collection.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/hive/progress.dart';
@@ -16,7 +17,6 @@ import 'package:media_kit/media_kit.dart';
 class PlayerCore {
   final Player player;
   final String title;
-  final FileItem? currentFile;
   final SubtitleTrack subtitle;
   final List<SubtitleTrack> subtitles;
   final List<Subtitle> externalSubtitles;
@@ -38,7 +38,6 @@ class PlayerCore {
   PlayerCore(
     this.player,
     this.title,
-    this.currentFile,
     this.subtitle,
     this.subtitles,
     this.externalSubtitles,
@@ -62,20 +61,26 @@ class PlayerCore {
 PlayerCore usePlayerCore(BuildContext context, Player player) {
   final progressBox = Hive.box<Progress>('progressBox');
 
-  final playQueue =
+  final List<PlayQueueItem> playQueue =
       usePlayQueueStore().select(context, (state) => state.playQueue);
-  final currentIndex =
+  final int currentIndex =
       usePlayQueueStore().select(context, (state) => state.currentIndex);
-  final autoPlay = useAppStore().select(context, (state) => state.autoPlay);
-  final currentFile = useMemoized(
-      () => playQueue.isEmpty ? null : playQueue[currentIndex],
+  final bool autoPlay =
+      useAppStore().select(context, (state) => state.autoPlay);
+
+  final int currentPlayIndex = useMemoized(
+      () => playQueue.indexWhere((element) => element.index == currentIndex),
       [playQueue, currentIndex]);
+
+  final FileItem? currentFile = useMemoized(
+      () => playQueue.isEmpty ? null : playQueue[currentPlayIndex].file,
+      [playQueue, currentPlayIndex]);
 
   final title = useMemoized(
       () => currentFile != null
-          ? '[${currentIndex + 1}/${playQueue.length}] ${currentFile.name}'
+          ? '[${currentPlayIndex + 1}/${playQueue.length}] ${currentFile.name}'
           : '',
-      [currentFile]);
+      [currentFile, currentPlayIndex, playQueue.length]);
 
   ValueNotifier<bool> seeking = useState(false);
 
@@ -145,13 +150,13 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   }, [currentFile, dir, storages]);
 
   final getCover = useMemoized(() async {
-    if (currentFile?.type != 'audio') return null;
+    if (currentFile?.type != ContentType.audio) return null;
 
     final files = await storage?.getFiles(dir);
 
     if (files == null) return null;
 
-    final images = filesFilter(files, ['image']);
+    final images = filesFilter(files, [ContentType.image]);
 
     return images
             .where(
@@ -174,7 +179,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     );
     return () {
       if (player.state.duration == Duration.zero ||
-          currentFile.type != 'video') {
+          currentFile.type != ContentType.video) {
         return;
       }
       log('Save progress: ${currentFile.name} position: ${player.state.position} duration: ${player.state.duration}');
@@ -194,7 +199,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
         return;
       }
       // 查询播放进度
-      if (currentFile?.type == 'video') {
+      if (currentFile?.type == ContentType.video) {
         Progress? progress = progressBox.get(currentFile?.getID());
         if (progress != null) {
           if (progress.duration.inMilliseconds == duration.inMilliseconds &&
@@ -230,7 +235,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   void updateSeeking(bool value) => seeking.value = value;
 
   Future<void> saveProgress() async {
-    if (currentFile?.type == 'video' &&
+    if (currentFile?.type == ContentType.video &&
         player.state.duration != Duration.zero) {
       final id = currentFile!.getID();
       log('Save progress: ${currentFile.name} position: ${player.state.position} duration: ${player.state.duration}');
@@ -246,7 +251,6 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   return PlayerCore(
     player,
     title,
-    currentFile,
     subtitle,
     subtitles,
     externalSubtitles ?? [],

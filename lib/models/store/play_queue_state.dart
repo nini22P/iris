@@ -1,7 +1,7 @@
 import 'package:iris/models/file.dart';
 
 class PlayQueueState {
-  List<FileItem> playQueue;
+  List<PlayQueueItem> playQueue;
   int currentIndex;
 
   PlayQueueState({
@@ -10,7 +10,7 @@ class PlayQueueState {
   });
 
   PlayQueueState copyWith({
-    List<FileItem>? playQueue,
+    List<PlayQueueItem>? playQueue,
     int? currentIndex,
   }) =>
       PlayQueueState(
@@ -27,9 +27,9 @@ class PlayQueueState {
 
   factory PlayQueueState.fromJson(Map<String, dynamic> json) => PlayQueueState(
         playQueue: (json['playQueue'] as List<dynamic>)
-            .map((e) => FileItem.fromJson(e as Map<String, dynamic>))
+            .map((e) => PlayQueueItem.fromJson(e as Map<String, dynamic>))
             .toList()
-            .cast<FileItem>(),
+            .cast<PlayQueueItem>(),
         currentIndex: json['currentIndex'] as int,
       );
 }

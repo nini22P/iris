@@ -10,7 +10,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
   PlayQueueStore() : super(PlayQueueState());
 
   Future<void> updatePlayQueue(
-      List<FileItem> playQueue, int? currentIndex) async {
+      List<PlayQueueItem> playQueue, int? currentIndex) async {
     set(state.copyWith(
       playQueue: playQueue,
       currentIndex: currentIndex ?? state.currentIndex,

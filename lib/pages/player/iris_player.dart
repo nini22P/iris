@@ -9,7 +9,9 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
+import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/models/store/app_state.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/pages/player/subtitle_and_audio_track.dart';
@@ -17,6 +19,7 @@ import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/pages/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/format_duration_to_minutes.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/is_desktop.dart';
@@ -36,7 +39,17 @@ class IrisPlayer extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
+    final shuffle = useAppStore().select(context, (state) => state.shuffle);
     final repeat = useAppStore().select(context, (state) => state.repeat);
+
+    final playQueue =
+        usePlayQueueStore().select(context, (state) => state.playQueue);
+    final currentIndex =
+        usePlayQueueStore().select(context, (state) => state.currentIndex);
+
+    final PlayQueueItem? currentPlay = useMemoized(
+        () => playQueue.isEmpty ? null : playQueue[currentIndex],
+        [playQueue, currentIndex]);
 
     final focusNode = useFocusNode();
     final player = useMemoized(
@@ -89,8 +102,8 @@ class IrisPlayer extends HookWidget {
     PlayerController playerController =
         usePlayerController(context, playerCore);
 
-    final mediaType = useMemoized(() => playerCore.currentFile?.type ?? 'video',
-        [playerCore.currentFile]);
+    final mediaType =
+        useMemoized(() => currentPlay?.file.type ?? 'video', [currentPlay]);
 
     final isHover = useState(false);
     final isTouch = useState(false);
@@ -197,8 +210,9 @@ class IrisPlayer extends HookWidget {
 
     useEffect(() {
       if (isDesktop) {
-        windowManager
-            .setTitle(playerCore.title.isEmpty ? INFO.title : playerCore.title);
+        windowManager.setTitle(playerCore.title.isEmpty
+            ? INFO.title
+            : '${playerCore.title} - ${INFO.title}');
       }
       return;
     }, [playerCore.title]);
@@ -312,16 +326,24 @@ class IrisPlayer extends HookWidget {
           case LogicalKeyboardKey.keyR:
             showControl();
             switch (repeat) {
-              case 'no':
-                useAppStore().updateRepeat('one');
+              case Repeat.none:
+                useAppStore().updateRepeat(Repeat.one);
                 break;
-              case 'one':
-                useAppStore().updateRepeat('all');
+              case Repeat.one:
+                useAppStore().updateRepeat(Repeat.all);
                 break;
-              case 'all':
-                useAppStore().updateRepeat('no');
+              case Repeat.all:
+                useAppStore().updateRepeat(Repeat.none);
                 break;
             }
+            break;
+          case LogicalKeyboardKey.keyX:
+            showControl();
+            shuffle
+                ? playerController.sortPlayQueue()
+                : playerController.shufflePlayQueue();
+            useAppStore().updateShuffle(!shuffle);
+            break;
           default:
             break;
         }
@@ -507,7 +529,7 @@ class IrisPlayer extends HookWidget {
                     }
                   },
                   child: Video(
-                    key: ValueKey(playerCore.currentFile?.uri),
+                    key: ValueKey(currentPlay?.file.uri),
                     controller: controller,
                     controls: NoVideoControls,
                     // wakelock: mediaType == 'video',

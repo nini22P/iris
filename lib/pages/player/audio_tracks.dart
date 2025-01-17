@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/utils/get_subtitle_title.dart';
 import 'package:media_kit/media_kit.dart';
 
 class AudioTracks extends HookWidget {
@@ -32,7 +31,7 @@ class AudioTracks extends HookWidget {
                   ? t.auto
                   : audio == AudioTrack.no()
                       ? t.off
-                      : getTrackTitle(audio),
+                      : audio.title ?? audio.language ?? audio.id,
               style: playerCore.audio == audio
                   ? TextStyle(
                       fontWeight: FontWeight.bold,

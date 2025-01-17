@@ -1,59 +1,77 @@
+import 'package:flutter/material.dart';
+
+enum Repeat {
+  none,
+  all,
+  one,
+}
+
 class AppState {
   bool autoPlay;
-  String repeat; // 'no', 'all', 'one'
+  bool shuffle;
+  Repeat repeat;
+  BoxFit fit;
   int volume;
   bool isMuted;
-  String theme;
+  ThemeMode themeMode;
   String subtitleLanguage;
-  bool autoCheckUpdates;
   String language;
+  bool autoCheckUpdates;
   bool autoResize;
 
   AppState({
     this.autoPlay = false,
-    this.repeat = 'no',
+    this.shuffle = false,
+    this.repeat = Repeat.none,
+    this.fit = BoxFit.contain,
     this.volume = 100,
     this.isMuted = false,
-    this.theme = 'auto',
+    this.themeMode = ThemeMode.system,
     this.subtitleLanguage = 'auto',
-    this.autoCheckUpdates = true,
     this.language = 'auto',
+    this.autoCheckUpdates = false,
     this.autoResize = false,
   });
 
   AppState copyWith({
     bool? autoPlay,
-    String? repeat,
+    bool? shuffle,
+    Repeat? repeat,
+    BoxFit? fit,
     int? volume,
     bool? isMuted,
-    String? theme,
+    ThemeMode? themeMode,
     String? subtitleLanguage,
-    bool? autoCheckUpdates,
     String? language,
+    bool? autoCheckUpdates,
     bool? autoResize,
   }) =>
       AppState(
         autoPlay: autoPlay ?? this.autoPlay,
+        shuffle: shuffle ?? this.shuffle,
         repeat: repeat ?? this.repeat,
+        fit: fit ?? this.fit,
         volume: volume ?? this.volume,
         isMuted: isMuted ?? this.isMuted,
-        theme: theme ?? this.theme,
+        themeMode: themeMode ?? this.themeMode,
         subtitleLanguage: subtitleLanguage ?? this.subtitleLanguage,
-        autoCheckUpdates: autoCheckUpdates ?? this.autoCheckUpdates,
         language: language ?? this.language,
+        autoCheckUpdates: autoCheckUpdates ?? this.autoCheckUpdates,
         autoResize: autoResize ?? this.autoResize,
       );
 
   Map<String, dynamic> toJson() {
     return {
       'autoPlay': autoPlay,
-      'repeat': repeat,
+      'shuffle': shuffle,
+      'repeat': repeat.name,
+      'fit': fit.name,
       'volume': volume,
       'isMuted': isMuted,
-      'theme': theme,
+      'themeMode': themeMode.name,
       'subtitleLanguage': subtitleLanguage,
-      'autoCheckUpdates': autoCheckUpdates,
       'language': language,
+      'autoCheckUpdates': autoCheckUpdates,
       'autoResize': autoResize,
     };
   }
@@ -61,13 +79,18 @@ class AppState {
   factory AppState.fromJson(Map<String, dynamic> json) {
     return AppState(
       autoPlay: json['autoPlay'] ?? false,
-      repeat: json['repeat'] ?? 'no',
+      shuffle: json['shuffle'] ?? false,
+      repeat: Repeat.values.firstWhere((e) => e.name == json['repeat'],
+          orElse: () => Repeat.none),
+      fit: BoxFit.values.firstWhere((e) => e.name == json['fit'],
+          orElse: () => BoxFit.contain),
       volume: json['volume'] ?? 100,
       isMuted: json['isMuted'] ?? false,
-      theme: json['theme'] ?? 'auto',
-      subtitleLanguage: json['subtitleLanguage'] ?? 'auto',
+      themeMode: ThemeMode.values.firstWhere((e) => e.name == json['themeMode'],
+          orElse: () => ThemeMode.system),
+      subtitleLanguage: json['subtitleLanguage'],
+      language: json['language'],
       autoCheckUpdates: json['autoCheckUpdates'] ?? true,
-      language: json['language'] ?? 'auto',
       autoResize: json['autoResize'] ?? false,
     );
   }

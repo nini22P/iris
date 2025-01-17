@@ -54,7 +54,9 @@ class Files extends HookWidget {
     final error = result.error != null;
 
     final filteredFiles = useMemoized(
-        () => filesFilter(files, ['dir', 'video', 'audio']), [files]);
+        () => filesFilter(
+            files, [ContentType.dir, ContentType.video, ContentType.audio]),
+        [files]);
 
     ItemScrollController itemScrollController = ItemScrollController();
     ScrollOffsetController scrollOffsetController = ScrollOffsetController();
@@ -64,10 +66,17 @@ class Files extends HookWidget {
 
     void play(List<FileItem> files, int index) async {
       final clickedFile = files[index];
-      final playQueue = filesFilter(files, ['video', 'audio']);
-      final newIndex = playQueue.indexOf(clickedFile);
+      final List<FileItem> filteredFiles =
+          filesFilter(files, [ContentType.video, ContentType.audio]);
+      final List<PlayQueueItem> playQueue = filteredFiles
+          .asMap()
+          .entries
+          .map((entry) => PlayQueueItem(file: entry.value, index: entry.key))
+          .toList();
+      final newIndex = filteredFiles.indexOf(clickedFile);
 
       await useAppStore().updateAutoPlay(true);
+      await useAppStore().updateShuffle(false);
       await usePlayQueueStore().updatePlayQueue(playQueue, newIndex);
     }
 
@@ -115,17 +124,16 @@ class Files extends HookWidget {
                                   horizontal: 0, vertical: -4),
                               leading: () {
                                 switch (filteredFiles[index].type) {
-                                  case 'dir':
+                                  case ContentType.dir:
                                     return const Icon(Icons.folder_rounded);
-                                  case 'video':
+                                  case ContentType.video:
                                     return const Icon(Icons.movie_rounded);
-                                  case 'audio':
+                                  case ContentType.audio:
                                     return const Icon(Icons.audiotrack_rounded);
-                                  case 'image':
+                                  case ContentType.image:
                                     return const Icon(Icons.image_rounded);
-                                  default:
-                                    return const Icon(
-                                        Icons.file_present_rounded);
+                                  case ContentType.other:
+                                    return const Icon(Icons.file_copy_rounded);
                                 }
                               }(),
                               title: Text(
@@ -200,8 +208,10 @@ class Files extends HookWidget {
                                     filteredFiles[index].name
                                   ]);
                                 } else {
-                                  if (filteredFiles[index].type == 'video' ||
-                                      filteredFiles[index].type == 'audio') {
+                                  if (filteredFiles[index].type ==
+                                          ContentType.video ||
+                                      filteredFiles[index].type ==
+                                          ContentType.audio) {
                                     play(filteredFiles, index);
                                     Navigator.pop(context);
                                   }

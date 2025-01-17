@@ -171,6 +171,7 @@ const allDependencies = <Package>[
 
 /// Direct `dependencies`.
 const dependencies = <Package>[
+  _collection,
   _cupertino_icons,
   _dynamic_color,
   _file_picker,

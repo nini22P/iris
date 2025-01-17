@@ -4,22 +4,22 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 
-Future<void> showThemeColorDialog(BuildContext context) async =>
+Future<void> showThemeModeDialog(BuildContext context) async =>
     await showDialog<void>(
       context: context,
-      builder: (context) => const ThemeColorDialog(),
+      builder: (context) => const ThemeModeDialog(),
     );
 
-class ThemeColorDialog extends HookWidget {
-  const ThemeColorDialog({super.key});
+class ThemeModeDialog extends HookWidget {
+  const ThemeModeDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final theme = useAppStore().select(context, (state) => state.theme);
+    final themeMode = useAppStore().select(context, (state) => state.themeMode);
 
-    void updateThemeColor(String theme) {
-      useAppStore().updateTheme(theme);
+    void updateThemeMode(ThemeMode themeMode) {
+      useAppStore().updateThemeMode(themeMode);
       Navigator.pop(context);
     }
 
@@ -32,31 +32,31 @@ class ThemeColorDialog extends HookWidget {
             title: Text(t.auto),
             contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
-              value: 'auto',
-              groupValue: theme,
-              onChanged: (_) => updateThemeColor('auto'),
+              value: ThemeMode.system,
+              groupValue: themeMode,
+              onChanged: (_) => updateThemeMode(ThemeMode.system),
             ),
-            onTap: () => updateThemeColor('auto'),
+            onTap: () => updateThemeMode(ThemeMode.system),
           ),
           ListTile(
             title: Text(t.light),
             contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
-              value: 'light',
-              groupValue: theme,
-              onChanged: (_) => updateThemeColor('light'),
+              value: ThemeMode.light,
+              groupValue: themeMode,
+              onChanged: (_) => updateThemeMode(ThemeMode.light),
             ),
-            onTap: () => updateThemeColor('light'),
+            onTap: () => updateThemeMode(ThemeMode.light),
           ),
           ListTile(
             title: Text(t.dark),
             contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
-              value: 'dark',
-              groupValue: theme,
-              onChanged: (_) => updateThemeColor('dark'),
+              value: ThemeMode.dark,
+              groupValue: themeMode,
+              onChanged: (_) => updateThemeMode(ThemeMode.dark),
             ),
-            onTap: () => updateThemeColor('dark'),
+            onTap: () => updateThemeMode(ThemeMode.dark),
           ),
         ],
       )),

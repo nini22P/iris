@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/store/app_state.dart';
@@ -11,13 +12,18 @@ class AppStore extends PersistentStore<AppState> {
   Future<void> updateAutoPlay(bool autoPlay) async =>
       set(state.copyWith(autoPlay: autoPlay));
 
-  Future<void> updateRepeat(String repeat) async {
+  Future<void> updateShuffle(bool shuffle) async {
+    set(state.copyWith(shuffle: shuffle));
+    save(state);
+  }
+
+  Future<void> updateRepeat(Repeat repeat) async {
     set(state.copyWith(repeat: repeat));
     save(state);
   }
 
-  Future<void> updateTheme(String theme) async {
-    set(state.copyWith(theme: theme));
+  Future<void> updateThemeMode(ThemeMode themeMode) async {
+    set(state.copyWith(themeMode: themeMode));
     save(state);
   }
 

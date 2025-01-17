@@ -54,18 +54,9 @@ class MyApp extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    String theme = useAppStore().select(context, (state) => state.theme);
+    ThemeMode themeMode =
+        useAppStore().select(context, (state) => state.themeMode);
     String language = useAppStore().select(context, (state) => state.language);
-
-    ThemeMode themeMode = useMemoized(
-        () =>
-            {
-              'auto': ThemeMode.system,
-              'light': ThemeMode.light,
-              'dark': ThemeMode.dark,
-            }[theme] ??
-            ThemeMode.system,
-        [theme]);
 
     return DynamicColorBuilder(builder: (
       ColorScheme? lightDynamic,

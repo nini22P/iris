@@ -4,6 +4,7 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/models/store/app_state.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/player/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
@@ -35,12 +36,13 @@ class ControlBar extends HookWidget {
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
 
-    final playQueueLength =
+    final int playQueueLength =
         usePlayQueueStore().select(context, (state) => state.playQueue.length);
-    final currentIndex =
-        usePlayQueueStore().select(context, (state) => state.currentIndex);
 
-    final repeat = useAppStore().select(context, (state) => state.repeat);
+    final bool shuffle =
+        useAppStore().select(context, (state) => state.shuffle);
+    final Repeat repeat =
+        useAppStore().select(context, (state) => state.repeat);
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -59,7 +61,7 @@ class ControlBar extends HookWidget {
         child: Column(
           children: [
             Visibility(
-              visible: MediaQuery.of(context).size.width < 800,
+              visible: MediaQuery.of(context).size.width < 800 || !isDesktop,
               child: ControlBarSlider(
                 playerCore: playerCore,
                 playerController: playerController,
@@ -72,6 +74,29 @@ class ControlBar extends HookWidget {
               children: [
                 const SizedBox(width: 8),
                 Visibility(
+                  visible: MediaQuery.of(context).size.width >= 600,
+                  child: IconButton(
+                    tooltip: '${t.shuffle}: ${shuffle ? t.on : t.off} ( X )',
+                    icon: Icon(
+                      Icons.shuffle_rounded,
+                      size: 18,
+                      color: !shuffle
+                          ? Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant
+                              .withValues(alpha: 0.6)
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: () {
+                      showControl();
+                      shuffle
+                          ? playerController.sortPlayQueue()
+                          : playerController.shufflePlayQueue();
+                      useAppStore().updateShuffle(!shuffle);
+                    },
+                  ),
+                ),
+                Visibility(
                   visible: playQueueLength > 1,
                   child: IconButton(
                     tooltip: '${t.previous} ( Ctrl + ← )',
@@ -81,9 +106,7 @@ class ControlBar extends HookWidget {
                     ),
                     onPressed: () {
                       showControl();
-                      if (playQueueLength > 0 && currentIndex > 0) {
-                        playerController.previous();
-                      }
+                      playerController.previous();
                     },
                   ),
                 ),
@@ -120,10 +143,7 @@ class ControlBar extends HookWidget {
                     ),
                     onPressed: () {
                       showControl();
-                      if (playQueueLength > 0 &&
-                          currentIndex < playQueueLength - 1) {
-                        playerController.next();
-                      }
+                      playerController.next();
                     },
                   ),
                 ),
@@ -131,13 +151,13 @@ class ControlBar extends HookWidget {
                   visible: MediaQuery.of(context).size.width >= 600,
                   child: IconButton(
                     tooltip:
-                        '${repeat == 'one' ? t.repeat_one : repeat == 'all' ? t.repeat_all : t.repeat_no} ( R )',
+                        '${repeat == Repeat.one ? t.repeat_one : repeat == Repeat.all ? t.repeat_all : t.repeat_none} ( R )',
                     icon: Icon(
-                      repeat == 'one'
+                      repeat == Repeat.one
                           ? Icons.repeat_one_rounded
                           : Icons.repeat_rounded,
                       size: 18,
-                      color: repeat == 'no'
+                      color: repeat == Repeat.none
                           ? Theme.of(context)
                               .colorScheme
                               .onSurfaceVariant
@@ -147,14 +167,14 @@ class ControlBar extends HookWidget {
                     onPressed: () {
                       showControl();
                       switch (repeat) {
-                        case 'no':
-                          useAppStore().updateRepeat('one');
+                        case Repeat.none:
+                          useAppStore().updateRepeat(Repeat.one);
                           break;
-                        case 'one':
-                          useAppStore().updateRepeat('all');
+                        case Repeat.one:
+                          useAppStore().updateRepeat(Repeat.all);
                           break;
-                        case 'all':
-                          useAppStore().updateRepeat('no');
+                        case Repeat.all:
+                          useAppStore().updateRepeat(Repeat.none);
                           break;
                       }
                     },
@@ -162,7 +182,8 @@ class ControlBar extends HookWidget {
                 ),
                 Expanded(
                   child: Visibility(
-                    visible: MediaQuery.of(context).size.width >= 800,
+                    visible:
+                        MediaQuery.of(context).size.width >= 800 && isDesktop,
                     child: ControlBarSlider(
                       playerCore: playerCore,
                       playerController: playerController,
@@ -290,77 +311,112 @@ class ControlBar extends HookWidget {
                   clipBehavior: Clip.hardEdge,
                   constraints: const BoxConstraints(minWidth: 200),
                   itemBuilder: (BuildContext context) => [
-                    ...List.of(isDesktop
-                        ? [
-                            PopupMenuItem(
-                              child: ListTile(
-                                mouseCursor: SystemMouseCursors.click,
-                                leading: const Icon(
-                                  Icons.file_open_rounded,
-                                  size: 16.5,
+                    ...List.of(
+                      isDesktop
+                          ? [
+                              PopupMenuItem(
+                                child: ListTile(
+                                  mouseCursor: SystemMouseCursors.click,
+                                  leading: const Icon(
+                                    Icons.file_open_rounded,
+                                    size: 16.5,
+                                  ),
+                                  title: Text(t.open_file),
                                 ),
-                                title: Text(t.open_file),
+                                onTap: () async {
+                                  showControl();
+                                  await pickFile();
+                                  showControl();
+                                },
                               ),
-                              onTap: () async {
-                                showControl();
-                                await pickFile();
-                                showControl();
-                              },
-                            ),
-                          ]
-                        : []),
-                    PopupMenuItem(
-                      child: ListTile(
-                        mouseCursor: SystemMouseCursors.click,
-                        leading: Icon(
-                          repeat == 'one'
-                              ? Icons.repeat_one_rounded
-                              : Icons.repeat_rounded,
-                          size: 18,
-                          color: repeat == 'no'
-                              ? Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant
-                                  .withValues(alpha: 0.6)
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        title: Text(repeat == 'one'
-                            ? t.repeat_one
-                            : repeat == 'all'
-                                ? t.repeat_all
-                                : t.repeat_no),
-                      ),
-                      onTap: () {
-                        showControl();
-                        switch (repeat) {
-                          case 'no':
-                            useAppStore().updateRepeat('one');
-                            break;
-                          case 'one':
-                            useAppStore().updateRepeat('all');
-                            break;
-                          case 'all':
-                            useAppStore().updateRepeat('no');
-                            break;
-                        }
-                      },
+                            ]
+                          : [],
                     ),
-                    PopupMenuItem(
-                      child: ListTile(
-                        mouseCursor: SystemMouseCursors.click,
-                        leading: const Icon(
-                          Icons.settings_rounded,
-                          size: 20,
-                        ),
-                        title: Text(t.settings),
-                      ),
-                      onTap: () => showControlForHover(
-                        showPopup(
-                          context: context,
-                          child: const Settings(),
-                          direction: PopupDirection.right,
-                        ),
-                      ),
+                    ...List.of(
+                      MediaQuery.of(context).size.width < 600
+                          ? [
+                              PopupMenuItem(
+                                child: ListTile(
+                                    mouseCursor: SystemMouseCursors.click,
+                                    leading: Icon(
+                                      Icons.shuffle_rounded,
+                                      size: 18,
+                                      color: !shuffle
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant
+                                              .withValues(alpha: 0.6)
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                    ),
+                                    title: Text(
+                                        '${t.shuffle}: ${shuffle ? t.on : t.off}')),
+                                onTap: () {
+                                  showControl();
+                                  shuffle
+                                      ? playerController.sortPlayQueue()
+                                      : playerController.shufflePlayQueue();
+                                  useAppStore().updateShuffle(!shuffle);
+                                },
+                              ),
+                              PopupMenuItem(
+                                child: ListTile(
+                                  mouseCursor: SystemMouseCursors.click,
+                                  leading: Icon(
+                                    repeat == Repeat.one
+                                        ? Icons.repeat_one_rounded
+                                        : Icons.repeat_rounded,
+                                    size: 18,
+                                    color: repeat == Repeat.none
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant
+                                            .withValues(alpha: 0.6)
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                  ),
+                                  title: Text(repeat == Repeat.one
+                                      ? t.repeat_one
+                                      : repeat == Repeat.all
+                                          ? t.repeat_all
+                                          : t.repeat_none),
+                                ),
+                                onTap: () {
+                                  showControl();
+                                  switch (repeat) {
+                                    case Repeat.none:
+                                      useAppStore().updateRepeat(Repeat.one);
+                                      break;
+                                    case Repeat.one:
+                                      useAppStore().updateRepeat(Repeat.all);
+                                      break;
+                                    case Repeat.all:
+                                      useAppStore().updateRepeat(Repeat.none);
+                                      break;
+                                  }
+                                },
+                              ),
+                              PopupMenuItem(
+                                child: ListTile(
+                                  mouseCursor: SystemMouseCursors.click,
+                                  leading: const Icon(
+                                    Icons.settings_rounded,
+                                    size: 20,
+                                  ),
+                                  title: Text(t.settings),
+                                ),
+                                onTap: () => showControlForHover(
+                                  showPopup(
+                                    context: context,
+                                    child: const Settings(),
+                                    direction: PopupDirection.right,
+                                  ),
+                                ),
+                              )
+                            ]
+                          : [],
                     ),
                   ],
                 ),
