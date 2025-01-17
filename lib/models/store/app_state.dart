@@ -1,6 +1,6 @@
 class AppState {
   bool autoPlay;
-  bool loop;
+  String repeat; // 'no', 'all', 'one'
   int volume;
   bool isMuted;
   String theme;
@@ -11,7 +11,7 @@ class AppState {
 
   AppState({
     this.autoPlay = false,
-    this.loop = false,
+    this.repeat = 'no',
     this.volume = 100,
     this.isMuted = false,
     this.theme = 'auto',
@@ -23,7 +23,7 @@ class AppState {
 
   AppState copyWith({
     bool? autoPlay,
-    bool? loop,
+    String? repeat,
     int? volume,
     bool? isMuted,
     String? theme,
@@ -34,7 +34,7 @@ class AppState {
   }) =>
       AppState(
         autoPlay: autoPlay ?? this.autoPlay,
-        loop: loop ?? this.loop,
+        repeat: repeat ?? this.repeat,
         volume: volume ?? this.volume,
         isMuted: isMuted ?? this.isMuted,
         theme: theme ?? this.theme,
@@ -47,7 +47,7 @@ class AppState {
   Map<String, dynamic> toJson() {
     return {
       'autoPlay': autoPlay,
-      'loop': loop,
+      'repeat': repeat,
       'volume': volume,
       'isMuted': isMuted,
       'theme': theme,
@@ -60,8 +60,8 @@ class AppState {
 
   factory AppState.fromJson(Map<String, dynamic> json) {
     return AppState(
-      autoPlay: json['autoPlay'] ?? true,
-      loop: json['loop'] ?? false,
+      autoPlay: json['autoPlay'] ?? false,
+      repeat: json['repeat'] ?? 'no',
       volume: json['volume'] ?? 100,
       isMuted: json['isMuted'] ?? false,
       theme: json['theme'] ?? 'auto',

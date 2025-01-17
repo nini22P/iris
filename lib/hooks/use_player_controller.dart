@@ -33,6 +33,7 @@ PlayerController usePlayerController(
       usePlayQueueStore().select(context, (state) => state.playQueue);
   final currentIndex =
       usePlayQueueStore().select(context, (state) => state.currentIndex);
+  final repeat = useAppStore().select(context, (state) => state.repeat);
 
   Future<void> play() async {
     await useAppStore().updateAutoPlay(true);
@@ -73,7 +74,23 @@ PlayerController usePlayerController(
 
   useEffect(() {
     if (playerCore.completed) {
-      next();
+      switch (repeat) {
+        case 'no':
+          next();
+          break;
+        case 'all':
+          if (currentIndex == playQueue.length - 1) {
+            usePlayQueueStore().updateCurrentIndex(0);
+          } else {
+            next();
+          }
+          break;
+        case 'one':
+          play();
+          break;
+        default:
+          break;
+      }
     }
     return null;
   }, [playerCore.completed]);

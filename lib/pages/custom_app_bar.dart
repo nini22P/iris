@@ -25,7 +25,7 @@ class CustomAppBar extends HookWidget {
     return Container(
       padding: isDesktop
           ? const EdgeInsets.fromLTRB(12, 4, 4, 8)
-          : const EdgeInsets.fromLTRB(16, 8, 8, 16),
+          : const EdgeInsets.fromLTRB(16, 8, 8, 8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -59,7 +59,6 @@ class CustomAppBar extends HookWidget {
               children: [
                 ...actions ?? [],
                 if (isDesktop) ...[
-                  const SizedBox(width: 8),
                   FutureBuilder<Map<String, bool>>(
                     future: () async {
                       final isFullScreen =

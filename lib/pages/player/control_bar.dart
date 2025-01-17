@@ -7,6 +7,7 @@ import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/player/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
+import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/pages/player/play_queue.dart';
@@ -38,6 +39,8 @@ class ControlBar extends HookWidget {
         usePlayQueueStore().select(context, (state) => state.playQueue.length);
     final currentIndex =
         usePlayQueueStore().select(context, (state) => state.currentIndex);
+
+    final repeat = useAppStore().select(context, (state) => state.repeat);
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -124,6 +127,39 @@ class ControlBar extends HookWidget {
                     },
                   ),
                 ),
+                Visibility(
+                  visible: MediaQuery.of(context).size.width >= 600,
+                  child: IconButton(
+                    tooltip:
+                        '${repeat == 'one' ? t.repeat_one : repeat == 'all' ? t.repeat_all : t.repeat_no} ( R )',
+                    icon: Icon(
+                      repeat == 'one'
+                          ? Icons.repeat_one_rounded
+                          : Icons.repeat_rounded,
+                      size: 18,
+                      color: repeat == 'no'
+                          ? Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant
+                              .withValues(alpha: 0.6)
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: () {
+                      showControl();
+                      switch (repeat) {
+                        case 'no':
+                          useAppStore().updateRepeat('one');
+                          break;
+                        case 'one':
+                          useAppStore().updateRepeat('all');
+                          break;
+                        case 'all':
+                          useAppStore().updateRepeat('no');
+                          break;
+                      }
+                    },
+                  ),
+                ),
                 Expanded(
                   child: Visibility(
                     visible: MediaQuery.of(context).size.width >= 800,
@@ -132,21 +168,6 @@ class ControlBar extends HookWidget {
                       playerController: playerController,
                       showControl: showControl,
                     ),
-                  ),
-                ),
-                Visibility(
-                  visible: isDesktop,
-                  child: IconButton(
-                    tooltip: '${t.open_file} ( O )',
-                    icon: const Icon(
-                      Icons.file_open_rounded,
-                      size: 16.5,
-                    ),
-                    onPressed: () async {
-                      showControl();
-                      await pickFile();
-                      showControl();
-                    },
                   ),
                 ),
                 // Visibility(
@@ -244,21 +265,104 @@ class ControlBar extends HookWidget {
                     },
                   ),
                 ),
-                IconButton(
-                  tooltip: '${t.settings} ( Ctrl + P )',
-                  icon: const Icon(
-                    Icons.settings_rounded,
-                    size: 20,
+                Visibility(
+                  visible: MediaQuery.of(context).size.width >= 600,
+                  child: IconButton(
+                    tooltip: '${t.settings} ( Ctrl + P )',
+                    icon: const Icon(
+                      Icons.settings_rounded,
+                      size: 20,
+                    ),
+                    onPressed: () async {
+                      showControlForHover(
+                        showPopup(
+                          context: context,
+                          child: const Settings(),
+                          direction: PopupDirection.right,
+                        ),
+                      );
+                    },
                   ),
-                  onPressed: () async {
-                    showControlForHover(
-                      showPopup(
-                        context: context,
-                        child: const Settings(),
-                        direction: PopupDirection.right,
+                ),
+                PopupMenuButton(
+                  tooltip: t.more_options,
+                  icon: const Icon(Icons.more_vert_rounded),
+                  clipBehavior: Clip.hardEdge,
+                  constraints: const BoxConstraints(minWidth: 200),
+                  itemBuilder: (BuildContext context) => [
+                    ...List.of(isDesktop
+                        ? [
+                            PopupMenuItem(
+                              child: ListTile(
+                                mouseCursor: SystemMouseCursors.click,
+                                leading: const Icon(
+                                  Icons.file_open_rounded,
+                                  size: 16.5,
+                                ),
+                                title: Text(t.open_file),
+                              ),
+                              onTap: () async {
+                                showControl();
+                                await pickFile();
+                                showControl();
+                              },
+                            ),
+                          ]
+                        : []),
+                    PopupMenuItem(
+                      child: ListTile(
+                        mouseCursor: SystemMouseCursors.click,
+                        leading: Icon(
+                          repeat == 'one'
+                              ? Icons.repeat_one_rounded
+                              : Icons.repeat_rounded,
+                          size: 18,
+                          color: repeat == 'no'
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant
+                                  .withValues(alpha: 0.6)
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        title: Text(repeat == 'one'
+                            ? t.repeat_one
+                            : repeat == 'all'
+                                ? t.repeat_all
+                                : t.repeat_no),
                       ),
-                    );
-                  },
+                      onTap: () {
+                        showControl();
+                        switch (repeat) {
+                          case 'no':
+                            useAppStore().updateRepeat('one');
+                            break;
+                          case 'one':
+                            useAppStore().updateRepeat('all');
+                            break;
+                          case 'all':
+                            useAppStore().updateRepeat('no');
+                            break;
+                        }
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: ListTile(
+                        mouseCursor: SystemMouseCursors.click,
+                        leading: const Icon(
+                          Icons.settings_rounded,
+                          size: 20,
+                        ),
+                        title: Text(t.settings),
+                      ),
+                      onTap: () => showControlForHover(
+                        showPopup(
+                          context: context,
+                          child: const Settings(),
+                          direction: PopupDirection.right,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(width: 8),
               ],

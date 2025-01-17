@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
@@ -15,6 +16,7 @@ import 'package:iris/pages/player/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/pages/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
+import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/format_duration_to_minutes.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/is_desktop.dart';
@@ -34,6 +36,8 @@ class IrisPlayer extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
+    final repeat = useAppStore().select(context, (state) => state.repeat);
+
     final focusNode = useFocusNode();
     final player = useMemoized(
       () => Player(
@@ -305,6 +309,19 @@ class IrisPlayer extends HookWidget {
           case LogicalKeyboardKey.f11:
             windowManager.setFullScreen(!await windowManager.isFullScreen());
             break;
+          case LogicalKeyboardKey.keyR:
+            showControl();
+            switch (repeat) {
+              case 'no':
+                useAppStore().updateRepeat('one');
+                break;
+              case 'one':
+                useAppStore().updateRepeat('all');
+                break;
+              case 'all':
+                useAppStore().updateRepeat('no');
+                break;
+            }
           default:
             break;
         }
@@ -711,6 +728,9 @@ class IrisPlayer extends HookWidget {
                   child: CustomAppBar(
                     title: playerCore.title,
                     playerCore: playerCore,
+                    actions: [
+                      const SizedBox(width: 8),
+                    ],
                   ),
                 ),
               ),

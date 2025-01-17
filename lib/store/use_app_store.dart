@@ -11,6 +11,11 @@ class AppStore extends PersistentStore<AppState> {
   Future<void> updateAutoPlay(bool autoPlay) async =>
       set(state.copyWith(autoPlay: autoPlay));
 
+  Future<void> updateRepeat(String repeat) async {
+    set(state.copyWith(repeat: repeat));
+    save(state);
+  }
+
   Future<void> updateTheme(String theme) async {
     set(state.copyWith(theme: theme));
     save(state);
