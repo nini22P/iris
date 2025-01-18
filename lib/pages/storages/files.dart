@@ -5,7 +5,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/progress.dart';
+import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/models/storages/storage.dart';
+import 'package:iris/models/storages/webdav_storage.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
@@ -287,9 +289,26 @@ class Files extends HookWidget {
                     refresh();
                     return;
                   }
-                  await useStorageStore().addFavoriteStorage(storage.copyWith(
-                      name: currentPath.length == 1 ? title : currentPath.last,
-                      basePath: currentPath));
+
+                  switch (storage.type) {
+                    case StorageType.local:
+                      await useStorageStore().addFavoriteStorage(
+                        (storage as LocalStorage).copyWith(
+                          name: title,
+                          basePath: currentPath,
+                        ),
+                      );
+                      break;
+                    case StorageType.webdav:
+                      await useStorageStore().addFavoriteStorage(
+                        (storage as WebdavStorage).copyWith(
+                          name: title,
+                          basePath: currentPath,
+                        ),
+                      );
+                      break;
+                  }
+
                   refresh();
                 },
               ),

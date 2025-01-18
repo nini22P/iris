@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/files_filter.dart';
@@ -11,34 +13,21 @@ import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/utils/check_content_type.dart';
 
-class LocalStorage implements Storage {
-  @override
-  String id = 'local';
-  @override
-  String type = 'local';
-  @override
-  String name;
-  @override
-  List<String> basePath;
+part 'local_storage.freezed.dart';
+part 'local_storage.g.dart';
 
-  LocalStorage({
-    required this.id,
-    required this.type,
-    required this.name,
-    required this.basePath,
-  });
+@freezed
+abstract class LocalStorage with _$LocalStorage implements Storage {
+  const LocalStorage._();
+  const factory LocalStorage({
+    @Default('local') String id,
+    @Default(StorageType.local) StorageType type,
+    required String name,
+    @Default([]) List<String> basePath,
+  }) = _LocalStorage;
 
-  @override
-  LocalStorage copyWith({
-    String? name,
-    List<String>? basePath,
-  }) =>
-      LocalStorage(
-        id: id,
-        type: type,
-        name: name ?? this.name,
-        basePath: basePath ?? this.basePath,
-      );
+  factory LocalStorage.fromJson(Map<String, dynamic> json) =>
+      _$LocalStorageFromJson(json);
 
   @override
   Future<List<FileItem>> getFiles(List<String> path) async {
@@ -66,24 +55,6 @@ class LocalStorage implements Storage {
         .toList();
     return filesSort(files, true);
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'type': type,
-      'name': name,
-      'basePath': basePath,
-    };
-  }
-
-  factory LocalStorage.fromJson(Map<String, dynamic> json) {
-    return LocalStorage(
-        id: json['id'] ?? 'local',
-        type: json['type'],
-        name: json['name'],
-        basePath: List<String>.from(json['basePath']));
-  }
 }
 
 Future<void> pickFile() async {
@@ -96,7 +67,7 @@ Future<void> pickFile() async {
     final basePath = filePath.sublist(0, filePath.length - 1);
     final files = await LocalStorage(
       id: 'local',
-      type: 'local',
+      type: StorageType.local,
       name: result.files.first.name,
       basePath: basePath,
     ).getFiles(basePath);

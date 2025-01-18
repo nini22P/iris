@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/models/storages/storage.dart';
 import 'package:iris/pages/storages/favorite_storages_list.dart';
 import 'package:iris/pages/storages/files.dart';
 import 'package:iris/store/use_storage_store.dart';
@@ -77,16 +78,16 @@ class Storages extends HookWidget {
                         tabs: tabs.map((tab) => Tab(text: tab.title)).toList(),
                       ),
                     ),
-                    PopupMenuButton<String>(
+                    PopupMenuButton<StorageType>(
                       tooltip: t.add_storage,
                       icon: const Icon(Icons.add_rounded),
                       iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
                       clipBehavior: Clip.hardEdge,
                       color:
                           Theme.of(context).colorScheme.surface.withAlpha(250),
-                      onSelected: (String value) {
+                      onSelected: (StorageType value) {
                         switch (value) {
-                          case 'local':
+                          case StorageType.local:
                             () async {
                               String? selectedDirectory =
                                   await FilePicker.platform.getDirectoryPath();
@@ -96,7 +97,7 @@ class Storages extends HookWidget {
                                   context,
                                   localStorage: LocalStorage(
                                     id: 'local',
-                                    type: 'local',
+                                    type: StorageType.local,
                                     name: pathConverter(selectedDirectory).last,
                                     basePath: pathConverter(selectedDirectory),
                                   ),
@@ -104,21 +105,19 @@ class Storages extends HookWidget {
                               }
                             }();
                             break;
-                          case 'webdav':
+                          case StorageType.webdav:
                             showWebDAVDialog(context);
-                            break;
-                          default:
                             break;
                         }
                       },
                       itemBuilder: (BuildContext context) {
                         return [
-                          PopupMenuItem<String>(
-                            value: 'local',
+                          PopupMenuItem<StorageType>(
+                            value: StorageType.local,
                             child: Text(t.local_storage),
                           ),
-                          const PopupMenuItem<String>(
-                            value: 'webdav',
+                          const PopupMenuItem<StorageType>(
+                            value: StorageType.webdav,
                             child: Text('WebDAV'),
                           ),
                         ];

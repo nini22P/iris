@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/models/storages/storage.dart';
 import 'package:iris/models/storages/webdav_storage.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -29,13 +30,13 @@ class FavoriteStoragesList extends HookWidget {
         title: Text(favoriteStorages[index].name),
         subtitle: () {
           switch (favoriteStorages[index].type) {
-            case 'local':
+            case StorageType.local:
               return Text(
                 favoriteStorages[index].basePath.join('/'),
                 maxLines: 1,
                 style: const TextStyle(overflow: TextOverflow.ellipsis),
               );
-            case 'webdav':
+            case StorageType.webdav:
               return const Text('WebDAV');
           }
         }(),
@@ -52,14 +53,14 @@ class FavoriteStoragesList extends HookWidget {
               case 'edit':
                 () {
                   switch (favoriteStorages[index].type) {
-                    case 'local':
+                    case StorageType.local:
                       showLocalDialog(
                         context,
                         localStorage: favoriteStorages[index] as LocalStorage,
                         isFavorite: true,
                       ).then((_) => refresh.value = !refresh.value);
                       break;
-                    case 'webdav':
+                    case StorageType.webdav:
                       showWebDAVDialog(
                         context,
                         webdavStorage: favoriteStorages[index] as WebdavStorage,

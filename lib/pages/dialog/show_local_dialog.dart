@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 
@@ -43,7 +44,7 @@ class LocalDialog extends HookWidget {
       await useStorageStore().addStorage(
         LocalStorage(
           id: 'local',
-          type: 'local',
+          type: StorageType.local,
           name: name.value,
           basePath: basePath.value,
         ),
@@ -56,7 +57,7 @@ class LocalDialog extends HookWidget {
           useStorageStore().state.storages.indexOf(localStorage!),
           LocalStorage(
             id: 'local',
-            type: 'local',
+            type: StorageType.local,
             name: name.value,
             basePath: basePath.value,
           ),
@@ -66,7 +67,7 @@ class LocalDialog extends HookWidget {
           useStorageStore().state.favoriteStorages.indexOf(localStorage!),
           LocalStorage(
             id: 'local',
-            type: 'local',
+            type: StorageType.local,
             name: name.value,
             basePath: basePath.value,
           ),

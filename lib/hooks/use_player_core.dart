@@ -140,7 +140,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       return LocalStorage(
         id: 'local',
         name: 'Local',
-        type: 'local',
+        type: StorageType.local,
         basePath: dir,
       );
     }

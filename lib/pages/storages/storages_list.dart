@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/models/storages/storage.dart';
 import 'package:iris/models/storages/webdav_storage.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -28,9 +29,9 @@ class StoragesList extends HookWidget {
         title: Text(storages[index].name),
         subtitle: () {
           switch (storages[index].type) {
-            case 'local':
+            case StorageType.local:
               return Text(storages[index].basePath.join('/'));
-            case 'webdav':
+            case StorageType.webdav:
               return const Text('WebDAV');
           }
         }(),
@@ -47,12 +48,12 @@ class StoragesList extends HookWidget {
               case 'edit':
                 () {
                   switch (storages[index].type) {
-                    case 'local':
+                    case StorageType.local:
                       showLocalDialog(context,
                               localStorage: storages[index] as LocalStorage)
                           .then((_) => refresh.value = !refresh.value);
                       break;
-                    case 'webdav':
+                    case StorageType.webdav:
                       showWebDAVDialog(context,
                               webdavStorage: storages[index] as WebdavStorage)
                           .then((_) => refresh.value = !refresh.value);

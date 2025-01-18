@@ -1,83 +1,33 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:iris/utils/check_content_type.dart';
 import 'package:iris/utils/find_subtitle.dart';
-import 'package:uuid/uuid.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart';
 
-class WebdavStorage implements Storage {
-  @override
-  String id;
-  @override
-  String type = 'webdav';
-  @override
-  String name;
-  String url;
-  @override
-  List<String> basePath;
-  String port;
-  String username;
-  String password;
-  bool https;
+part 'webdav_storage.freezed.dart';
+part 'webdav_storage.g.dart';
 
-  WebdavStorage({
-    required this.id,
-    required this.type,
-    required this.name,
-    required this.url,
-    required this.basePath,
-    required this.port,
-    required this.username,
-    required this.password,
-    required this.https,
-  });
+@freezed
+abstract class WebdavStorage with _$WebdavStorage implements Storage {
+  const WebdavStorage._();
+  const factory WebdavStorage({
+    required String id,
+    @Default(StorageType.webdav) StorageType type,
+    required String name,
+    required String url,
+    required List<String> basePath,
+    required String port,
+    required String username,
+    required String password,
+    required bool https,
+  }) = _WebdavStorage;
 
-  @override
-  WebdavStorage copyWith({
-    String? name,
-    String? url,
-    List<String>? basePath,
-    String? port,
-    String? username,
-    String? password,
-    bool? https,
-  }) =>
-      WebdavStorage(
-        id: id,
-        type: type,
-        name: name ?? this.name,
-        url: url ?? this.url,
-        basePath: basePath ?? this.basePath,
-        port: port ?? this.port,
-        username: username ?? this.username,
-        password: password ?? this.password,
-        https: https ?? this.https,
-      );
-
-  Future<bool> test() async {
-    try {
-      var client = webdav.newClient(
-        "http${https ? 's' : ''}://$url:$port",
-        user: username,
-        password: password,
-        debug: false,
-      );
-
-      client.setHeaders({'accept-charset': 'utf-8'});
-      client.setConnectTimeout(4000);
-      client.setSendTimeout(4000);
-      client.setReceiveTimeout(4000);
-
-      await client.ping();
-      await client.readDir(basePath.join('/'));
-      return true;
-    } catch (e) {
-      log(e.toString());
-      return false;
-    }
-  }
+  factory WebdavStorage.fromJson(Map<String, dynamic> json) =>
+      _$WebdavStorageFromJson(json);
 
   @override
   Future<List<FileItem>> getFiles(List<String> path) async {
@@ -121,32 +71,26 @@ class WebdavStorage implements Storage {
         .toList();
   }
 
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'type': type,
-      'name': name,
-      'url': url,
-      'basePath': basePath,
-      'port': port,
-      'username': username,
-      'password': password,
-      'https': https,
-    };
-  }
+  Future<bool> test() async {
+    try {
+      var client = webdav.newClient(
+        "http${https ? 's' : ''}://$url:$port",
+        user: username,
+        password: password,
+        debug: false,
+      );
 
-  factory WebdavStorage.fromJson(Map<String, dynamic> json) {
-    return WebdavStorage(
-      id: json['id'] ?? const Uuid().v4(),
-      type: json['type'],
-      name: json['name'],
-      url: json['url'],
-      basePath: List<String>.from(json['basePath']),
-      port: json['port'],
-      username: json['username'],
-      password: json['password'],
-      https: json['https'] ?? false,
-    );
+      client.setHeaders({'accept-charset': 'utf-8'});
+      client.setConnectTimeout(4000);
+      client.setSendTimeout(4000);
+      client.setReceiveTimeout(4000);
+
+      await client.ping();
+      await client.readDir(basePath.join('/'));
+      return true;
+    } catch (e) {
+      log(e.toString());
+      return false;
+    }
   }
 }

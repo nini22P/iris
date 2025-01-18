@@ -35,51 +35,39 @@ class StorageState {
       'storages': storages.map((s) => s.toJson()).toList(),
       'favoriteStorages': favoriteStorages.map((s) => s.toJson()).toList(),
       'currentStorage': currentStorage?.toJson(),
-      'currentPath': currentPath
+      'currentPath': currentPath,
     };
   }
 
   factory StorageState.fromJson(Map<String, dynamic> json) {
+    Storage? createStorageFromJson(Map<String, dynamic> storageJson) {
+      StorageType type = StorageTypeExtension.fromString(storageJson['type']);
+      switch (type) {
+        case StorageType.webdav:
+          return WebdavStorage.fromJson(storageJson);
+        case StorageType.local:
+          return LocalStorage.fromJson(storageJson);
+      }
+    }
+
+    List<Storage> parseStorages(List<dynamic> storageList) {
+      return storageList
+          .map((storageJson) => createStorageFromJson(storageJson))
+          .toList()
+          .cast<Storage>();
+    }
+
     return StorageState(
-      storages: (json['storages'] as List)
-          .map((storageJson) {
-            switch (storageJson['type']) {
-              case 'webdav':
-                return WebdavStorage.fromJson(storageJson);
-              case 'local':
-                return LocalStorage.fromJson(storageJson);
-              default:
-                throw Exception('Unknown storage type');
-            }
-          })
-          .toList()
-          .cast<Storage>(),
-      favoriteStorages: (json['favoriteStorages'] as List)
-          .map((storageJson) {
-            switch (storageJson['type']) {
-              case 'webdav':
-                return WebdavStorage.fromJson(storageJson);
-              case 'local':
-                return LocalStorage.fromJson(storageJson);
-              default:
-                throw Exception('Unknown storage type');
-            }
-          })
-          .toList()
-          .cast<Storage>(),
+      storages: json['storages'] is List ? parseStorages(json['storages']) : [],
+      favoriteStorages: json['favoriteStorages'] is List
+          ? parseStorages(json['favoriteStorages'])
+          : [],
       currentStorage: json['currentStorage'] != null
-          ? (() {
-              switch (json['currentStorage']['type']) {
-                case 'webdav':
-                  return WebdavStorage.fromJson(json['currentStorage']);
-                case 'local':
-                  return LocalStorage.fromJson(json['currentStorage']);
-                default:
-                  return null;
-              }
-            })()
+          ? createStorageFromJson(json['currentStorage'])
           : null,
-      currentPath: List<String>.from(json['currentPath']),
+      currentPath: json['currentPath'] is List
+          ? List<String>.from(json['currentPath'])
+          : [],
     );
   }
 }

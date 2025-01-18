@@ -27,10 +27,10 @@ abstract class FileItem implements _$FileItem {
     List<Subtitle>? subtitles,
   }) = _FileItem;
 
-  String getID() => '$storageId:${path.join('/')}';
-
   factory FileItem.fromJson(Map<String, dynamic> json) =>
       _$FileItemFromJson(json);
+
+  String getID() => '$storageId:${path.join('/')}';
 }
 
 @freezed
