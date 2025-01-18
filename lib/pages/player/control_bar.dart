@@ -3,7 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
-import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/popup/history.dart';
@@ -349,7 +349,7 @@ class ControlBar extends HookWidget {
                                 ),
                                 onTap: () async {
                                   showControl();
-                                  await pickFile();
+                                  await pickLocalFile();
                                   showControl();
                                 },
                               ),

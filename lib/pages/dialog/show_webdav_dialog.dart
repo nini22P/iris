@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/models/storages/storage.dart';
-import 'package:iris/models/storages/webdav_storage.dart';
+import 'package:iris/models/storages/webdav.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:uuid/uuid.dart';
@@ -30,7 +30,6 @@ class WebDAVDialog extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(isFavorite);
     final t = getLocalizations(context);
     final bool isEdit = webdavStorage != null &&
         (useStorageStore().state.storages.contains(webdavStorage!) ||
@@ -105,7 +104,7 @@ class WebDAVDialog extends HookWidget {
     }
 
     void testConnection() async {
-      final bool isConnected = await WebdavStorage(
+      final bool isConnected = await testWebDAV(WebdavStorage(
         id: id,
         type: StorageType.webdav,
         name: name.value,
@@ -115,7 +114,7 @@ class WebDAVDialog extends HookWidget {
         username: username.value,
         password: password.value,
         https: https.value,
-      ).test();
+      ));
       isTested.value = isConnected;
     }
 

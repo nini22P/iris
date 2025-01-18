@@ -5,7 +5,6 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:collection/collection.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/progress.dart';
-import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/use_app_store.dart';

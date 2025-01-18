@@ -10,7 +10,7 @@ import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
 import 'package:iris/models/file.dart';
-import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/models/storages/local.dart';
 import 'package:iris/pages/player/audio.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/popup/history.dart';
@@ -260,7 +260,7 @@ class IrisPlayer extends HookWidget {
             // 打开文件
             case LogicalKeyboardKey.keyO:
               showControl();
-              await pickFile();
+              await pickLocalFile();
               showControl();
               break;
             // 随机

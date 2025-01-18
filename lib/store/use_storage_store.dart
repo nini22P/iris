@@ -38,21 +38,19 @@ class StorageStore extends PersistentStore<StorageState> {
     save(state);
   }
 
-  Future<void> addFavoriteStorage(Storage favoriteStorages) async {
-    set(state.copyWith(
-        favoriteStorages: [...state.favoriteStorages, favoriteStorages]));
+  Future<void> addFavoriteStorage(Storage storage) async {
+    set(state.copyWith(favoriteStorages: [...state.favoriteStorages, storage]));
     save(state);
   }
 
-  Future<void> updateFavoriteStorage(
-      int index, Storage favoriteStorages) async {
+  Future<void> updateFavoriteStorage(int index, Storage storage) async {
     if (index < 0 || index >= state.favoriteStorages.length) {
       return;
     }
 
     final updatedStorages = state.favoriteStorages
       ..removeAt(index)
-      ..insert(index, favoriteStorages);
+      ..insert(index, storage);
 
     set(state.copyWith(favoriteStorages: updatedStorages));
     save(state);
@@ -70,12 +68,11 @@ class StorageStore extends PersistentStore<StorageState> {
   }
 
   Future<void> updateCurrentStorage(Storage? storage) async {
-    set(state.copyWith(
-        currentStorage: storage, clearCurrentStorage: storage == null));
+    set(state.copyWith(currentStorage: storage));
     save(state);
   }
 
-  Future<void> updateCurrentPath(List<String>? path) async {
+  Future<void> updateCurrentPath(List<String> path) async {
     set(state.copyWith(currentPath: path));
     save(state);
   }
