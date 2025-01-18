@@ -55,6 +55,9 @@ class PlayQueue extends HookWidget {
               itemCount: playQueue.length,
               itemBuilder: (context, index) => ListTile(
                 autofocus: currentPlayIndex == index,
+                tileColor: currentPlayIndex == index
+                    ? Theme.of(context).hoverColor
+                    : null,
                 contentPadding: const EdgeInsets.fromLTRB(12, 0, 8, 0),
                 visualDensity:
                     const VisualDensity(horizontal: -4, vertical: -4),
@@ -80,9 +83,11 @@ class PlayQueue extends HookWidget {
                 subtitle: Row(
                   children: [
                     Text("${fileSizeConvert(playQueue[index].file.size)} MB",
-                        style: const TextStyle(
-                          fontSize: 13,
-                        )),
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: currentPlayIndex == index
+                                ? Theme.of(context).colorScheme.primary
+                                : null)),
                     const Spacer(),
                     () {
                       final Progress? progress =

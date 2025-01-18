@@ -11,7 +11,7 @@ import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/local_storage.dart';
-import 'package:iris/models/store/app_state.dart';
+import 'package:iris/pages/player/audio.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/pages/player/subtitle_and_audio_track.dart';
@@ -40,7 +40,6 @@ class IrisPlayer extends HookWidget {
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
     final shuffle = useAppStore().select(context, (state) => state.shuffle);
-    final repeat = useAppStore().select(context, (state) => state.repeat);
     final fit = useAppStore().select(context, (state) => state.fit);
 
     final playQueue =
@@ -239,14 +238,17 @@ class IrisPlayer extends HookWidget {
       if (event.runtimeType == KeyDownEvent) {
         if (HardwareKeyboard.instance.isControlPressed) {
           switch (event.logicalKey) {
+            // 上一个
             case LogicalKeyboardKey.arrowLeft:
               showControl();
               playerController.previous();
               break;
+            // 下一个
             case LogicalKeyboardKey.arrowRight:
               showControl();
               playerController.next();
               break;
+            // 设置
             case LogicalKeyboardKey.keyP:
               showControlForHover(
                 showPopup(
@@ -256,6 +258,30 @@ class IrisPlayer extends HookWidget {
                 ),
               );
               break;
+            // 打开文件
+            case LogicalKeyboardKey.keyO:
+              showControl();
+              await pickFile();
+              showControl();
+              break;
+            // 随机
+            case LogicalKeyboardKey.keyX:
+              showControl();
+              shuffle
+                  ? playerController.sortPlayQueue()
+                  : playerController.shufflePlayQueue();
+              useAppStore().updateShuffle(!shuffle);
+              break;
+            // 循环
+            case LogicalKeyboardKey.keyR:
+              showControl();
+              useAppStore().toggleRepeat();
+              break;
+            // 视频缩放
+            case LogicalKeyboardKey.keyV:
+              showControl();
+              useAppStore().toggleFit();
+              break;
             default:
               break;
           }
@@ -263,6 +289,7 @@ class IrisPlayer extends HookWidget {
         }
 
         switch (event.logicalKey) {
+          // 播放 | 暂停
           case LogicalKeyboardKey.space:
           case LogicalKeyboardKey.mediaPlayPause:
             showControl();
@@ -272,19 +299,17 @@ class IrisPlayer extends HookWidget {
               playerController.play();
             }
             break;
+          // 上一个
           case LogicalKeyboardKey.mediaTrackPrevious:
             playerController.previous();
             showControl();
             break;
+          // 下一个
           case LogicalKeyboardKey.mediaTrackNext:
             showControl();
             playerController.next();
             break;
-          case LogicalKeyboardKey.keyO:
-            showControl();
-            await pickFile();
-            showControl();
-            break;
+          // 存储
           case LogicalKeyboardKey.keyF:
             showControlForHover(
               showPopup(
@@ -294,6 +319,7 @@ class IrisPlayer extends HookWidget {
               ),
             );
             break;
+          // 播放队列
           case LogicalKeyboardKey.keyP:
             showControlForHover(
               showPopup(
@@ -303,6 +329,7 @@ class IrisPlayer extends HookWidget {
               ),
             );
             break;
+          // 字幕和音轨
           case LogicalKeyboardKey.keyS:
             showControlForHover(
               showPopup(
@@ -312,54 +339,16 @@ class IrisPlayer extends HookWidget {
               ),
             );
             break;
+          // 退出全屏
           case LogicalKeyboardKey.escape:
             if (await windowManager.isFullScreen()) {
               windowManager.setFullScreen(false);
             }
             break;
+          // 全屏
           case LogicalKeyboardKey.enter:
           case LogicalKeyboardKey.f11:
             windowManager.setFullScreen(!await windowManager.isFullScreen());
-            break;
-          case LogicalKeyboardKey.keyR:
-            showControl();
-            switch (repeat) {
-              case Repeat.none:
-                useAppStore().updateRepeat(Repeat.one);
-                break;
-              case Repeat.one:
-                useAppStore().updateRepeat(Repeat.all);
-                break;
-              case Repeat.all:
-                useAppStore().updateRepeat(Repeat.none);
-                break;
-            }
-            break;
-          case LogicalKeyboardKey.keyX:
-            showControl();
-            shuffle
-                ? playerController.sortPlayQueue()
-                : playerController.shufflePlayQueue();
-            useAppStore().updateShuffle(!shuffle);
-            break;
-          case LogicalKeyboardKey.keyC:
-            showControl();
-            switch (fit) {
-              case BoxFit.contain:
-                useAppStore().updateFit(BoxFit.fill);
-                break;
-              case BoxFit.fill:
-                useAppStore().updateFit(BoxFit.cover);
-                break;
-              case BoxFit.cover:
-                useAppStore().updateFit(BoxFit.none);
-                break;
-              case BoxFit.none:
-                useAppStore().updateFit(BoxFit.contain);
-                break;
-              default:
-                break;
-            }
             break;
           default:
             break;
@@ -369,6 +358,7 @@ class IrisPlayer extends HookWidget {
       if (event.runtimeType == KeyDownEvent ||
           event.runtimeType == KeyRepeatEvent) {
         switch (event.logicalKey) {
+          // 快退
           case LogicalKeyboardKey.arrowLeft:
             if (isShowControl.value) {
               showControl();
@@ -377,6 +367,7 @@ class IrisPlayer extends HookWidget {
             }
             playerController.backward(10);
             break;
+          // 快进
           case LogicalKeyboardKey.arrowRight:
             if (isShowControl.value) {
               showControl();
@@ -562,74 +553,7 @@ class IrisPlayer extends HookWidget {
               right: 0,
               bottom: 0,
               child: currentPlay?.file.type == ContentType.audio
-                  ? IgnorePointer(
-                      child: Stack(
-                        children: [
-                          Container(
-                            color: Colors.grey[800],
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height,
-                            child: playerCore.cover != null
-                                ? playerCore.cover?.storageId == 'local'
-                                    ? Image.file(
-                                        File(playerCore.cover!.uri),
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Image.network(
-                                        playerCore.cover!.uri,
-                                        headers: playerCore.cover!.auth != null
-                                            ? {
-                                                'authorization':
-                                                    playerCore.cover!.auth!
-                                              }
-                                            : null,
-                                        fit: BoxFit.cover,
-                                      )
-                                : null,
-                          ),
-                          BackdropFilter(
-                            filter:
-                                ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
-                            child: Container(color: Colors.transparent),
-                          ),
-                          Positioned(
-                            left: 0,
-                            top: 0,
-                            right: MediaQuery.of(context).size.width > 800
-                                ? MediaQuery.of(context).size.width / 2
-                                : 0,
-                            bottom: 0,
-                            child: Center(
-                              child: SizedBox(
-                                height: MediaQuery.of(context).size.height / 2,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: playerCore.cover != null
-                                      ? playerCore.cover!.storageId == 'local'
-                                          ? Image.file(
-                                              File(playerCore.cover!.uri),
-                                              fit: BoxFit.contain,
-                                            )
-                                          : Image.network(
-                                              playerCore.cover!.uri,
-                                              headers:
-                                                  playerCore.cover!.auth != null
-                                                      ? {
-                                                          'authorization':
-                                                              playerCore
-                                                                  .cover!.auth!
-                                                        }
-                                                      : null,
-                                              fit: BoxFit.contain,
-                                            )
-                                      : null,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
+                  ? Audio(playerCore: playerCore)
                   : Container(),
             ),
             Positioned(

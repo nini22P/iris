@@ -69,7 +69,7 @@ class ControlBar extends HookWidget {
         child: Column(
           children: [
             Visibility(
-              visible: MediaQuery.of(context).size.width < 800 || !isDesktop,
+              visible: MediaQuery.of(context).size.width < 960 || !isDesktop,
               child: ControlBarSlider(
                 playerCore: playerCore,
                 playerController: playerController,
@@ -88,12 +88,6 @@ class ControlBar extends HookWidget {
                     icon: Icon(
                       Icons.skip_previous_rounded,
                       size: 28,
-                      color: currentPlayIndex == 0
-                          ? Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant
-                              .withValues(alpha: 0.6)
-                          : null,
                     ),
                     onPressed: currentPlayIndex == 0
                         ? null
@@ -133,12 +127,6 @@ class ControlBar extends HookWidget {
                     icon: Icon(
                       Icons.skip_next_rounded,
                       size: 28,
-                      color: currentPlayIndex == playQueueLength - 1
-                          ? Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant
-                              .withValues(alpha: 0.6)
-                          : null,
                     ),
                     onPressed: currentPlayIndex == playQueueLength - 1
                         ? null
@@ -152,47 +140,12 @@ class ControlBar extends HookWidget {
                   visible: MediaQuery.of(context).size.width >= 600,
                   child: IconButton(
                     tooltip:
-                        '${repeat == Repeat.one ? t.repeat_one : repeat == Repeat.all ? t.repeat_all : t.repeat_none} ( R )',
-                    icon: Icon(
-                      repeat == Repeat.one
-                          ? Icons.repeat_one_rounded
-                          : Icons.repeat_rounded,
-                      size: 20,
-                      color: repeat == Repeat.none
-                          ? Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant
-                              .withValues(alpha: 0.6)
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    onPressed: () {
-                      showControl();
-                      switch (repeat) {
-                        case Repeat.none:
-                          useAppStore().updateRepeat(Repeat.one);
-                          break;
-                        case Repeat.one:
-                          useAppStore().updateRepeat(Repeat.all);
-                          break;
-                        case Repeat.all:
-                          useAppStore().updateRepeat(Repeat.none);
-                          break;
-                      }
-                    },
-                  ),
-                ),
-                Visibility(
-                  visible: MediaQuery.of(context).size.width >= 600,
-                  child: IconButton(
-                    tooltip: '${t.shuffle}: ${shuffle ? t.on : t.off} ( X )',
+                        '${t.shuffle}: ${shuffle ? t.on : t.off} ( Ctrl + X )',
                     icon: Icon(
                       Icons.shuffle_rounded,
                       size: 20,
                       color: !shuffle
-                          ? Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant
-                              .withValues(alpha: 0.6)
+                          ? Theme.of(context).disabledColor
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     onPressed: () {
@@ -208,7 +161,27 @@ class ControlBar extends HookWidget {
                   visible: MediaQuery.of(context).size.width >= 600,
                   child: IconButton(
                     tooltip:
-                        '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'} ( C )',
+                        '${repeat == Repeat.one ? t.repeat_one : repeat == Repeat.all ? t.repeat_all : t.repeat_none} ( Ctrl + R )',
+                    icon: Icon(
+                      repeat == Repeat.one
+                          ? Icons.repeat_one_rounded
+                          : Icons.repeat_rounded,
+                      size: 20,
+                      color: repeat == Repeat.none
+                          ? Theme.of(context).disabledColor
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: () {
+                      showControl();
+                      useAppStore().toggleRepeat();
+                    },
+                  ),
+                ),
+                Visibility(
+                  visible: MediaQuery.of(context).size.width >= 600,
+                  child: IconButton(
+                    tooltip:
+                        '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'} ( Ctrl + V )',
                     icon: Icon(
                       fit == BoxFit.contain
                           ? Icons.fit_screen_rounded
@@ -221,29 +194,14 @@ class ControlBar extends HookWidget {
                     ),
                     onPressed: () {
                       showControl();
-                      switch (fit) {
-                        case BoxFit.contain:
-                          useAppStore().updateFit(BoxFit.fill);
-                          break;
-                        case BoxFit.fill:
-                          useAppStore().updateFit(BoxFit.cover);
-                          break;
-                        case BoxFit.cover:
-                          useAppStore().updateFit(BoxFit.none);
-                          break;
-                        case BoxFit.none:
-                          useAppStore().updateFit(BoxFit.contain);
-                          break;
-                        default:
-                          break;
-                      }
+                      useAppStore().toggleFit();
                     },
                   ),
                 ),
                 Expanded(
                   child: Visibility(
                     visible:
-                        MediaQuery.of(context).size.width >= 800 && isDesktop,
+                        MediaQuery.of(context).size.width >= 960 && isDesktop,
                     child: ControlBarSlider(
                       playerCore: playerCore,
                       playerController: playerController,
@@ -346,28 +304,27 @@ class ControlBar extends HookWidget {
                     },
                   ),
                 ),
-                Visibility(
-                  visible: MediaQuery.of(context).size.width >= 600,
-                  child: IconButton(
-                    tooltip: '${t.settings} ( Ctrl + P )',
-                    icon: const Icon(
-                      Icons.settings_rounded,
-                      size: 20,
-                    ),
-                    onPressed: () async {
-                      showControlForHover(
-                        showPopup(
-                          context: context,
-                          child: const Settings(),
-                          direction: PopupDirection.right,
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                // Visibility(
+                //   visible: MediaQuery.of(context).size.width >= 600,
+                //   child: IconButton(
+                //     tooltip: '${t.settings} ( Ctrl + P )',
+                //     icon: const Icon(
+                //       Icons.settings_rounded,
+                //       size: 20,
+                //     ),
+                //     onPressed: () async {
+                //       showControlForHover(
+                //         showPopup(
+                //           context: context,
+                //           child: const Settings(),
+                //           direction: PopupDirection.right,
+                //         ),
+                //       );
+                //     },
+                //   ),
+                // ),
                 PopupMenuButton(
                   tooltip: t.more_options,
-                  icon: const Icon(Icons.more_vert_rounded),
                   clipBehavior: Clip.hardEdge,
                   constraints: const BoxConstraints(minWidth: 200),
                   itemBuilder: (BuildContext context) => [
@@ -382,6 +339,13 @@ class ControlBar extends HookWidget {
                                     size: 16.5,
                                   ),
                                   title: Text(t.open_file),
+                                  trailing: Text(
+                                    'Ctrl + O',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context).dividerColor,
+                                    ),
+                                  ),
                                 ),
                                 onTap: () async {
                                   showControl();
@@ -392,128 +356,115 @@ class ControlBar extends HookWidget {
                             ]
                           : [],
                     ),
-                    ...List.of(
-                      MediaQuery.of(context).size.width < 600
-                          ? [
-                              PopupMenuItem(
-                                child: ListTile(
-                                  mouseCursor: SystemMouseCursors.click,
-                                  leading: Icon(
-                                    repeat == Repeat.one
-                                        ? Icons.repeat_one_rounded
-                                        : Icons.repeat_rounded,
-                                    size: 20,
-                                    color: repeat == Repeat.none
-                                        ? Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant
-                                            .withValues(alpha: 0.6)
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
-                                  ),
-                                  title: Text(repeat == Repeat.one
-                                      ? t.repeat_one
-                                      : repeat == Repeat.all
-                                          ? t.repeat_all
-                                          : t.repeat_none),
-                                ),
-                                onTap: () {
-                                  showControl();
-                                  switch (repeat) {
-                                    case Repeat.none:
-                                      useAppStore().updateRepeat(Repeat.one);
-                                      break;
-                                    case Repeat.one:
-                                      useAppStore().updateRepeat(Repeat.all);
-                                      break;
-                                    case Repeat.all:
-                                      useAppStore().updateRepeat(Repeat.none);
-                                      break;
-                                  }
-                                },
-                              ),
-                              PopupMenuItem(
-                                child: ListTile(
-                                    mouseCursor: SystemMouseCursors.click,
-                                    leading: Icon(
-                                      Icons.shuffle_rounded,
-                                      size: 20,
-                                      color: !shuffle
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant
-                                              .withValues(alpha: 0.6)
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant,
-                                    ),
-                                    title: Text(
-                                        '${t.shuffle}: ${shuffle ? t.on : t.off}')),
-                                onTap: () {
-                                  showControl();
-                                  shuffle
-                                      ? playerController.sortPlayQueue()
-                                      : playerController.shufflePlayQueue();
-                                  useAppStore().updateShuffle(!shuffle);
-                                },
-                              ),
-                              PopupMenuItem(
-                                child: ListTile(
-                                  mouseCursor: SystemMouseCursors.click,
-                                  leading: Icon(
-                                    fit == BoxFit.contain
-                                        ? Icons.fit_screen_rounded
-                                        : fit == BoxFit.fill
-                                            ? Icons.aspect_ratio_rounded
-                                            : fit == BoxFit.cover
-                                                ? Icons.crop_landscape_rounded
-                                                : Icons.crop_free_rounded,
-                                    size: 20,
-                                  ),
-                                  title: Text(
-                                      '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'}'),
-                                ),
-                                onTap: () {
-                                  showControl();
-                                  switch (fit) {
-                                    case BoxFit.contain:
-                                      useAppStore().updateFit(BoxFit.fill);
-                                      break;
-                                    case BoxFit.fill:
-                                      useAppStore().updateFit(BoxFit.cover);
-                                      break;
-                                    case BoxFit.cover:
-                                      useAppStore().updateFit(BoxFit.none);
-                                      break;
-                                    case BoxFit.none:
-                                      useAppStore().updateFit(BoxFit.contain);
-                                      break;
-                                    default:
-                                      break;
-                                  }
-                                },
-                              ),
-                              PopupMenuItem(
-                                child: ListTile(
-                                  mouseCursor: SystemMouseCursors.click,
-                                  leading: const Icon(
-                                    Icons.settings_rounded,
-                                    size: 20,
-                                  ),
-                                  title: Text(t.settings),
-                                ),
-                                onTap: () => showControlForHover(
-                                  showPopup(
-                                    context: context,
-                                    child: const Settings(),
-                                    direction: PopupDirection.right,
-                                  ),
-                                ),
-                              )
-                            ]
-                          : [],
+                    PopupMenuItem(
+                      child: ListTile(
+                        mouseCursor: SystemMouseCursors.click,
+                        leading: Icon(
+                          Icons.shuffle_rounded,
+                          size: 20,
+                          color: !shuffle
+                              ? Theme.of(context).disabledColor
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        title: Text('${t.shuffle}: ${shuffle ? t.on : t.off}'),
+                        trailing: Text(
+                          'Ctrl + X',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).dividerColor,
+                          ),
+                        ),
+                      ),
+                      onTap: () {
+                        showControl();
+                        shuffle
+                            ? playerController.sortPlayQueue()
+                            : playerController.shufflePlayQueue();
+                        useAppStore().updateShuffle(!shuffle);
+                      },
                     ),
+                    PopupMenuItem(
+                      child: ListTile(
+                        mouseCursor: SystemMouseCursors.click,
+                        leading: Icon(
+                          repeat == Repeat.one
+                              ? Icons.repeat_one_rounded
+                              : Icons.repeat_rounded,
+                          size: 20,
+                          color: repeat == Repeat.none
+                              ? Theme.of(context).disabledColor
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        title: Text(repeat == Repeat.one
+                            ? t.repeat_one
+                            : repeat == Repeat.all
+                                ? t.repeat_all
+                                : t.repeat_none),
+                        trailing: Text(
+                          'Ctrl + R',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).dividerColor,
+                          ),
+                        ),
+                      ),
+                      onTap: () {
+                        showControl();
+                        useAppStore().toggleRepeat();
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: ListTile(
+                        mouseCursor: SystemMouseCursors.click,
+                        leading: Icon(
+                          fit == BoxFit.contain
+                              ? Icons.fit_screen_rounded
+                              : fit == BoxFit.fill
+                                  ? Icons.aspect_ratio_rounded
+                                  : fit == BoxFit.cover
+                                      ? Icons.crop_landscape_rounded
+                                      : Icons.crop_free_rounded,
+                          size: 20,
+                        ),
+                        title: Text(
+                            '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'}'),
+                        trailing: Text(
+                          'Ctrl + V',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).dividerColor,
+                          ),
+                        ),
+                      ),
+                      onTap: () {
+                        showControl();
+                        useAppStore().toggleFit();
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: ListTile(
+                        mouseCursor: SystemMouseCursors.click,
+                        leading: const Icon(
+                          Icons.settings_rounded,
+                          size: 20,
+                        ),
+                        title: Text(t.settings),
+                        trailing: Text(
+                          'Ctirl + P',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).dividerColor,
+                          ),
+                        ),
+                      ),
+                      onTap: () => showControlForHover(
+                        showPopup(
+                          context: context,
+                          child: const Settings(),
+                          direction: PopupDirection.right,
+                        ),
+                      ),
+                    )
                   ],
                 ),
                 const SizedBox(width: 8),

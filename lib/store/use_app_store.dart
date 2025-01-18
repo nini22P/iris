@@ -22,8 +22,43 @@ class AppStore extends PersistentStore<AppState> {
     save(state);
   }
 
+  Future<void> toggleRepeat() async {
+    switch (state.repeat) {
+      case Repeat.none:
+        set(state.copyWith(repeat: Repeat.one));
+        break;
+      case Repeat.one:
+        set(state.copyWith(repeat: Repeat.all));
+        break;
+      case Repeat.all:
+        set(state.copyWith(repeat: Repeat.none));
+        break;
+    }
+    save(state);
+  }
+
   Future<void> updateFit(BoxFit fit) async {
     set(state.copyWith(fit: fit));
+    save(state);
+  }
+
+  Future<void> toggleFit() async {
+    switch (state.fit) {
+      case BoxFit.contain:
+        set(state.copyWith(fit: BoxFit.fill));
+        break;
+      case BoxFit.fill:
+        set(state.copyWith(fit: BoxFit.cover));
+        break;
+      case BoxFit.cover:
+        set(state.copyWith(fit: BoxFit.none));
+        break;
+      case BoxFit.none:
+        set(state.copyWith(fit: BoxFit.contain));
+        break;
+      default:
+        break;
+    }
     save(state);
   }
 
