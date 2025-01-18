@@ -6,15 +6,16 @@ import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
-import 'package:iris/pages/player/subtitle_and_audio_track.dart';
+import 'package:iris/pages/popup/history.dart';
+import 'package:iris/pages/popup/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/pages/player/play_queue.dart';
+import 'package:iris/pages/popup/play_queue.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/utils/resize_window.dart';
-import 'package:iris/pages/show_popup.dart';
+import 'package:iris/pages/popup/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -22,19 +23,20 @@ class ControlBar extends HookWidget {
   const ControlBar({
     super.key,
     required this.playerCore,
-    required this.playerController,
     required this.showControl,
     required this.showControlForHover,
   });
 
   final PlayerCore playerCore;
-  final PlayerController playerController;
   final void Function() showControl;
   final Future<void> Function(Future<void> callback) showControlForHover;
 
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
+
+    final PlayerController playerController =
+        usePlayerController(context, playerCore);
 
     final int playQueueLength =
         usePlayQueueStore().select(context, (state) => state.playQueue.length);
@@ -72,7 +74,6 @@ class ControlBar extends HookWidget {
               visible: MediaQuery.of(context).size.width < 960 || !isDesktop,
               child: ControlBarSlider(
                 playerCore: playerCore,
-                playerController: playerController,
                 showControl: showControl,
               ),
             ),
@@ -204,7 +205,6 @@ class ControlBar extends HookWidget {
                         MediaQuery.of(context).size.width >= 960 && isDesktop,
                     child: ControlBarSlider(
                       playerCore: playerCore,
-                      playerController: playerController,
                       showControl: showControl,
                     ),
                   ),
@@ -445,6 +445,30 @@ class ControlBar extends HookWidget {
                       child: ListTile(
                         mouseCursor: SystemMouseCursors.click,
                         leading: const Icon(
+                          Icons.history_rounded,
+                          size: 20,
+                        ),
+                        title: Text(t.history),
+                        trailing: Text(
+                          'Ctirl + H',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).dividerColor,
+                          ),
+                        ),
+                      ),
+                      onTap: () => showControlForHover(
+                        showPopup(
+                          context: context,
+                          child: const History(),
+                          direction: PopupDirection.right,
+                        ),
+                      ),
+                    ),
+                    PopupMenuItem(
+                      child: ListTile(
+                        mouseCursor: SystemMouseCursors.click,
+                        leading: const Icon(
                           Icons.settings_rounded,
                           size: 20,
                         ),
@@ -464,7 +488,7 @@ class ControlBar extends HookWidget {
                           direction: PopupDirection.right,
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
                 const SizedBox(width: 8),

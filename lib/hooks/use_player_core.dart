@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:collection/collection.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iris/models/file.dart';
-import 'package:iris/models/hive/progress.dart';
+import 'package:iris/models/progress.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/models/storages/storage.dart';
+import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/files_filter.dart';
@@ -59,14 +60,15 @@ class PlayerCore {
 }
 
 PlayerCore usePlayerCore(BuildContext context, Player player) {
-  final progressBox = Hive.box<Progress>('progressBox');
-
   final List<PlayQueueItem> playQueue =
       usePlayQueueStore().select(context, (state) => state.playQueue);
   final int currentIndex =
       usePlayQueueStore().select(context, (state) => state.currentIndex);
   final bool autoPlay =
       useAppStore().select(context, (state) => state.autoPlay);
+  final Repeat repeat = useAppStore().select(context, (state) => state.repeat);
+
+  final history = useHistoryStore().select(context, (state) => state.history);
 
   final int currentPlayIndex = useMemoized(
       () => playQueue.indexWhere((element) => element.index == currentIndex),
@@ -182,13 +184,13 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           currentFile.type != ContentType.video) {
         return;
       }
-      log('Save progress: ${currentFile.name} position: ${player.state.position} duration: ${player.state.duration}');
-      progressBox.put(
-          currentFile.getID(),
-          Progress(
-            position: player.state.position,
-            duration: player.state.duration,
-          ));
+      log('Save progress: ${currentFile.name}');
+      useHistoryStore().add(Progress(
+        dateTime: DateTime.now().toUtc(),
+        position: player.state.position,
+        duration: player.state.duration,
+        file: currentFile,
+      ));
     };
   }, [currentFile]);
 
@@ -199,14 +201,14 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
         return;
       }
       // 查询播放进度
-      if (currentFile?.type == ContentType.video) {
-        Progress? progress = progressBox.get(currentFile?.getID());
+      if (currentFile != null && currentFile.type == ContentType.video) {
+        Progress? progress = history[currentFile.getID()];
         if (progress != null) {
           if (progress.duration.inMilliseconds == duration.inMilliseconds &&
               (progress.duration.inMilliseconds -
                       progress.position.inMilliseconds) >
                   5000) {
-            log('Resume progress: ${currentFile?.name} position: ${progress.position} duration: ${progress.duration}');
+            log('Resume progress: ${currentFile.name} position: ${progress.position} duration: ${progress.duration}');
             await player.seek(progress.position);
           }
         }
@@ -230,21 +232,50 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     return;
   }, [duration]);
 
+  useEffect(() {
+    () async {
+      if (completed) {
+        if (repeat == Repeat.one) return;
+        if (currentPlayIndex == playQueue.length - 1) {
+          if (repeat == Repeat.none) {
+            useAppStore().updateAutoPlay(false);
+          }
+          usePlayQueueStore().updateCurrentIndex(playQueue[0].index);
+        } else {
+          if (currentPlayIndex == playQueue.length - 1) return;
+          await usePlayQueueStore()
+              .updateCurrentIndex(playQueue[currentPlayIndex + 1].index);
+        }
+      }
+    }();
+    return null;
+  }, [completed, repeat]);
+
+  useEffect(() {
+    log('$repeat');
+    if (repeat == Repeat.one) {
+      player.setPlaylistMode(PlaylistMode.loop);
+    } else {
+      player.setPlaylistMode(PlaylistMode.none);
+    }
+    return;
+  }, [repeat]);
+
   void updatePosition(Duration newPosition) => position.value = newPosition;
 
   void updateSeeking(bool value) => seeking.value = value;
 
   Future<void> saveProgress() async {
-    if (currentFile?.type == ContentType.video &&
+    if (currentFile != null &&
+        currentFile.type == ContentType.video &&
         player.state.duration != Duration.zero) {
-      final id = currentFile!.getID();
-      log('Save progress: ${currentFile.name} position: ${player.state.position} duration: ${player.state.duration}');
-      await progressBox.put(
-          id,
-          Progress(
-            position: player.state.position,
-            duration: player.state.duration,
-          ));
+      log('Save progress: ${currentFile.name}');
+      useHistoryStore().add(Progress(
+        dateTime: DateTime.now().toUtc(),
+        position: player.state.position,
+        duration: player.state.duration,
+        file: currentFile,
+      ));
     }
   }
 

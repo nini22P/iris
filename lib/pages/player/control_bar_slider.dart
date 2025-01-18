@@ -8,18 +8,19 @@ class ControlBarSlider extends HookWidget {
   const ControlBarSlider({
     super.key,
     required this.playerCore,
-    required this.playerController,
     required this.showControl,
     this.disabled = false,
   });
 
   final PlayerCore playerCore;
-  final PlayerController playerController;
+
   final void Function() showControl;
   final bool disabled;
 
   @override
   Widget build(BuildContext context) {
+    final PlayerController playerController =
+        usePlayerController(context, playerCore);
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
       child: Row(

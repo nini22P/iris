@@ -1,15 +1,11 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/models/file.dart';
-import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/get_shuffle_play_queue.dart';
-import 'package:media_kit/media_kit.dart';
 
 class PlayerController {
   final Future<void> Function() play;
@@ -47,8 +43,6 @@ PlayerController usePlayerController(
   final int currentPlayIndex = useMemoized(
       () => playQueue.indexWhere((element) => element.index == currentIndex),
       [playQueue, currentIndex]);
-
-  final Repeat repeat = useAppStore().select(context, (state) => state.repeat);
 
   Future<void> play() async {
     await useAppStore().updateAutoPlay(true);
@@ -94,33 +88,6 @@ PlayerController usePlayerController(
 
   Future<void> sortPlayQueue() async => usePlayQueueStore().updatePlayQueue(
       [...playQueue]..sort((a, b) => a.index.compareTo(b.index)), currentIndex);
-
-  useEffect(() {
-    () async {
-      if (playerCore.completed) {
-        if (repeat == Repeat.one) return;
-        if (currentPlayIndex == playQueue.length - 1) {
-          if (repeat == Repeat.none) {
-            useAppStore().updateAutoPlay(false);
-          }
-          usePlayQueueStore().updateCurrentIndex(playQueue[0].index);
-        } else {
-          next();
-        }
-      }
-    }();
-    return null;
-  }, [playerCore.completed, repeat]);
-
-  useEffect(() {
-    log('$repeat');
-    if (repeat == Repeat.one) {
-      playerCore.player.setPlaylistMode(PlaylistMode.loop);
-    } else {
-      playerCore.player.setPlaylistMode(PlaylistMode.none);
-    }
-    return;
-  }, [repeat]);
 
   return PlayerController(
     play,

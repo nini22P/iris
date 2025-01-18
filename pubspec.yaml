@@ -60,9 +60,9 @@ dependencies:
   uuid: ^4.5.1
   flutter_markdown: ^0.7.5
   http: ^1.2.2
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
   collection: ^1.19.0
+  json_annotation: ^4.9.0
+  freezed_annotation: ^2.4.4
 
 dev_dependencies:
   flutter_test:
@@ -75,8 +75,9 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
   flutter_oss_licenses: ^3.0.4
-  hive_generator: ^2.0.1
-  build_runner: ^2.1.11
+  build_runner: ^2.4.14
+  freezed: ^2.5.8
+  json_serializable: ^6.9.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

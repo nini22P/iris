@@ -1,3 +1,12 @@
+## v1.1.0
+### Changlog
+### 更新日志
+* 支持保存播放进度
+* 支持随机播放
+* 支持循环播放
+* 支持视频缩放
+
+
 ## v1.0.3
 ### Changelog
 * Improve Windows version installation updates

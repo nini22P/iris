@@ -13,10 +13,10 @@ import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/pages/player/audio.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
-import 'package:iris/pages/player/play_queue.dart';
-import 'package:iris/pages/player/subtitle_and_audio_track.dart';
+import 'package:iris/pages/popup/play_queue.dart';
+import 'package:iris/pages/popup/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
-import 'package:iris/pages/show_popup.dart';
+import 'package:iris/pages/popup/show_popup.dart';
 import 'package:iris/pages/storages/storages.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
@@ -32,9 +32,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 class IrisPlayer extends HookWidget {
-  const IrisPlayer({
-    super.key,
-  });
+  const IrisPlayer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -98,8 +96,8 @@ class IrisPlayer extends HookWidget {
       return;
     }, []);
 
-    PlayerCore playerCore = usePlayerCore(context, player);
-    PlayerController playerController =
+    final PlayerCore playerCore = usePlayerCore(context, player);
+    final PlayerController playerController =
         usePlayerController(context, playerCore);
 
     final isHover = useState(false);
@@ -594,7 +592,6 @@ class IrisPlayer extends HookWidget {
                       currentPlay?.file.type != ContentType.audio
                   ? ControlBarSlider(
                       playerCore: playerCore,
-                      playerController: playerController,
                       showControl: showControl,
                       disabled: true,
                     )
@@ -727,7 +724,6 @@ class IrisPlayer extends HookWidget {
                       onTap: () => showControl(),
                       child: ControlBar(
                         playerCore: playerCore,
-                        playerController: playerController,
                         showControl: showControl,
                         showControlForHover: showControlForHover,
                       ),

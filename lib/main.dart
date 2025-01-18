@@ -2,16 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iris/info.dart';
-import 'package:iris/models/hive/duration_adapter.dart';
-import 'package:iris/models/hive/progress.dart';
 import 'package:iris/pages/home_page.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/theme.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:media_kit/media_kit.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 
@@ -37,14 +33,6 @@ void main() async {
       await windowManager.focus();
     });
   }
-
-  final appSupportDir = await getApplicationSupportDirectory();
-
-  await Hive.initFlutter(appSupportDir.path);
-  Hive
-    ..registerAdapter(DurationAdapter())
-    ..registerAdapter(ProgressAdapter());
-  await Hive.openBox<Progress>('progressBox');
 
   runApp(const StoreScope(child: MyApp()));
 }

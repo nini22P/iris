@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_core.dart';
-import 'package:iris/pages/player/audio_tracks.dart';
-import 'package:iris/pages/player/subtitles.dart';
+import 'package:iris/pages/popup/audio_tracks.dart';
+import 'package:iris/pages/popup/subtitles.dart';
 import 'package:iris/utils/get_localizations.dart';
 
 class ITab {

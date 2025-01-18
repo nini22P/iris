@@ -1,35 +1,17 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:iris/models/file.dart';
 
-class PlayQueueState {
-  List<PlayQueueItem> playQueue;
-  int currentIndex;
+part 'play_queue_state.freezed.dart';
+part 'play_queue_state.g.dart';
 
-  PlayQueueState({
-    this.playQueue = const [],
-    this.currentIndex = 0,
-  });
+@freezed
+class PlayQueueState with _$PlayQueueState {
+  const factory PlayQueueState({
+    @Default([]) List<PlayQueueItem> playQueue,
+    @Default(0) int currentIndex,
+  }) = _PlayQueueState;
 
-  PlayQueueState copyWith({
-    List<PlayQueueItem>? playQueue,
-    int? currentIndex,
-  }) =>
-      PlayQueueState(
-        playQueue: playQueue ?? this.playQueue,
-        currentIndex: currentIndex ?? this.currentIndex,
-      );
-
-  Map<String, dynamic> toJson() {
-    return {
-      'playQueue': playQueue.map((e) => e.toJson()).toList(),
-      'currentIndex': currentIndex,
-    };
-  }
-
-  factory PlayQueueState.fromJson(Map<String, dynamic> json) => PlayQueueState(
-        playQueue: (json['playQueue'] as List<dynamic>)
-            .map((e) => PlayQueueItem.fromJson(e as Map<String, dynamic>))
-            .toList()
-            .cast<PlayQueueItem>(),
-        currentIndex: json['currentIndex'] as int,
-      );
+  factory PlayQueueState.fromJson(Map<String, dynamic> json) =>
+      _$PlayQueueStateFromJson(json);
 }
