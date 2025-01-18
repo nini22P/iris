@@ -1,7 +1,12 @@
 ## v1.1.0
 ### Changlog
+* Add playback history
+* Support random playback
+* Support loop playback
+* Support video zoom
+
 ### 更新日志
-* 支持保存播放进度
+* 添加播放历史记录
 * 支持随机播放
 * 支持循环播放
 * 支持视频缩放

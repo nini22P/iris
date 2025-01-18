@@ -13,6 +13,7 @@ import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/local_storage.dart';
 import 'package:iris/pages/player/audio.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
+import 'package:iris/pages/popup/history.dart';
 import 'package:iris/pages/popup/play_queue.dart';
 import 'package:iris/pages/popup/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
@@ -279,6 +280,16 @@ class IrisPlayer extends HookWidget {
             case LogicalKeyboardKey.keyV:
               showControl();
               useAppStore().toggleFit();
+              break;
+            // 历史
+            case LogicalKeyboardKey.keyH:
+              showControlForHover(
+                showPopup(
+                  context: context,
+                  child: const History(),
+                  direction: PopupDirection.right,
+                ),
+              );
               break;
             default:
               break;
