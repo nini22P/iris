@@ -23,8 +23,9 @@ class General extends HookWidget {
           ListTile(
             leading: const Icon(Icons.translate_rounded),
             title: Text(t.language),
-            subtitle: Text(
-                language == 'auto' ? t.auto : languages[language] ?? language),
+            subtitle: Text(language == 'system'
+                ? t.system
+                : languages[language] ?? language),
             onTap: () => showLanguageDialog(context),
           ),
           ListTile(

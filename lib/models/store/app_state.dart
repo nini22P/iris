@@ -20,9 +20,9 @@ class AppState with _$AppState {
     @Default(100) int volume,
     @Default(false) bool isMuted,
     @Default(ThemeMode.system) ThemeMode themeMode,
-    @Default('auto') String subtitleLanguage,
-    @Default('auto') String language,
-    @Default(false) bool autoCheckUpdates,
+    @Default('none') String preferedSubtitleLanguage,
+    @Default('system') String language,
+    @Default(false) bool autoCheckUpdate,
     @Default(false) bool autoResize,
   }) = _AppState;
 

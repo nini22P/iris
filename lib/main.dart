@@ -62,7 +62,9 @@ class MyApp extends HookWidget {
         darkTheme: theme.dark,
         themeMode: themeMode,
         home: const HomePage(),
-        locale: language == 'auto' ? null : Locale(language),
+        locale: language == 'system' || language == 'auto'
+            ? null
+            : Locale(language),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         localeResolutionCallback: (locale, supportedLocales) => supportedLocales
                 .map((e) => e.languageCode)
