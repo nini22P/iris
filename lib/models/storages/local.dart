@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:iris/models/storages/storage.dart';
@@ -49,26 +50,42 @@ Future<void> pickLocalFile() async {
 Future<List<FileItem>> getLocalFiles(
     LocalStorage storage, List<String> path) async {
   final directory = Directory(path.join('/'));
-  final files = directory
-      .listSync()
-      .map((entity) => FileItem(
-            storageId: storage.id,
-            name: p.basename(entity.path),
-            uri: pathConverter(entity.path).join('/'),
-            path: [...path, p.basename(entity.path)],
-            isDir: entity is Directory,
-            size: entity is File ? entity.lengthSync() : 0,
-            type: entity is Directory
-                ? ContentType.dir
-                : checkContentType(p.basename(entity.path)),
-            subtitles: findSubtitle(
-                directory
-                    .listSync()
-                    .map((entity) => p.basename(entity.path))
-                    .toList(),
-                p.basename(entity.path),
-                entity.path),
-          ))
-      .toList();
+
+  List<FileItem> files = [];
+  try {
+    final entities = directory.list();
+
+    await for (final entity in entities) {
+      final isDir = entity is Directory;
+      int size = 0;
+      if (!isDir) {
+        final file = File(entity.path);
+        size = await file.length();
+      }
+
+      final subtitles = await findLocalSubtitle(
+        directory,
+        p.basename(entity.path),
+        entity.path,
+      );
+
+      files.add(FileItem(
+          storageId: storage.id,
+          storageType: storage.type,
+          name: p.basename(entity.path),
+          uri: pathConverter(entity.path).join('/'),
+          path: [...path, p.basename(entity.path)],
+          isDir: isDir,
+          size: size,
+          type: isDir
+              ? ContentType.dir
+              : checkContentType(p.basename(entity.path)),
+          subtitles: subtitles));
+    }
+  } catch (e) {
+    log('Error reading directory $path : $e');
+    return [];
+  }
+
   return filesSort(files, true);
 }

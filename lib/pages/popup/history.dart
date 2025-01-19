@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/progress.dart';
+import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
@@ -72,7 +73,8 @@ class History extends HookWidget {
                     () {
                       final Progress? progress = useHistoryStore()
                           .findByID(historyList[index].value.file.getID());
-                      if (progress != null) {
+                      if (progress != null &&
+                          progress.file.type == ContentType.video) {
                         if ((progress.duration.inMilliseconds -
                                 progress.position.inMilliseconds) <=
                             5000) {
@@ -108,6 +110,39 @@ class History extends HookWidget {
                             ],
                           ),
                         ),
+                  ],
+                ),
+                trailing: PopupMenuButton<FileOptions>(
+                  clipBehavior: Clip.hardEdge,
+                  constraints: const BoxConstraints(minWidth: 200),
+                  onSelected: (value) async {
+                    switch (value) {
+                      case FileOptions.addToPlayQueue:
+                        usePlayQueueStore()
+                            .add([historyList[index].value.file]);
+                        break;
+                      case FileOptions.remove:
+                        useHistoryStore().remove(historyList[index].value);
+                        break;
+                      case FileOptions.openInFolder:
+                        await openInFolder(
+                            context, historyList[index].value.file);
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: FileOptions.addToPlayQueue,
+                      child: Text(t.add_to_play_queue),
+                    ),
+                    PopupMenuItem(
+                      value: FileOptions.remove,
+                      child: Text(t.remove),
+                    ),
+                    PopupMenuItem(
+                      value: FileOptions.openInFolder,
+                      child: Text(t.open_in_folder),
+                    ),
                   ],
                 ),
                 onTap: () {

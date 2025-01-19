@@ -16,7 +16,6 @@ import 'package:media_kit/media_kit.dart';
 
 class PlayerCore {
   final Player player;
-  final String title;
   final SubtitleTrack subtitle;
   final List<SubtitleTrack> subtitles;
   final List<Subtitle> externalSubtitles;
@@ -39,7 +38,6 @@ class PlayerCore {
 
   PlayerCore(
     this.player,
-    this.title,
     this.subtitle,
     this.subtitles,
     this.externalSubtitles,
@@ -78,14 +76,10 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       [playQueue, currentIndex]);
 
   final FileItem? currentFile = useMemoized(
-      () => playQueue.isEmpty ? null : playQueue[currentPlayIndex].file,
+      () => playQueue.isEmpty || currentPlayIndex < 0
+          ? null
+          : playQueue[currentPlayIndex].file,
       [playQueue, currentPlayIndex]);
-
-  final title = useMemoized(
-      () => currentFile != null
-          ? '[${currentPlayIndex + 1}/${playQueue.length}] ${currentFile.name}'
-          : '',
-      [currentFile, currentPlayIndex, playQueue.length]);
 
   ValueNotifier<bool> seeking = useState(false);
 
@@ -174,27 +168,28 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final cover = useFuture(getCover).data;
 
   useEffect(() {
-    if (currentFile == null || playQueue.isEmpty) return () {};
-    log('Now playing: ${currentFile.name}, auto play: $autoPlay');
-    player.open(
-      Media(currentFile.uri,
-          httpHeaders: currentFile.auth != null
-              ? {'authorization': currentFile.auth!}
-              : {}),
-      play: autoPlay,
-    );
+    if (currentFile == null || playQueue.isEmpty) {
+      player.stop();
+    } else {
+      log('Now playing: ${currentFile.name}, auto play: $autoPlay');
+      player.open(
+        Media(currentFile.uri,
+            httpHeaders: currentFile.auth != null
+                ? {'authorization': currentFile.auth!}
+                : {}),
+        play: autoPlay,
+      );
+    }
     return () {
-      if (player.state.duration == Duration.zero ||
-          currentFile.type != ContentType.video) {
-        return;
+      if (currentFile != null && player.state.duration == Duration.zero) {
+        log('Save progress: ${currentFile.name}');
+        useHistoryStore().add(Progress(
+          dateTime: DateTime.now().toUtc(),
+          position: player.state.position,
+          duration: player.state.duration,
+          file: currentFile,
+        ));
       }
-      log('Save progress: ${currentFile.name}');
-      useHistoryStore().add(Progress(
-        dateTime: DateTime.now().toUtc(),
-        position: player.state.position,
-        duration: player.state.duration,
-        file: currentFile,
-      ));
     };
   }, [currentFile]);
 
@@ -270,9 +265,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   void updateSeeking(bool value) => seeking.value = value;
 
   Future<void> saveProgress() async {
-    if (currentFile != null &&
-        currentFile.type == ContentType.video &&
-        player.state.duration != Duration.zero) {
+    if (currentFile != null && player.state.duration != Duration.zero) {
       log('Save progress: ${currentFile.name}');
       useHistoryStore().add(Progress(
         dateTime: DateTime.now().toUtc(),
@@ -285,7 +278,6 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
 
   return PlayerCore(
     player,
-    title,
     subtitle,
     subtitles,
     externalSubtitles ?? [],

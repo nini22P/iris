@@ -22,7 +22,8 @@ class HistoryStore extends PersistentStore<HistoryState> {
   }
 
   void remove(Progress progress) {
-    set(state.copyWith(history: state.history..remove(progress.file.getID())));
+    set(state.copyWith(
+        history: {...state.history}..remove(progress.file.getID())));
     save(state);
   }
 

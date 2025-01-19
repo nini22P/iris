@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:collection/collection.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/file.dart';
@@ -10,16 +11,62 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
   PlayQueueStore() : super(PlayQueueState());
 
   Future<void> updatePlayQueue(
-      List<PlayQueueItem> playQueue, int? currentIndex) async {
+      List<PlayQueueItem> playQueue, int? index) async {
     set(state.copyWith(
       playQueue: playQueue,
-      currentIndex: currentIndex ?? state.currentIndex,
+      currentIndex: index ?? state.currentIndex,
     ));
     save(state);
   }
 
-  Future<void> updateCurrentIndex(int currentIndex) async {
-    set(state.copyWith(currentIndex: currentIndex));
+  Future<void> add(List<FileItem> files) async {
+    final int startIndex = state.playQueue.isEmpty
+        ? 0
+        : state.playQueue
+                .sorted((a, b) => a.index.compareTo(b.index))
+                .last
+                .index +
+            1;
+
+    final List<PlayQueueItem> playQueue = files
+        .asMap()
+        .entries
+        .map((entry) =>
+            PlayQueueItem(file: entry.value, index: startIndex + entry.key))
+        .toList();
+
+    set(state.copyWith(playQueue: [...state.playQueue, ...playQueue]));
+    save(state);
+  }
+
+  Future<void> remove(PlayQueueItem item) async {
+    if (state.playQueue.length <= 1) {
+      set(state.copyWith(playQueue: [], currentIndex: 0));
+    } else {
+      final index = state.playQueue.indexOf(item);
+      if (state.playQueue[index].index == state.currentIndex) {
+        if (index + 1 < state.playQueue.length) {
+          set(state.copyWith(
+            playQueue: [...state.playQueue]..remove(item),
+            currentIndex: state.playQueue[index + 1].index,
+          ));
+        } else {
+          set(state.copyWith(
+            playQueue: [...state.playQueue]..remove(item),
+            currentIndex: state.playQueue[index - 1].index,
+          ));
+        }
+      } else {
+        set(state.copyWith(
+          playQueue: [...state.playQueue]..remove(item),
+        ));
+      }
+    }
+    save(state);
+  }
+
+  Future<void> updateCurrentIndex(int index) async {
+    set(state.copyWith(currentIndex: index));
     save(state);
   }
 

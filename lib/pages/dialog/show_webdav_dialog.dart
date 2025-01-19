@@ -8,12 +8,12 @@ import 'package:iris/utils/get_localizations.dart';
 import 'package:uuid/uuid.dart';
 
 Future<void> showWebDAVDialog(BuildContext context,
-        {WebDAVStorage? webdavStorage, bool? isFavorite}) async =>
+        {WebDAVStorage? storage, bool? isFavorite}) async =>
     await showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return WebDAVDialog(
-          webdavStorage: webdavStorage,
+          storage: storage,
           isFavorite: isFavorite ?? false,
         );
       },
@@ -22,35 +22,32 @@ Future<void> showWebDAVDialog(BuildContext context,
 class WebDAVDialog extends HookWidget {
   const WebDAVDialog({
     super.key,
-    this.webdavStorage,
+    this.storage,
     required this.isFavorite,
   });
-  final WebDAVStorage? webdavStorage;
+  final WebDAVStorage? storage;
   final bool isFavorite;
 
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final bool isEdit = webdavStorage != null &&
-        (useStorageStore().state.storages.contains(webdavStorage!) ||
+    final bool isEdit = storage != null &&
+        (useStorageStore().state.storages.contains(storage!) ||
             (isFavorite &&
-                useStorageStore()
-                    .state
-                    .favoriteStorages
-                    .contains(webdavStorage!)));
+                useStorageStore().state.favoriteStorages.contains(storage!)));
 
-    final id = useMemoized(() => webdavStorage?.id ?? const Uuid().v4());
-    final name = useState(webdavStorage?.name ?? '');
-    final url = useState(webdavStorage?.url ?? '');
-    final basePath = useState(webdavStorage?.basePath ?? []);
-    final username = useState(webdavStorage?.username ?? '');
-    final password = useState(webdavStorage?.password ?? '');
-    final https = useState(webdavStorage?.https ?? false);
+    final id = useMemoized(() => storage?.id ?? const Uuid().v4());
+    final name = useState(storage?.name ?? '');
+    final url = useState(storage?.url ?? '');
+    final basePath = useState(storage?.basePath ?? []);
+    final username = useState(storage?.username ?? '');
+    final password = useState(storage?.password ?? '');
+    final https = useState(storage?.https ?? false);
 
     final isTested = useState(false);
 
     final TextEditingController portController =
-        useTextEditingController(text: webdavStorage?.port ?? '');
+        useTextEditingController(text: storage?.port ?? '');
 
     void add() async {
       if (isFavorite) return;
@@ -72,7 +69,7 @@ class WebDAVDialog extends HookWidget {
     void update() async {
       if (!isFavorite) {
         await useStorageStore().updateStorage(
-          useStorageStore().state.storages.indexOf(webdavStorage!),
+          useStorageStore().state.storages.indexOf(storage!),
           WebDAVStorage(
             id: id,
             type: StorageType.webdav,
@@ -87,7 +84,7 @@ class WebDAVDialog extends HookWidget {
         );
       } else {
         await useStorageStore().updateFavoriteStorage(
-          useStorageStore().state.favoriteStorages.indexOf(webdavStorage!),
+          useStorageStore().state.favoriteStorages.indexOf(storage!),
           WebDAVStorage(
             id: id,
             type: StorageType.webdav,

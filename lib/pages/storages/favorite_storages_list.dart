@@ -13,12 +13,8 @@ class FavoriteStoragesList extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final refresh = useState(false);
-    final favoriteStoragesLength = useStorageStore()
-        .select(context, (state) => state.favoriteStorages.length);
-    final favoriteStorages = useMemoized(
-        () => useStorageStore().state.favoriteStorages,
-        [favoriteStoragesLength, refresh.value]);
+    final favoriteStorages =
+        useStorageStore().select(context, (state) => state.favoriteStorages);
 
     return ListView.builder(
       padding: EdgeInsets.zero,
@@ -42,45 +38,46 @@ class FavoriteStoragesList extends HookWidget {
           useStorageStore().updateCurrentPath(favoriteStorages[index].basePath);
           useStorageStore().updateCurrentStorage(favoriteStorages[index]);
         },
-        trailing: PopupMenuButton<String>(
+        trailing: PopupMenuButton<StorageOptions>(
           tooltip: t.menu,
           clipBehavior: Clip.hardEdge,
           color: Theme.of(context).colorScheme.surface.withAlpha(250),
           onSelected: (value) {
             switch (value) {
-              case 'edit':
+              case StorageOptions.edit:
                 () {
                   switch (favoriteStorages[index].type) {
                     case StorageType.local:
                       showLocalDialog(
                         context,
-                        localStorage: favoriteStorages[index] as LocalStorage,
+                        storage: favoriteStorages[index] as LocalStorage,
                         isFavorite: true,
-                      ).then((_) => refresh.value = !refresh.value);
+                      );
                       break;
                     case StorageType.webdav:
                       showWebDAVDialog(
                         context,
-                        webdavStorage: favoriteStorages[index] as WebDAVStorage,
+                        storage: favoriteStorages[index] as WebDAVStorage,
                         isFavorite: true,
-                      ).then((_) => refresh.value = !refresh.value);
+                      );
                       break;
                   }
                 }();
                 break;
-              case 'remove':
-                useStorageStore().removeFavoriteStorage(index);
+              case StorageOptions.remove:
+                useStorageStore()
+                    .removeFavoriteStorage(favoriteStorages[index]);
                 break;
             }
           },
           itemBuilder: (BuildContext context) {
             return [
-              PopupMenuItem<String>(
-                value: 'edit',
+              PopupMenuItem(
+                value: StorageOptions.edit,
                 child: Text(t.edit),
               ),
-              PopupMenuItem<String>(
-                value: 'remove',
+              PopupMenuItem(
+                value: StorageOptions.remove,
                 child: Text(t.remove),
               ),
             ];

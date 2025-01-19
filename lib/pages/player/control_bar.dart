@@ -109,15 +109,10 @@ class ControlBar extends HookWidget {
                   ),
                   onPressed: () {
                     showControl();
-                    if (playQueueLength > 0) {
-                      if (playerCore.playing == true) {
-                        playerController.pause();
-                      } else {
-                        if (isDesktop) {
-                          windowManager.setTitle(playerCore.title);
-                        }
-                        playerController.play();
-                      }
+                    if (playerCore.playing == true) {
+                      playerController.pause();
+                    } else {
+                      playerController.play();
                     }
                   },
                 ),
@@ -324,7 +319,7 @@ class ControlBar extends HookWidget {
                 //   ),
                 // ),
                 PopupMenuButton(
-                  tooltip: t.more_options,
+                  // tooltip: t.more_options,
                   clipBehavior: Clip.hardEdge,
                   constraints: const BoxConstraints(minWidth: 200),
                   itemBuilder: (BuildContext context) => [

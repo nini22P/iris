@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:flutter/foundation.dart';
+import 'package:iris/models/storages/storage.dart';
 
 part 'file.freezed.dart';
 part 'file.g.dart';
@@ -12,11 +13,18 @@ enum ContentType {
   other,
 }
 
+enum FileOptions {
+  addToPlayQueue,
+  remove,
+  openInFolder,
+}
+
 @freezed
 abstract class FileItem implements _$FileItem {
   const FileItem._();
   const factory FileItem({
     required String storageId,
+    required StorageType storageType,
     required String name,
     required String uri,
     required List<String> path,

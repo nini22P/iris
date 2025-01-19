@@ -32,6 +32,7 @@ class SubtitleAndAudioTrack extends HookWidget {
     final tabController = useTabController(initialLength: tabs.length);
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Expanded(
           child: TabBarView(

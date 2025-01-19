@@ -65,22 +65,21 @@ Future<List<FileItem>> getWebDAVFiles(
   final String baseUri =
       'http${https ? 's' : ''}://$url:$port/${path.join('/')}';
 
-  return files
-      .map((file) => FileItem(
-            storageId: id,
-            name: '${file.name}',
-            uri: '$baseUri/${file.name}',
-            path: [...path, '${file.name}'],
-            isDir: file.isDir ?? false,
-            size: file.size ?? 0,
-            type: file.isDir ?? false
-                ? ContentType.dir
-                : checkContentType(file.name!),
-            auth: auth,
-            subtitles: findSubtitle(
-                files.map((file) => file.name as String).toList(),
-                file.name as String,
-                baseUri),
-          ))
-      .toList();
+  return await Future.wait(files.map((file) async => FileItem(
+        storageId: id,
+        storageType: StorageType.webdav,
+        name: '${file.name}',
+        uri: '$baseUri/${file.name}',
+        path: [...path, '${file.name}'],
+        isDir: file.isDir ?? false,
+        size: file.size ?? 0,
+        type: file.isDir ?? false
+            ? ContentType.dir
+            : checkContentType(file.name!),
+        auth: auth,
+        subtitles: await findSubtitle(
+            files.map((file) => file.name as String).toList(),
+            file.name as String,
+            baseUri),
+      )));
 }

@@ -46,9 +46,21 @@ class IrisPlayer extends HookWidget {
     final currentIndex =
         usePlayQueueStore().select(context, (state) => state.currentIndex);
 
-    final PlayQueueItem? currentPlay = useMemoized(
-        () => playQueue.isEmpty ? null : playQueue[currentIndex],
+    final int currentPlayIndex = useMemoized(
+        () => playQueue.indexWhere((element) => element.index == currentIndex),
         [playQueue, currentIndex]);
+
+    final PlayQueueItem? currentPlay = useMemoized(
+        () => playQueue.isEmpty || currentPlayIndex < 0
+            ? null
+            : playQueue[currentPlayIndex],
+        [playQueue, currentPlayIndex]);
+
+    final title = useMemoized(
+        () => currentPlay != null
+            ? '[${currentPlayIndex + 1}/${playQueue.length}] ${currentPlay.file.name} - ${INFO.title}'
+            : INFO.title,
+        [currentPlay, currentPlayIndex, playQueue.length]);
 
     final focusNode = useFocusNode();
     final player = useMemoized(
@@ -124,6 +136,7 @@ class IrisPlayer extends HookWidget {
 
     useEffect(() {
       if (appLifecycleState == AppLifecycleState.paused) {
+        log('App lifecycle state: paused');
         playerCore.saveProgress();
       }
       return;
@@ -203,15 +216,12 @@ class IrisPlayer extends HookWidget {
     useEffect(() {
       return () => progressHideTimer.value?.cancel();
     }, []);
-
     useEffect(() {
       if (isDesktop) {
-        windowManager.setTitle(playerCore.title.isEmpty
-            ? INFO.title
-            : '${playerCore.title} - ${INFO.title}');
+        windowManager.setTitle(title);
       }
       return;
-    }, [playerCore.title]);
+    }, [title, playerCore.playing]);
 
     useEffect(() {
       if (isShowControl.value || currentPlay?.file.type == ContentType.audio) {
@@ -664,7 +674,7 @@ class IrisPlayer extends HookWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          playerCore.title,
+                          currentPlay != null ? title : '',
                           style: TextStyle(
                             color:
                                 Theme.of(context).colorScheme.onSurfaceVariant,
@@ -747,7 +757,7 @@ class IrisPlayer extends HookWidget {
                     }
                   },
                   child: CustomAppBar(
-                    title: playerCore.title,
+                    title: title,
                     playerCore: playerCore,
                     actions: [
                       const SizedBox(width: 8),

@@ -11,6 +11,7 @@ import 'package:iris/utils/path_converter.dart';
 import 'package:iris/pages/dialog/show_local_dialog.dart';
 import 'package:iris/pages/dialog/show_webdav_dialog.dart';
 import 'package:iris/pages/storages/storages_list.dart';
+import 'package:uuid/uuid.dart';
 
 class ITab {
   final String title;
@@ -94,9 +95,8 @@ class Storages extends HookWidget {
                                   context.mounted) {
                                 showLocalDialog(
                                   context,
-                                  localStorage: LocalStorage(
-                                    id: 'local',
-                                    type: StorageType.local,
+                                  storage: LocalStorage(
+                                    id: const Uuid().v4(),
                                     name: pathConverter(selectedDirectory).last,
                                     basePath: pathConverter(selectedDirectory),
                                   ),

@@ -13,11 +13,8 @@ class StoragesList extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final refresh = useState(false);
-    final storagesLength =
-        useStorageStore().select(context, (state) => state.storages.length);
-    final storages = useMemoized(() => useStorageStore().state.storages,
-        [storagesLength, refresh.value]);
+    final storages =
+        useStorageStore().select(context, (state) => state.storages);
 
     return ListView.builder(
       padding: EdgeInsets.zero,
@@ -37,41 +34,39 @@ class StoragesList extends HookWidget {
           useStorageStore().updateCurrentPath(storages[index].basePath);
           useStorageStore().updateCurrentStorage(storages[index]);
         },
-        trailing: PopupMenuButton<String>(
+        trailing: PopupMenuButton<StorageOptions>(
           tooltip: t.menu,
           clipBehavior: Clip.hardEdge,
           color: Theme.of(context).colorScheme.surface.withAlpha(250),
           onSelected: (value) {
             switch (value) {
-              case 'edit':
+              case StorageOptions.edit:
                 () {
                   switch (storages[index].type) {
                     case StorageType.local:
                       showLocalDialog(context,
-                              localStorage: storages[index] as LocalStorage)
-                          .then((_) => refresh.value = !refresh.value);
+                          storage: storages[index] as LocalStorage);
                       break;
                     case StorageType.webdav:
                       showWebDAVDialog(context,
-                              webdavStorage: storages[index] as WebDAVStorage)
-                          .then((_) => refresh.value = !refresh.value);
+                          storage: storages[index] as WebDAVStorage);
                       break;
                   }
                 }();
                 break;
-              case 'remove':
-                useStorageStore().removeStorage(index);
+              case StorageOptions.remove:
+                useStorageStore().removeStorage(storages[index]);
                 break;
             }
           },
           itemBuilder: (BuildContext context) {
             return [
-              PopupMenuItem<String>(
-                value: 'edit',
+              PopupMenuItem(
+                value: StorageOptions.edit,
                 child: Text(t.edit),
               ),
-              PopupMenuItem<String>(
-                value: 'remove',
+              PopupMenuItem(
+                value: StorageOptions.remove,
                 child: Text(t.remove),
               ),
             ];

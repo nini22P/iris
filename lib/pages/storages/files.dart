@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -30,8 +31,17 @@ class Files extends HookWidget {
 
     final basePath = storage.basePath;
 
+    final favoriteStorages =
+        useStorageStore().select(context, (state) => state.favoriteStorages);
+
     final currentPath =
         useStorageStore().select(context, (state) => state.currentPath);
+
+    final currentFavoritedStorage = useMemoized(
+        () => favoriteStorages.firstWhereOrNull((favoriteStorage) =>
+            favoriteStorage.id == storage.id &&
+            favoriteStorage.basePath.join('/') == currentPath.join('/')),
+        [favoriteStorages, currentPath]);
 
     useEffect(() {
       if (currentPath.isEmpty) {
@@ -78,11 +88,6 @@ class Files extends HookWidget {
       await useAppStore().updateShuffle(false);
       await usePlayQueueStore().updatePlayQueue(playQueue, newIndex);
     }
-
-    final isFavorited = useMemoized(
-        () => useStorageStore().state.favoriteStorages.any((favoriteStorage) =>
-            favoriteStorage.basePath.join('/') == currentPath.join('/')),
-        [currentPath, refreshState.value]);
 
     void back() {
       if (currentPath.length > basePath.length) {
@@ -155,7 +160,9 @@ class Files extends HookWidget {
                                           final Progress? progress =
                                               useHistoryStore().findByID(
                                                   filteredFiles[index].getID());
-                                          if (progress != null) {
+                                          if (progress != null &&
+                                              progress.file.type ==
+                                                  ContentType.video) {
                                             if ((progress.duration
                                                         .inMilliseconds -
                                                     progress.position
@@ -196,6 +203,32 @@ class Files extends HookWidget {
                                                 ],
                                               ),
                                             ),
+                                      ],
+                                    )
+                                  : null,
+                              trailing: filteredFiles[index].type ==
+                                          ContentType.video ||
+                                      filteredFiles[index].type ==
+                                          ContentType.audio
+                                  ? PopupMenuButton<FileOptions>(
+                                      clipBehavior: Clip.hardEdge,
+                                      constraints:
+                                          const BoxConstraints(minWidth: 200),
+                                      onSelected: (value) async {
+                                        switch (value) {
+                                          case FileOptions.addToPlayQueue:
+                                            usePlayQueueStore()
+                                                .add([filteredFiles[index]]);
+                                            break;
+                                          default:
+                                            break;
+                                        }
+                                      },
+                                      itemBuilder: (context) => [
+                                        PopupMenuItem(
+                                          value: FileOptions.addToPlayQueue,
+                                          child: Text(t.add_to_play_queue),
+                                        ),
                                       ],
                                     )
                                   : null,
@@ -273,41 +306,36 @@ class Files extends HookWidget {
                 onPressed: refresh,
               ),
               IconButton(
-                tooltip: isFavorited ? t.remove_favorite : t.add_favorite,
-                icon: Icon(isFavorited
+                tooltip: currentFavoritedStorage != null
+                    ? t.remove_favorite
+                    : t.add_favorite,
+                icon: Icon(currentFavoritedStorage != null
                     ? Icons.star_rounded
                     : Icons.star_outline_rounded),
                 onPressed: () async {
-                  if (isFavorited) {
-                    await useStorageStore().removeFavoriteStorage(
-                        useStorageStore().state.favoriteStorages.indexWhere(
-                            (storage) =>
-                                storage.basePath.join('/') ==
-                                currentPath.join('/')));
-                    refresh();
-                    return;
+                  if (currentFavoritedStorage != null) {
+                    await useStorageStore()
+                        .removeFavoriteStorage(currentFavoritedStorage);
+                  } else {
+                    switch (storage.type) {
+                      case StorageType.local:
+                        await useStorageStore().addFavoriteStorage(
+                          (storage as LocalStorage).copyWith(
+                            name: currentPath.last,
+                            basePath: currentPath,
+                          ),
+                        );
+                        break;
+                      case StorageType.webdav:
+                        await useStorageStore().addFavoriteStorage(
+                          (storage as WebDAVStorage).copyWith(
+                            name: currentPath.last,
+                            basePath: currentPath,
+                          ),
+                        );
+                        break;
+                    }
                   }
-
-                  switch (storage.type) {
-                    case StorageType.local:
-                      await useStorageStore().addFavoriteStorage(
-                        (storage as LocalStorage).copyWith(
-                          name: title,
-                          basePath: currentPath,
-                        ),
-                      );
-                      break;
-                    case StorageType.webdav:
-                      await useStorageStore().addFavoriteStorage(
-                        (storage as WebDAVStorage).copyWith(
-                          name: title,
-                          basePath: currentPath,
-                        ),
-                      );
-                      break;
-                  }
-
-                  refresh();
                 },
               ),
               const SizedBox(width: 8),
