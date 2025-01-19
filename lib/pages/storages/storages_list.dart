@@ -53,7 +53,7 @@ class StoragesList extends HookWidget {
                       break;
                     case StorageType.webdav:
                       showWebDAVDialog(context,
-                              webdavStorage: storages[index] as WebdavStorage)
+                              webdavStorage: storages[index] as WebDAVStorage)
                           .then((_) => refresh.value = !refresh.value);
                       break;
                   }

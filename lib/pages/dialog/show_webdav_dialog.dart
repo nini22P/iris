@@ -8,7 +8,7 @@ import 'package:iris/utils/get_localizations.dart';
 import 'package:uuid/uuid.dart';
 
 Future<void> showWebDAVDialog(BuildContext context,
-        {WebdavStorage? webdavStorage, bool? isFavorite}) async =>
+        {WebDAVStorage? webdavStorage, bool? isFavorite}) async =>
     await showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -25,7 +25,7 @@ class WebDAVDialog extends HookWidget {
     this.webdavStorage,
     required this.isFavorite,
   });
-  final WebdavStorage? webdavStorage;
+  final WebDAVStorage? webdavStorage;
   final bool isFavorite;
 
   @override
@@ -55,7 +55,7 @@ class WebDAVDialog extends HookWidget {
     void add() async {
       if (isFavorite) return;
       await useStorageStore().addStorage(
-        WebdavStorage(
+        WebDAVStorage(
           id: id,
           type: StorageType.webdav,
           name: name.value,
@@ -73,7 +73,7 @@ class WebDAVDialog extends HookWidget {
       if (!isFavorite) {
         await useStorageStore().updateStorage(
           useStorageStore().state.storages.indexOf(webdavStorage!),
-          WebdavStorage(
+          WebDAVStorage(
             id: id,
             type: StorageType.webdav,
             name: name.value,
@@ -88,7 +88,7 @@ class WebDAVDialog extends HookWidget {
       } else {
         await useStorageStore().updateFavoriteStorage(
           useStorageStore().state.favoriteStorages.indexOf(webdavStorage!),
-          WebdavStorage(
+          WebDAVStorage(
             id: id,
             type: StorageType.webdav,
             name: name.value,
@@ -104,7 +104,7 @@ class WebDAVDialog extends HookWidget {
     }
 
     void testConnection() async {
-      final bool isConnected = await testWebDAV(WebdavStorage(
+      final bool isConnected = await testWebDAV(WebDAVStorage(
         id: id,
         type: StorageType.webdav,
         name: name.value,

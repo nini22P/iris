@@ -391,6 +391,33 @@ class IrisPlayer extends HookWidget {
       }
     }
 
+    final scaleFactor = useMemoized(
+      () =>
+          View.of(context).physicalSize.width /
+          MediaQuery.of(context).size.width,
+      [View.of(context).physicalSize.width, MediaQuery.of(context).size.width],
+    );
+
+    final videoViewSize = useMemoized(() {
+      if (fit != BoxFit.none ||
+          playerCore.videoParams?.w == null ||
+          playerCore.videoParams?.h == null) {
+        return MediaQuery.of(context).size;
+      } else {
+        return Size(playerCore.videoParams!.w! / scaleFactor,
+            playerCore.videoParams!.h! / scaleFactor);
+      }
+    }, [fit, MediaQuery.of(context).size, playerCore.videoParams, scaleFactor]);
+
+    final videoViewOffset = useMemoized(
+        () => fit == BoxFit.none
+            ? Offset(
+                (MediaQuery.of(context).size.width - videoViewSize.width) / 2,
+                (MediaQuery.of(context).size.height - videoViewSize.height) / 2,
+              )
+            : Offset(0, 0),
+        [fit, MediaQuery.of(context).size, videoViewSize]);
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) async {
@@ -545,12 +572,31 @@ class IrisPlayer extends HookWidget {
                       playerCore.updateSeeking(false);
                     }
                   },
-                  child: Video(
-                    key: ValueKey(currentPlay?.file.getID()),
-                    controller: controller,
-                    controls: NoVideoControls,
-                    fit: fit,
-                    // wakelock: mediaType == 'video',
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          color: Colors.black,
+                        ),
+                      ),
+                      Positioned(
+                        left: videoViewOffset.dx,
+                        top: videoViewOffset.dy,
+                        width: videoViewSize.width,
+                        height: videoViewSize.height,
+                        child: Video(
+                          key: ValueKey(currentPlay?.file.getID()),
+                          controller: controller,
+                          controls: NoVideoControls,
+                          fit: fit == BoxFit.none ? BoxFit.contain : fit,
+                          // wakelock: mediaType == 'video',
+                        ),
+                      )
+                    ],
                   ),
                 ),
               ),

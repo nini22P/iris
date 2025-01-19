@@ -23,6 +23,8 @@ class PlayerCore {
   final AudioTrack audio;
   final List<AudioTrack> audios;
   final bool playing;
+  final VideoParams? videoParams;
+  final AudioParams? audioParams;
   final Duration position;
   final Duration duration;
   final Duration buffer;
@@ -44,6 +46,8 @@ class PlayerCore {
     this.audio,
     this.audios,
     this.playing,
+    this.videoParams,
+    this.audioParams,
     this.position,
     this.duration,
     this.buffer,
@@ -86,6 +90,8 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   ValueNotifier<bool> seeking = useState(false);
 
   bool playing = useStream(player.stream.playing).data ?? false;
+  VideoParams? videoParams = useStream(player.stream.videoParams).data;
+  AudioParams? audioParams = useStream(player.stream.audioParams).data;
   ValueNotifier<Duration> position = useState(Duration.zero);
   Duration duration = useStream(player.stream.duration).data ?? Duration.zero;
   Duration buffer = useStream(player.stream.buffer).data ?? Duration.zero;
@@ -111,7 +117,6 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           (subtitle) => subtitles.any((item) => item.title == subtitle.name)),
       [currentFile?.subtitles, subtitles]);
 
-  VideoParams? videoParams = useStream(player.stream.videoParams).data;
   double aspectRatio =
       videoParams != null && videoParams.w != null && videoParams.h != null
           ? (videoParams.w! / videoParams.h!)
@@ -287,6 +292,8 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     audio,
     audios,
     playing,
+    videoParams,
+    audioParams,
     duration == Duration.zero ? Duration.zero : position.value,
     duration,
     duration == Duration.zero ? Duration.zero : buffer,

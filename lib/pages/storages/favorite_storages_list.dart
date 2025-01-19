@@ -61,7 +61,7 @@ class FavoriteStoragesList extends HookWidget {
                     case StorageType.webdav:
                       showWebDAVDialog(
                         context,
-                        webdavStorage: favoriteStorages[index] as WebdavStorage,
+                        webdavStorage: favoriteStorages[index] as WebDAVStorage,
                         isFavorite: true,
                       ).then((_) => refresh.value = !refresh.value);
                       break;

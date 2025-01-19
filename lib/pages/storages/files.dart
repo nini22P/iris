@@ -299,7 +299,7 @@ class Files extends HookWidget {
                       break;
                     case StorageType.webdav:
                       await useStorageStore().addFavoriteStorage(
-                        (storage as WebdavStorage).copyWith(
+                        (storage as WebDAVStorage).copyWith(
                           name: title,
                           basePath: currentPath,
                         ),

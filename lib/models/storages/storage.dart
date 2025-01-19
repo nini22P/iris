@@ -43,7 +43,7 @@ sealed class Storage with _$Storage implements _Storage {
     required String username,
     required String password,
     required bool https,
-  }) = WebdavStorage;
+  }) = WebDAVStorage;
 
   factory Storage.fromJson(Map<String, dynamic> json) =>
       _$StorageFromJson(json);
@@ -54,7 +54,7 @@ sealed class Storage with _$Storage implements _Storage {
       case StorageType.local:
         return await getLocalFiles(this as LocalStorage, path);
       case StorageType.webdav:
-        return await getWebDAVFiles(this as WebdavStorage, path);
+        return await getWebDAVFiles(this as WebDAVStorage, path);
     }
   }
 }

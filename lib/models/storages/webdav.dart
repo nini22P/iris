@@ -6,7 +6,7 @@ import 'package:iris/utils/find_subtitle.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 import 'package:iris/models/file.dart';
 
-Future<bool> testWebDAV(WebdavStorage storage) async {
+Future<bool> testWebDAV(WebDAVStorage storage) async {
   final url = storage.url;
   final port = storage.port;
   final username = storage.username;
@@ -37,7 +37,7 @@ Future<bool> testWebDAV(WebdavStorage storage) async {
 }
 
 Future<List<FileItem>> getWebDAVFiles(
-    WebdavStorage storage, List<String> path) async {
+    WebDAVStorage storage, List<String> path) async {
   final id = storage.id;
   final url = storage.url;
   final port = storage.port;
