@@ -8,14 +8,11 @@ import 'package:iris/utils/get_localizations.dart';
 import 'package:uuid/uuid.dart';
 
 Future<void> showWebDAVDialog(BuildContext context,
-        {WebDAVStorage? storage, bool? isFavorite}) async =>
+        {WebDAVStorage? storage}) async =>
     await showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        return WebDAVDialog(
-          storage: storage,
-          isFavorite: isFavorite ?? false,
-        );
+        return WebDAVDialog(storage: storage);
       },
     );
 
@@ -23,18 +20,14 @@ class WebDAVDialog extends HookWidget {
   const WebDAVDialog({
     super.key,
     this.storage,
-    required this.isFavorite,
   });
   final WebDAVStorage? storage;
-  final bool isFavorite;
 
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final bool isEdit = storage != null &&
-        (useStorageStore().state.storages.contains(storage!) ||
-            (isFavorite &&
-                useStorageStore().state.favoriteStorages.contains(storage!)));
+    final bool isEdit =
+        storage != null && (useStorageStore().state.storages.contains(storage));
 
     final id = useMemoized(() => storage?.id ?? const Uuid().v4());
     final name = useState(storage?.name ?? '');
@@ -49,12 +42,10 @@ class WebDAVDialog extends HookWidget {
     final TextEditingController portController =
         useTextEditingController(text: storage?.port ?? '');
 
-    void add() async {
-      if (isFavorite) return;
-      await useStorageStore().addStorage(
+    void add() {
+      useStorageStore().addStorage(
         WebDAVStorage(
           id: id,
-          type: StorageType.webdav,
           name: name.value,
           url: url.value,
           basePath: basePath.value,
@@ -66,44 +57,25 @@ class WebDAVDialog extends HookWidget {
       );
     }
 
-    void update() async {
-      if (!isFavorite) {
-        await useStorageStore().updateStorage(
-          useStorageStore().state.storages.indexOf(storage!),
-          WebDAVStorage(
-            id: id,
-            type: StorageType.webdav,
-            name: name.value,
-            url: url.value,
-            basePath: basePath.value,
-            port: portController.text,
-            username: username.value,
-            password: password.value,
-            https: https.value,
-          ),
-        );
-      } else {
-        await useStorageStore().updateFavoriteStorage(
-          useStorageStore().state.favoriteStorages.indexOf(storage!),
-          WebDAVStorage(
-            id: id,
-            type: StorageType.webdav,
-            name: name.value,
-            url: url.value,
-            basePath: basePath.value,
-            port: portController.text,
-            username: username.value,
-            password: password.value,
-            https: https.value,
-          ),
-        );
-      }
+    void update() {
+      useStorageStore().updateStorage(
+        useStorageStore().state.storages.indexOf(storage as Storage),
+        WebDAVStorage(
+          id: id,
+          name: name.value,
+          url: url.value,
+          basePath: basePath.value,
+          port: portController.text,
+          username: username.value,
+          password: password.value,
+          https: https.value,
+        ),
+      );
     }
 
     void testConnection() async {
       final bool isConnected = await testWebDAV(WebDAVStorage(
         id: id,
-        type: StorageType.webdav,
         name: name.value,
         url: url.value,
         basePath: basePath.value,
@@ -155,9 +127,10 @@ class WebDAVDialog extends HookWidget {
                     ),
                     initialValue: basePath.value.join('/'),
                     onChanged: (value) {
-                      basePath.value = value.trim().split('/')
-                        ..removeWhere((s) => s.isEmpty);
-
+                      final trimmedValue =
+                          value.trim().replaceAll(RegExp(r'^\/+|\/+$'), '');
+                      final finalPath = '/$trimmedValue';
+                      basePath.value = [finalPath];
                       isTested.value = false;
                     }),
                 const SizedBox(height: 16.0),
@@ -196,17 +169,21 @@ class WebDAVDialog extends HookWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               const Text('https'),
-                              Checkbox(
-                                value: https.value,
-                                onChanged: (_) {
-                                  isTested.value = false;
-                                  if (!https.value) {
-                                    portController.text = '443';
-                                  } else {
-                                    portController.text = '80';
-                                  }
-                                  https.value = !https.value;
-                                },
+                              Focus(
+                                descendantsAreFocusable: false,
+                                canRequestFocus: false,
+                                child: Checkbox(
+                                  value: https.value,
+                                  onChanged: (_) {
+                                    isTested.value = false;
+                                    if (!https.value) {
+                                      portController.text = '443';
+                                    } else {
+                                      portController.text = '80';
+                                    }
+                                    https.value = !https.value;
+                                  },
+                                ),
                               ),
                             ]),
                         onTap: () {

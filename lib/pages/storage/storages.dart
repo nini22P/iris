@@ -2,16 +2,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/storages/storage.dart';
-import 'package:iris/pages/storages/favorite_storages_list.dart';
-import 'package:iris/pages/storages/files.dart';
+import 'package:iris/pages/storage/favorites.dart';
+import 'package:iris/pages/storage/files.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/path_converter.dart';
 import 'package:iris/pages/dialog/show_local_dialog.dart';
 import 'package:iris/pages/dialog/show_webdav_dialog.dart';
-import 'package:iris/pages/storages/storages_list.dart';
-import 'package:uuid/uuid.dart';
+import 'package:iris/pages/storage/storages_list.dart';
 
 class ITab {
   final String title;
@@ -32,9 +32,18 @@ class Storages extends HookWidget {
     final currentStorage =
         useStorageStore().select(context, (state) => state.currentStorage);
 
+    final getLocalStoragesFuture =
+        useMemoized(() => getLocalStorages(context), []);
+    final localStorages = useFuture(getLocalStoragesFuture).data ?? [];
+
+    useEffect(() {
+      useStorageStore().updateLocalStorages(localStorages);
+      return;
+    }, [localStorages]);
+
     List<ITab> tabs = [
-      ITab(title: t.storages, child: const StoragesList()),
-      ITab(title: t.favorites, child: const FavoriteStoragesList()),
+      ITab(title: t.storage, child: const StoragesList()),
+      ITab(title: t.favorites, child: const Favorites()),
     ];
 
     final tabController = useTabController(initialLength: tabs.length);
@@ -87,7 +96,9 @@ class Storages extends HookWidget {
                           Theme.of(context).colorScheme.surface.withAlpha(250),
                       onSelected: (StorageType value) {
                         switch (value) {
-                          case StorageType.local:
+                          case StorageType.internal:
+                          case StorageType.usb:
+                          case StorageType.sdcard:
                             () async {
                               String? selectedDirectory =
                                   await FilePicker.platform.getDirectoryPath();
@@ -96,7 +107,7 @@ class Storages extends HookWidget {
                                 showLocalDialog(
                                   context,
                                   storage: LocalStorage(
-                                    id: const Uuid().v4(),
+                                    type: value,
                                     name: pathConverter(selectedDirectory).last,
                                     basePath: pathConverter(selectedDirectory),
                                   ),
@@ -111,10 +122,10 @@ class Storages extends HookWidget {
                       },
                       itemBuilder: (BuildContext context) {
                         return [
-                          PopupMenuItem<StorageType>(
-                            value: StorageType.local,
-                            child: Text(t.local_storage),
-                          ),
+                          // PopupMenuItem<StorageType>(
+                          //   value: StorageType.internal,
+                          //   child: Text(t.local_storage),
+                          // ),
                           const PopupMenuItem<StorageType>(
                             value: StorageType.webdav,
                             child: Text('WebDAV'),

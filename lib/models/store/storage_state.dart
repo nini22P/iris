@@ -6,10 +6,22 @@ part 'storage_state.freezed.dart';
 part 'storage_state.g.dart';
 
 @freezed
+class Favorite with _$Favorite {
+  factory Favorite({
+    required String storageId,
+    required List<String> path,
+  }) = _Favorite;
+
+  factory Favorite.fromJson(Map<String, dynamic> json) =>
+      _$FavoriteFromJson(json);
+}
+
+@freezed
 class StorageState with _$StorageState {
   factory StorageState({
+    @Default([]) List<LocalStorage> localStorages,
     @Default([]) List<Storage> storages,
-    @Default([]) List<Storage> favoriteStorages,
+    @Default([]) List<Favorite> favorites,
     @Default(null) Storage? currentStorage,
     @Default([]) List<String> currentPath,
   }) = _StorageState;

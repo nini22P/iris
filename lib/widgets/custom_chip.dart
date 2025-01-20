@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class SubtitleChip extends StatelessWidget {
+class CustomChip extends StatelessWidget {
   final String text;
   final bool primary;
 
-  const SubtitleChip({super.key, required this.text, this.primary = false});
+  const CustomChip({super.key, required this.text, this.primary = false});
 
   @override
   Widget build(BuildContext context) {

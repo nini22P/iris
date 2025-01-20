@@ -72,7 +72,7 @@
   "settings": "设置",
   "shuffle": "随机",
   "source_code": "源码",
-  "storages": "存储",
+  "storage": "存储",
   "stretch": "拉伸",
   "subtitle": "字幕",
   "subtitle_and_audio_track": "字幕和音轨",
@@ -80,6 +80,7 @@
   "theme_mode": "主题模式",
   "unable_to_fetch_files": "无法获取文件",
   "url": "URL",
+  "usb_storage": "USB 存储",
   "username": "用户名",
   "version": "版本",
   "video_zoom": "视频缩放"

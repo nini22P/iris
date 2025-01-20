@@ -3,15 +3,17 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/storages/webdav.dart';
-import 'package:iris/pages/popup/show_popup.dart';
-import 'package:iris/pages/storages/storages.dart';
+import 'package:iris/widgets/popup.dart';
+import 'package:iris/pages/storage/storages.dart';
 import 'package:iris/store/use_storage_store.dart';
 
 part 'storage.freezed.dart';
 part 'storage.g.dart';
 
 enum StorageType {
-  local,
+  internal,
+  usb,
+  sdcard,
   webdav,
 }
 
@@ -36,8 +38,8 @@ sealed class Storage with _$Storage implements _Storage {
   const Storage._();
 
   factory Storage.local({
-    required String id,
-    @Default(StorageType.local) StorageType type,
+    @Default('local') String id,
+    required StorageType type,
     required String name,
     required List<String> basePath,
   }) = LocalStorage;
@@ -60,7 +62,9 @@ sealed class Storage with _$Storage implements _Storage {
   @override
   Future<List<FileItem>> getFiles(List<String> path) async {
     switch (type) {
-      case StorageType.local:
+      case StorageType.internal:
+      case StorageType.usb:
+      case StorageType.sdcard:
         return await getLocalFiles(this as LocalStorage, path);
       case StorageType.webdav:
         return await getWebDAVFiles(this as WebDAVStorage, path);
@@ -69,7 +73,7 @@ sealed class Storage with _$Storage implements _Storage {
 }
 
 Future<void> openInFolder(BuildContext context, FileItem file) async {
-  Storage? storage = await useStorageStore().getStorageById(file.storageId);
+  Storage? storage = useStorageStore().findById(file.storageId);
   if (storage != null) {
     useStorageStore()
         .updateCurrentPath(file.path.sublist(0, file.path.length - 1));
@@ -81,11 +85,18 @@ Future<void> openInFolder(BuildContext context, FileItem file) async {
         direction: PopupDirection.right,
       );
     }
-  } else if (file.storageType == StorageType.local) {
+  } else if (file.storageType == StorageType.internal ||
+      file.storageType == StorageType.usb ||
+      file.storageType == StorageType.sdcard) {
     useStorageStore()
         .updateCurrentPath(file.path.sublist(0, file.path.length - 1));
-    useStorageStore().updateCurrentStorage(LocalStorage(
-        id: 'local', name: file.path[0], basePath: [file.path[0]]));
+    useStorageStore().updateCurrentStorage(
+      LocalStorage(
+        type: file.storageType,
+        name: file.path[0],
+        basePath: [file.path[0]],
+      ),
+    );
     if (context.mounted) {
       replacePopup(
         context: context,

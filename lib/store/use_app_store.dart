@@ -14,12 +14,12 @@ class AppStore extends PersistentStore<AppState> {
 
   Future<void> updateShuffle(bool shuffle) async {
     set(state.copyWith(shuffle: shuffle));
-    save(state);
+    await save(state);
   }
 
   Future<void> updateRepeat(Repeat repeat) async {
     set(state.copyWith(repeat: repeat));
-    save(state);
+    await save(state);
   }
 
   Future<void> toggleRepeat() async {
@@ -34,12 +34,12 @@ class AppStore extends PersistentStore<AppState> {
         set(state.copyWith(repeat: Repeat.none));
         break;
     }
-    save(state);
+    await save(state);
   }
 
   Future<void> updateFit(BoxFit fit) async {
     set(state.copyWith(fit: fit));
-    save(state);
+    await save(state);
   }
 
   Future<void> toggleFit() async {
@@ -59,22 +59,22 @@ class AppStore extends PersistentStore<AppState> {
       default:
         break;
     }
-    save(state);
+    await save(state);
   }
 
   Future<void> updateThemeMode(ThemeMode themeMode) async {
     set(state.copyWith(themeMode: themeMode));
-    save(state);
+    await save(state);
   }
 
   Future<void> updateLanguage(String language) async {
     set(state.copyWith(language: language));
-    save(state);
+    await save(state);
   }
 
   Future<void> toggleAutoResize() async {
     set(state.copyWith(autoResize: !state.autoResize));
-    save(state);
+    await save(state);
   }
 
   @override

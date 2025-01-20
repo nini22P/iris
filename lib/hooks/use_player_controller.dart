@@ -83,10 +83,10 @@ PlayerController usePlayerController(
   Future<void> updateRate(double value) async =>
       playerCore.rate == value ? null : await playerCore.player.setRate(value);
 
-  Future<void> shufflePlayQueue() async => usePlayQueueStore().updatePlayQueue(
-      getShufflePlayQueue(playQueue, currentIndex), currentIndex);
+  Future<void> shufflePlayQueue() async => usePlayQueueStore()
+      .update(getShufflePlayQueue(playQueue, currentIndex), currentIndex);
 
-  Future<void> sortPlayQueue() async => usePlayQueueStore().updatePlayQueue(
+  Future<void> sortPlayQueue() async => usePlayQueueStore().update(
       [...playQueue]..sort((a, b) => a.index.compareTo(b.index)), currentIndex);
 
   return PlayerController(

@@ -9,27 +9,27 @@ import 'package:iris/store/persistent_store.dart';
 class HistoryStore extends PersistentStore<HistoryState> {
   HistoryStore() : super(HistoryState());
 
-  Progress? findByID(String id) => state.history[id];
+  Progress? findById(String id) => state.history[id];
 
-  void add(Progress progress) {
+  Future<void> add(Progress progress) async {
     set(state.copyWith(
       history: {
         ...state.history,
         progress.file.getID(): progress,
       },
     ));
-    save(state);
+    await save(state);
   }
 
-  void remove(Progress progress) {
+  Future<void> remove(Progress progress) async {
     set(state.copyWith(
         history: {...state.history}..remove(progress.file.getID())));
-    save(state);
+    await save(state);
   }
 
-  void clear() {
+  Future<void> clear() async {
     set(state.copyWith(history: {}));
-    save(state);
+    await save(state);
   }
 
   @override

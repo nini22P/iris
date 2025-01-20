@@ -63,7 +63,7 @@ Future<List<FileItem>> getWebDAVFiles(
   var files = await client.readDir(path.join('/'));
 
   final String baseUri =
-      'http${https ? 's' : ''}://$url:$port/${path.join('/')}';
+      'http${https ? 's' : ''}://$url:$port${path.join('/')}';
 
   return await Future.wait(files.map((file) async => FileItem(
         storageId: id,

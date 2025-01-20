@@ -72,7 +72,7 @@
   "settings": "Settings",
   "shuffle": "Shuffle",
   "source_code": "Source code",
-  "storages": "Storages",
+  "storage": "Storage",
   "stretch": "Stretch",
   "subtitle": "Subtitle",
   "subtitle_and_audio_track": "Subtitle and audio track",
@@ -80,6 +80,7 @@
   "theme_mode": "Theme mode",
   "unable_to_fetch_files": "Unable to fetch files.",
   "url": "URL",
+  "usb_storage": "USB storage",
   "username": "Username",
   "version": "Version",
   "video_zoom": "Video zoom"

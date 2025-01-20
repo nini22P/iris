@@ -7,6 +7,7 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/progress.dart';
 import 'package:iris/models/storages/storage.dart';
+import 'package:iris/models/store/storage_state.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
@@ -14,7 +15,7 @@ import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/files_filter.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/widgets/subtitle_chip.dart';
+import 'package:iris/widgets/custom_chip.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class Files extends HookWidget {
@@ -31,17 +32,16 @@ class Files extends HookWidget {
 
     final basePath = storage.basePath;
 
-    final favoriteStorages =
-        useStorageStore().select(context, (state) => state.favoriteStorages);
-
+    final favorites =
+        useStorageStore().select(context, (state) => state.favorites);
     final currentPath =
         useStorageStore().select(context, (state) => state.currentPath);
 
-    final currentFavoritedStorage = useMemoized(
-        () => favoriteStorages.firstWhereOrNull((favoriteStorage) =>
-            favoriteStorage.id == storage.id &&
-            favoriteStorage.basePath.join('/') == currentPath.join('/')),
-        [favoriteStorages, currentPath]);
+    final currentFavorite = useMemoized(
+        () => favorites.firstWhereOrNull((favorite) =>
+            favorite.storageId == storage.id &&
+            favorite.path.join('/') == currentPath.join('/')),
+        [favorites, currentPath]);
 
     useEffect(() {
       if (currentPath.isEmpty) {
@@ -49,8 +49,6 @@ class Files extends HookWidget {
       }
       return null;
     }, []);
-
-    final title = storage.name;
 
     final getFiles = useMemoized(
         () async => await storage.getFiles(currentPath),
@@ -86,7 +84,7 @@ class Files extends HookWidget {
 
       await useAppStore().updateAutoPlay(true);
       await useAppStore().updateShuffle(false);
-      await usePlayQueueStore().updatePlayQueue(playQueue, newIndex);
+      await usePlayQueueStore().update(playQueue, newIndex);
     }
 
     void back() {
@@ -158,7 +156,7 @@ class Files extends HookWidget {
                                         const Spacer(),
                                         () {
                                           final Progress? progress =
-                                              useHistoryStore().findByID(
+                                              useHistoryStore().findById(
                                                   filteredFiles[index].getID());
                                           if (progress != null &&
                                               progress.file.type ==
@@ -168,7 +166,7 @@ class Files extends HookWidget {
                                                     progress.position
                                                         .inMilliseconds) <=
                                                 5000) {
-                                              return SubtitleChip(text: '100%');
+                                              return CustomChip(text: '100%');
                                             }
                                             final String progressString =
                                                 (progress.position
@@ -177,7 +175,7 @@ class Files extends HookWidget {
                                                             .inMilliseconds *
                                                         100)
                                                     .toStringAsFixed(0);
-                                            return SubtitleChip(
+                                            return CustomChip(
                                                 text: '$progressString %');
                                           } else {
                                             return const SizedBox();
@@ -196,7 +194,7 @@ class Files extends HookWidget {
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   const SizedBox(width: 8),
-                                                  SubtitleChip(
+                                                  CustomChip(
                                                     text: subtitleType,
                                                     primary: true,
                                                   ),
@@ -256,18 +254,17 @@ class Files extends HookWidget {
         Container(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
           child: BreadCrumb.builder(
-            itemCount: currentPath.length - basePath.length + 1,
+            itemCount: currentPath.length,
             overflow: Platform.isAndroid || Platform.isIOS
                 ? ScrollableOverflow(reverse: true)
                 : const WrapOverflow(),
             builder: (index) {
               return BreadCrumbItem(
                 content: TextButton(
-                  child: Text(
-                      ['/', ...currentPath.sublist(basePath.length)][index]),
+                  child: Text([storage.name, ...currentPath.sublist(1)][index]),
                   onPressed: () {
-                    useStorageStore().updateCurrentPath(
-                        currentPath.sublist(0, index + basePath.length));
+                    useStorageStore()
+                        .updateCurrentPath(currentPath.sublist(0, index + 1));
                   },
                 ),
               );
@@ -306,42 +303,26 @@ class Files extends HookWidget {
                 onPressed: refresh,
               ),
               IconButton(
-                tooltip: currentFavoritedStorage != null
+                tooltip: currentFavorite != null
                     ? t.remove_favorite
                     : t.add_favorite,
-                icon: Icon(currentFavoritedStorage != null
+                icon: Icon(currentFavorite != null
                     ? Icons.star_rounded
                     : Icons.star_outline_rounded),
-                onPressed: () async {
-                  if (currentFavoritedStorage != null) {
-                    await useStorageStore()
-                        .removeFavoriteStorage(currentFavoritedStorage);
+                onPressed: () {
+                  if (currentFavorite != null) {
+                    useStorageStore().removeFavorite(currentFavorite);
                   } else {
-                    switch (storage.type) {
-                      case StorageType.local:
-                        await useStorageStore().addFavoriteStorage(
-                          (storage as LocalStorage).copyWith(
-                            name: currentPath.last,
-                            basePath: currentPath,
-                          ),
-                        );
-                        break;
-                      case StorageType.webdav:
-                        await useStorageStore().addFavoriteStorage(
-                          (storage as WebDAVStorage).copyWith(
-                            name: currentPath.last,
-                            basePath: currentPath,
-                          ),
-                        );
-                        break;
-                    }
+                    useStorageStore().addFavorite(
+                      Favorite(storageId: storage.id, path: currentPath),
+                    );
                   }
                 },
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  title,
+                  currentPath.length > 1 ? currentPath.last : storage.name,
                   maxLines: 1,
                   style: const TextStyle(
                     fontWeight: FontWeight.w500,

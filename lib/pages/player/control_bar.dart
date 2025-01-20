@@ -6,17 +6,17 @@ import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
-import 'package:iris/pages/popup/history.dart';
-import 'package:iris/pages/popup/subtitle_and_audio_track.dart';
+import 'package:iris/pages/history.dart';
+import 'package:iris/pages/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/pages/popup/play_queue.dart';
+import 'package:iris/pages/play_queue.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/utils/resize_window.dart';
-import 'package:iris/pages/popup/show_popup.dart';
-import 'package:iris/pages/storages/storages.dart';
+import 'package:iris/widgets/popup.dart';
+import 'package:iris/pages/storage/storages.dart';
 import 'package:window_manager/window_manager.dart';
 
 class ControlBar extends HookWidget {
@@ -217,7 +217,7 @@ class ControlBar extends HookWidget {
                 //   ),
                 // ),
                 IconButton(
-                  tooltip: '${t.storages} ( F )',
+                  tooltip: '${t.storage} ( F )',
                   icon: const Icon(
                     Icons.storage_rounded,
                     size: 18,

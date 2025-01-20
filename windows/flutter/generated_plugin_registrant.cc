@@ -6,6 +6,7 @@
 
 #include "generated_plugin_registrant.h"
 
+#include <disks_desktop/disks_desktop_plugin.h>
 #include <dynamic_color/dynamic_color_plugin_c_api.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
 #include <media_kit_libs_windows_video/media_kit_libs_windows_video_plugin_c_api.h>
@@ -17,6 +18,8 @@
 #include <window_size/window_size_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
+  DisksDesktopPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("DisksDesktopPlugin"));
   DynamicColorPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("DynamicColorPluginCApi"));
   FlutterSecureStorageWindowsPluginRegisterWithRegistrar(

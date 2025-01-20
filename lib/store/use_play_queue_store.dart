@@ -10,13 +10,17 @@ import 'package:iris/store/persistent_store.dart';
 class PlayQueueStore extends PersistentStore<PlayQueueState> {
   PlayQueueStore() : super(PlayQueueState());
 
-  Future<void> updatePlayQueue(
-      List<PlayQueueItem> playQueue, int? index) async {
+  Future<void> update(List<PlayQueueItem> playQueue, int? index) async {
     set(state.copyWith(
       playQueue: playQueue,
       currentIndex: index ?? state.currentIndex,
     ));
-    save(state);
+    await save(state);
+  }
+
+  Future<void> updateCurrentIndex(int index) async {
+    set(state.copyWith(currentIndex: index));
+    await save(state);
   }
 
   Future<void> add(List<FileItem> files) async {
@@ -36,7 +40,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
         .toList();
 
     set(state.copyWith(playQueue: [...state.playQueue, ...playQueue]));
-    save(state);
+    await save(state);
   }
 
   Future<void> remove(PlayQueueItem item) async {
@@ -62,12 +66,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
         ));
       }
     }
-    save(state);
-  }
-
-  Future<void> updateCurrentIndex(int index) async {
-    set(state.copyWith(currentIndex: index));
-    save(state);
+    await save(state);
   }
 
   @override

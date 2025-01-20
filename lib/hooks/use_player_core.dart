@@ -124,30 +124,16 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     }
   }
 
-  final storages = useStorageStore().select(context, (state) => state.storages);
-
   final List<String> dir = useMemoized(
     () => (currentFile == null) ? [] : ([...currentFile.path]..removeLast()),
     [currentFile],
   );
 
-  final Storage? storage = useMemoized(() {
-    if (currentFile == null) return null;
-
-    if (currentFile.storageId == 'local') {
-      return LocalStorage(
-        id: 'local',
-        name: 'Local',
-        type: StorageType.local,
-        basePath: dir,
-      );
-    }
-
-    final filtered =
-        storages.where((storage) => storage.id == currentFile.storageId);
-
-    return filtered.firstOrNull;
-  }, [currentFile, dir, storages]);
+  final Storage? storage = useMemoized(
+      () => currentFile == null
+          ? null
+          : useStorageStore().findById(currentFile.storageId),
+      [currentFile]);
 
   final getCover = useMemoized(() async {
     if (currentFile?.type != ContentType.audio) return null;

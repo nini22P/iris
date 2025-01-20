@@ -9,7 +9,7 @@ import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/widgets/subtitle_chip.dart';
+import 'package:iris/widgets/custom_chip.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class PlayQueue extends HookWidget {
@@ -92,20 +92,20 @@ class PlayQueue extends HookWidget {
                     const Spacer(),
                     () {
                       final Progress? progress = useHistoryStore()
-                          .findByID(playQueue[index].file.getID());
+                          .findById(playQueue[index].file.getID());
                       if (progress != null &&
                           progress.file.type == ContentType.video) {
                         if ((progress.duration.inMilliseconds -
                                 progress.position.inMilliseconds) <=
                             5000) {
-                          return SubtitleChip(text: '100%');
+                          return CustomChip(text: '100%');
                         }
                         final String progressString =
                             (progress.position.inMilliseconds /
                                     progress.duration.inMilliseconds *
                                     100)
                                 .toStringAsFixed(0);
-                        return SubtitleChip(text: '$progressString %');
+                        return CustomChip(text: '$progressString %');
                       } else {
                         return const SizedBox();
                       }
@@ -122,7 +122,7 @@ class PlayQueue extends HookWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const SizedBox(width: 8),
-                              SubtitleChip(
+                              CustomChip(
                                 text: subtitleType,
                                 primary: true,
                               ),
