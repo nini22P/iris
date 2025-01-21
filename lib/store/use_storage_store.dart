@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:collection/collection.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/storage.dart';
@@ -9,9 +10,18 @@ import 'package:iris/store/persistent_store.dart';
 class StorageStore extends PersistentStore<StorageState> {
   StorageStore() : super(StorageState());
 
+  Storage? findById(String id) =>
+      state.localStorages.firstWhereOrNull((storage) => storage.id == id) ??
+      state.storages.firstWhereOrNull((storage) => storage.id == id);
+
+  Future<void> updateLocalStorages(List<LocalStorage> storages) async {
+    set(state.copyWith(localStorages: storages));
+    await save(state);
+  }
+
   Future<void> addStorage(Storage storage) async {
     set(state.copyWith(storages: [...state.storages, storage]));
-    save(state);
+    await save(state);
   }
 
   Future<void> updateStorage(int index, Storage storage) async {
@@ -19,65 +29,36 @@ class StorageStore extends PersistentStore<StorageState> {
       return;
     }
 
-    final updatedStorages = state.storages
-      ..removeAt(index)
-      ..insert(index, storage);
-
-    set(state.copyWith(storages: updatedStorages));
-    save(state);
-  }
-
-  Future<void> removeStorage(int index) async {
-    if (index < 0 || index >= state.storages.length) {
-      return;
-    }
-
-    final updatedStorages = state.storages..removeAt(index);
-
-    set(state.copyWith(storages: updatedStorages));
-    save(state);
-  }
-
-  Future<void> addFavoriteStorage(Storage favoriteStorages) async {
     set(state.copyWith(
-        favoriteStorages: [...state.favoriteStorages, favoriteStorages]));
-    save(state);
+        storages: [...state.storages]
+          ..removeAt(index)
+          ..insert(index, storage)));
+    await save(state);
   }
 
-  Future<void> updateFavoriteStorage(
-      int index, Storage favoriteStorages) async {
-    if (index < 0 || index >= state.favoriteStorages.length) {
-      return;
-    }
-
-    final updatedStorages = state.favoriteStorages
-      ..removeAt(index)
-      ..insert(index, favoriteStorages);
-
-    set(state.copyWith(favoriteStorages: updatedStorages));
-    save(state);
+  Future<void> removeStorage(Storage storage) async {
+    set(state.copyWith(storages: [...state.storages]..remove(storage)));
+    await save(state);
   }
 
-  Future<void> removeFavoriteStorage(int index) async {
-    if (index < 0 || index >= state.favoriteStorages.length) {
-      return;
-    }
+  Future<void> addFavorite(Favorite favorite) async {
+    set(state.copyWith(favorites: [...state.favorites, favorite]));
+    await save(state);
+  }
 
-    final updatedStorages = state.favoriteStorages..removeAt(index);
-
-    set(state.copyWith(favoriteStorages: updatedStorages));
-    save(state);
+  Future<void> removeFavorite(Favorite favorite) async {
+    set(state.copyWith(favorites: [...state.favorites]..remove(favorite)));
+    await save(state);
   }
 
   Future<void> updateCurrentStorage(Storage? storage) async {
-    set(state.copyWith(
-        currentStorage: storage, clearCurrentStorage: storage == null));
-    save(state);
+    set(state.copyWith(currentStorage: storage));
+    await save(state);
   }
 
-  Future<void> updateCurrentPath(List<String>? path) async {
+  Future<void> updateCurrentPath(List<String> path) async {
     set(state.copyWith(currentPath: path));
-    save(state);
+    await save(state);
   }
 
   @override

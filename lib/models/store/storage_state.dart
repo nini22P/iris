@@ -1,85 +1,31 @@
-import 'package:iris/models/storages/local_storage.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:iris/models/storages/storage.dart';
-import 'package:iris/models/storages/webdav_storage.dart';
 
-class StorageState {
-  List<Storage> storages;
-  List<Storage> favoriteStorages;
-  Storage? currentStorage;
-  List<String> currentPath;
+part 'storage_state.freezed.dart';
+part 'storage_state.g.dart';
 
-  StorageState({
-    this.storages = const [],
-    this.favoriteStorages = const [],
-    this.currentStorage,
-    this.currentPath = const [],
-  });
+@freezed
+class Favorite with _$Favorite {
+  factory Favorite({
+    required String storageId,
+    required List<String> path,
+  }) = _Favorite;
 
-  StorageState copyWith({
-    List<Storage>? storages,
-    List<Storage>? favoriteStorages,
-    Storage? currentStorage,
-    bool clearCurrentStorage = false,
-    List<String>? currentPath,
-  }) =>
-      StorageState(
-        storages: storages ?? this.storages,
-        favoriteStorages: favoriteStorages ?? this.favoriteStorages,
-        currentStorage:
-            clearCurrentStorage ? null : currentStorage ?? this.currentStorage,
-        currentPath: currentPath ?? this.currentPath,
-      );
+  factory Favorite.fromJson(Map<String, dynamic> json) =>
+      _$FavoriteFromJson(json);
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      'storages': storages.map((s) => s.toJson()).toList(),
-      'favoriteStorages': favoriteStorages.map((s) => s.toJson()).toList(),
-      'currentStorage': currentStorage?.toJson(),
-      'currentPath': currentPath
-    };
-  }
+@freezed
+class StorageState with _$StorageState {
+  factory StorageState({
+    @Default([]) List<LocalStorage> localStorages,
+    @Default([]) List<Storage> storages,
+    @Default([]) List<Favorite> favorites,
+    @Default(null) Storage? currentStorage,
+    @Default([]) List<String> currentPath,
+  }) = _StorageState;
 
-  factory StorageState.fromJson(Map<String, dynamic> json) {
-    return StorageState(
-      storages: (json['storages'] as List)
-          .map((storageJson) {
-            switch (storageJson['type']) {
-              case 'webdav':
-                return WebdavStorage.fromJson(storageJson);
-              case 'local':
-                return LocalStorage.fromJson(storageJson);
-              default:
-                throw Exception('Unknown storage type');
-            }
-          })
-          .toList()
-          .cast<Storage>(),
-      favoriteStorages: (json['favoriteStorages'] as List)
-          .map((storageJson) {
-            switch (storageJson['type']) {
-              case 'webdav':
-                return WebdavStorage.fromJson(storageJson);
-              case 'local':
-                return LocalStorage.fromJson(storageJson);
-              default:
-                throw Exception('Unknown storage type');
-            }
-          })
-          .toList()
-          .cast<Storage>(),
-      currentStorage: json['currentStorage'] != null
-          ? (() {
-              switch (json['currentStorage']['type']) {
-                case 'webdav':
-                  return WebdavStorage.fromJson(json['currentStorage']);
-                case 'local':
-                  return LocalStorage.fromJson(json['currentStorage']);
-                default:
-                  return null;
-              }
-            })()
-          : null,
-      currentPath: List<String>.from(json['currentPath']),
-    );
-  }
+  factory StorageState.fromJson(Map<String, dynamic> json) =>
+      _$StorageStateFromJson(json);
 }

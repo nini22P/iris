@@ -8,119 +8,123 @@ class ControlBarSlider extends HookWidget {
   const ControlBarSlider({
     super.key,
     required this.playerCore,
-    required this.playerController,
     required this.showControl,
     this.disabled = false,
   });
 
   final PlayerCore playerCore;
-  final PlayerController playerController;
+
   final void Function() showControl;
   final bool disabled;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
-      child: Row(
-        children: [
-          Visibility(
-            visible: !disabled,
-            child: Text(
-              formatDurationToMinutes(playerCore.position),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                height: 2,
+    final PlayerController playerController =
+        usePlayerController(context, playerCore);
+    return ExcludeFocus(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+        child: Row(
+          children: [
+            Visibility(
+              visible: !disabled,
+              child: Text(
+                formatDurationToMinutes(playerCore.position),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  height: 2,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      thumbShape: const RoundSliderThumbShape(
-                        disabledThumbRadius: 0,
-                        elevation: 0,
-                        pressedElevation: 0,
+            Expanded(
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        thumbShape: const RoundSliderThumbShape(
+                          disabledThumbRadius: 0,
+                          elevation: 0,
+                          pressedElevation: 0,
+                        ),
+                        overlayShape: const RoundSliderOverlayShape(
+                          overlayRadius: 12,
+                        ),
+                        trackShape: const RoundedActiveTrackShape(),
+                        trackHeight: 3,
                       ),
+                      child: Slider(
+                        value: playerCore.buffer.inSeconds.toDouble(),
+                        min: 0,
+                        max: playerCore.duration.inSeconds.toDouble(),
+                        onChanged: null,
+                      ),
+                    ),
+                  ),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      thumbColor:
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                      thumbShape: RoundSliderThumbShape(
+                        enabledThumbRadius: disabled ? 0 : 6,
+                      ),
+                      disabledThumbColor: Theme.of(context)
+                          .colorScheme
+                          .onSurfaceVariant
+                          .withAlpha(222),
                       overlayShape: const RoundSliderOverlayShape(
                         overlayRadius: 12,
                       ),
-                      trackShape: const RoundedActiveTrackShape(),
-                      trackHeight: 3,
+                      activeTrackColor:
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                      inactiveTrackColor: Theme.of(context)
+                          .colorScheme
+                          .onSurfaceVariant
+                          .withAlpha(99),
+                      trackShape:
+                          disabled ? const RoundedActiveTrackShape() : null,
+                      trackHeight: 4,
                     ),
                     child: Slider(
-                      value: playerCore.buffer.inSeconds.toDouble(),
+                      value: playerCore.duration.inSeconds.toDouble() == 0
+                          ? 0
+                          : playerCore.position.inSeconds.toDouble(),
                       min: 0,
                       max: playerCore.duration.inSeconds.toDouble(),
-                      onChanged: null,
+                      onChangeStart: (value) {
+                        playerCore.updateSeeking(true);
+                      },
+                      onChanged: (value) {
+                        showControl();
+                        playerCore
+                            .updatePosition(Duration(seconds: value.toInt()));
+                      },
+                      onChangeEnd: (value) async {
+                        await playerController
+                            .seekTo(Duration(seconds: value.toInt()));
+                        playerCore.updateSeeking(false);
+                      },
                     ),
                   ),
-                ),
-                SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    thumbColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                    thumbShape: RoundSliderThumbShape(
-                      enabledThumbRadius: disabled ? 0 : 6,
-                    ),
-                    disabledThumbColor: Theme.of(context)
-                        .colorScheme
-                        .onSurfaceVariant
-                        .withAlpha(222),
-                    overlayShape: const RoundSliderOverlayShape(
-                      overlayRadius: 12,
-                    ),
-                    activeTrackColor:
-                        Theme.of(context).colorScheme.onSurfaceVariant,
-                    inactiveTrackColor: Theme.of(context)
-                        .colorScheme
-                        .onSurfaceVariant
-                        .withAlpha(99),
-                    trackShape:
-                        disabled ? const RoundedActiveTrackShape() : null,
-                    trackHeight: 4,
-                  ),
-                  child: Slider(
-                    value: playerCore.duration.inSeconds.toDouble() == 0
-                        ? 0
-                        : playerCore.position.inSeconds.toDouble(),
-                    min: 0,
-                    max: playerCore.duration.inSeconds.toDouble(),
-                    onChangeStart: (value) {
-                      playerCore.updateSeeking(true);
-                    },
-                    onChanged: (value) {
-                      showControl();
-                      playerCore
-                          .updatePosition(Duration(seconds: value.toInt()));
-                    },
-                    onChangeEnd: (value) async {
-                      await playerController
-                          .seekTo(Duration(seconds: value.toInt()));
-                      playerCore.updateSeeking(false);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Visibility(
-            visible: !disabled,
-            child: Text(
-              formatDurationToMinutes(playerCore.duration),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                height: 2,
+                ],
               ),
             ),
-          ),
-        ],
+            Visibility(
+              visible: !disabled,
+              child: Text(
+                formatDurationToMinutes(playerCore.duration),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  height: 2,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

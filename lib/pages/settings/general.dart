@@ -5,7 +5,7 @@ import 'package:iris/l10n/languages.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/pages/dialog/show_language_dialog.dart';
-import 'package:iris/pages/dialog/show_theme_color_dialog.dart';
+import 'package:iris/pages/dialog/show_theme_mode_dialog.dart';
 
 class General extends HookWidget {
   const General({super.key});
@@ -15,7 +15,7 @@ class General extends HookWidget {
     final t = getLocalizations(context);
 
     final language = useAppStore().select(context, (state) => state.language);
-    final theme = useAppStore().select(context, (state) => state.theme);
+    final themeMode = useAppStore().select(context, (state) => state.themeMode);
 
     return SingleChildScrollView(
       child: Column(
@@ -23,30 +23,29 @@ class General extends HookWidget {
           ListTile(
             leading: const Icon(Icons.translate_rounded),
             title: Text(t.language),
-            subtitle: Text(
-                language == 'auto' ? t.auto : languages[language] ?? language),
+            subtitle: Text(language == 'system'
+                ? t.system
+                : languages[language] ?? language),
             onTap: () => showLanguageDialog(context),
           ),
           ListTile(
-            leading: Icon(theme == 'light'
+            leading: Icon(themeMode == ThemeMode.light
                 ? Icons.light_mode_rounded
-                : theme == 'dark'
+                : themeMode == ThemeMode.dark
                     ? Icons.dark_mode_rounded
                     : Icons.contrast_rounded),
             title: Text(t.theme_mode),
             subtitle: Text(() {
-              switch (theme) {
-                case 'auto':
-                  return t.auto;
-                case 'light':
+              switch (themeMode) {
+                case ThemeMode.system:
+                  return t.system;
+                case ThemeMode.light:
                   return t.light;
-                case 'dark':
+                case ThemeMode.dark:
                   return t.dark;
-                default:
-                  return theme;
               }
             }()),
-            onTap: () => showThemeColorDialog(context),
+            onTap: () => showThemeModeDialog(context),
           ),
         ],
       ),

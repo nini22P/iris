@@ -1,3 +1,5 @@
+import 'package:iris/models/file.dart';
+
 class Formats {
   static const List<String> audio = [
     'aac',
@@ -59,11 +61,11 @@ class Formats {
   ];
 }
 
-String checkFileType(String name) {
+ContentType checkContentType(String name) {
   final fileTypeMap = {
-    'audio': Formats.audio,
-    'video': Formats.video,
-    'image': Formats.image,
+    ContentType.audio: Formats.audio,
+    ContentType.video: Formats.video,
+    ContentType.image: Formats.image,
   };
 
   for (var entry in fileTypeMap.entries) {
@@ -72,5 +74,5 @@ String checkFileType(String name) {
     }
   }
 
-  return 'other';
+  return ContentType.other;
 }

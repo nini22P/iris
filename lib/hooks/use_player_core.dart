@@ -2,10 +2,13 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:collection/collection.dart';
 import 'package:iris/models/file.dart';
-import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/models/progress.dart';
 import 'package:iris/models/storages/storage.dart';
+import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/files_filter.dart';
@@ -13,14 +16,14 @@ import 'package:media_kit/media_kit.dart';
 
 class PlayerCore {
   final Player player;
-  final String title;
-  final FileItem? currentFile;
   final SubtitleTrack subtitle;
   final List<SubtitleTrack> subtitles;
   final List<Subtitle> externalSubtitles;
   final AudioTrack audio;
   final List<AudioTrack> audios;
   final bool playing;
+  final VideoParams? videoParams;
+  final AudioParams? audioParams;
   final Duration position;
   final Duration duration;
   final Duration buffer;
@@ -31,17 +34,18 @@ class PlayerCore {
   final FileItem? cover;
   final void Function(Duration) updatePosition;
   final void Function(bool) updateSeeking;
+  final Future<void> Function() saveProgress;
 
   PlayerCore(
     this.player,
-    this.title,
-    this.currentFile,
     this.subtitle,
     this.subtitles,
     this.externalSubtitles,
     this.audio,
     this.audios,
     this.playing,
+    this.videoParams,
+    this.audioParams,
     this.position,
     this.duration,
     this.buffer,
@@ -52,28 +56,40 @@ class PlayerCore {
     this.cover,
     this.updatePosition,
     this.updateSeeking,
+    this.saveProgress,
   );
 }
 
 PlayerCore usePlayerCore(BuildContext context, Player player) {
-  final playQueue =
+  final localStorages =
+      useStorageStore().select(context, (state) => state.localStorages);
+  final storages = useStorageStore().select(context, (state) => state.storages);
+
+  final List<PlayQueueItem> playQueue =
       usePlayQueueStore().select(context, (state) => state.playQueue);
-  final currentIndex =
+  final int currentIndex =
       usePlayQueueStore().select(context, (state) => state.currentIndex);
-  final autoPlay = useAppStore().select(context, (state) => state.autoPlay);
-  final currentFile = useMemoized(
-      () => playQueue.isEmpty ? null : playQueue[currentIndex],
+  final bool autoPlay =
+      useAppStore().select(context, (state) => state.autoPlay);
+  final Repeat repeat = useAppStore().select(context, (state) => state.repeat);
+
+  final history = useHistoryStore().select(context, (state) => state.history);
+
+  final int currentPlayIndex = useMemoized(
+      () => playQueue.indexWhere((element) => element.index == currentIndex),
       [playQueue, currentIndex]);
 
-  final title = useMemoized(
-      () => currentFile != null
-          ? '[${currentIndex + 1}/${playQueue.length}] ${currentFile.name}'
-          : '',
-      [currentFile]);
+  final FileItem? currentFile = useMemoized(
+      () => playQueue.isEmpty || currentPlayIndex < 0
+          ? null
+          : playQueue[currentPlayIndex].file,
+      [playQueue, currentPlayIndex]);
 
   ValueNotifier<bool> seeking = useState(false);
 
   bool playing = useStream(player.stream.playing).data ?? false;
+  VideoParams? videoParams = useStream(player.stream.videoParams).data;
+  AudioParams? audioParams = useStream(player.stream.audioParams).data;
   ValueNotifier<Duration> position = useState(Duration.zero);
   Duration duration = useStream(player.stream.duration).data ?? Duration.zero;
   Duration buffer = useStream(player.stream.buffer).data ?? Duration.zero;
@@ -99,7 +115,6 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           (subtitle) => subtitles.any((item) => item.title == subtitle.name)),
       [currentFile?.subtitles, subtitles]);
 
-  VideoParams? videoParams = useStream(player.stream.videoParams).data;
   double aspectRatio =
       videoParams != null && videoParams.w != null && videoParams.h != null
           ? (videoParams.w! / videoParams.h!)
@@ -113,60 +128,58 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     }
   }
 
-  final storages = useStorageStore().select(context, (state) => state.storages);
-
   final List<String> dir = useMemoized(
     () => (currentFile == null) ? [] : ([...currentFile.path]..removeLast()),
     [currentFile],
   );
 
-  final Storage? storage = useMemoized(() {
-    if (currentFile == null) return null;
-
-    if (currentFile.storageId == 'local') {
-      return LocalStorage(
-        id: 'local',
-        name: 'Local',
-        type: 'local',
-        basePath: dir,
-      );
-    }
-
-    final filtered =
-        storages.where((storage) => storage.id == currentFile.storageId);
-
-    return filtered.firstOrNull;
-  }, [currentFile, dir, storages]);
+  final Storage? storage = useMemoized(
+      () => currentFile == null
+          ? null
+          : [...localStorages, ...storages].firstWhereOrNull(
+              (storage) => storage.id == currentFile.storageId),
+      [currentFile, localStorages, storages]);
 
   final getCover = useMemoized(() async {
-    if (currentFile?.type != 'audio') return null;
+    if (currentFile?.type != ContentType.audio) return null;
 
     final files = await storage?.getFiles(dir);
 
     if (files == null) return null;
 
-    final images = filesFilter(files, ['image']);
+    final images = filesFilter(files, [ContentType.image]);
 
-    return images
-            .where(
-                (image) => image.name.split('.').first.toLowerCase() == 'cover')
-            .firstOrNull ??
+    return images.firstWhereOrNull(
+            (image) => image.name.split('.').first.toLowerCase() == 'cover') ??
         images.firstOrNull;
   }, [currentFile, dir]);
 
   final cover = useFuture(getCover).data;
 
   useEffect(() {
-    if (currentFile == null || playQueue.isEmpty) return;
-    log('Now playing: ${currentFile.name}, auto play: $autoPlay');
-    player.open(
-      Media(currentFile.uri,
-          httpHeaders: currentFile.auth != null
-              ? {'authorization': currentFile.auth!}
-              : {}),
-      play: autoPlay,
-    );
-    return null;
+    if (currentFile == null || playQueue.isEmpty) {
+      player.stop();
+    } else {
+      log('Now playing: ${currentFile.name}, auto play: $autoPlay');
+      player.open(
+        Media(currentFile.uri,
+            httpHeaders: currentFile.auth != null
+                ? {'authorization': currentFile.auth!}
+                : {}),
+        play: autoPlay,
+      );
+    }
+    return () {
+      if (currentFile != null && player.state.duration == Duration.zero) {
+        log('Save progress: ${currentFile.name}');
+        useHistoryStore().add(Progress(
+          dateTime: DateTime.now().toUtc(),
+          position: player.state.position,
+          duration: player.state.duration,
+          file: currentFile,
+        ));
+      }
+    };
   }, [currentFile]);
 
   useEffect(() {
@@ -175,6 +188,20 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
         await player.setSubtitleTrack(SubtitleTrack.no());
         return;
       }
+      // 查询播放进度
+      if (currentFile != null && currentFile.type == ContentType.video) {
+        Progress? progress = history[currentFile.getID()];
+        if (progress != null) {
+          if (progress.duration.inMilliseconds == duration.inMilliseconds &&
+              (progress.duration.inMilliseconds -
+                      progress.position.inMilliseconds) >
+                  5000) {
+            log('Resume progress: ${currentFile.name} position: ${progress.position} duration: ${progress.duration}');
+            await player.seek(progress.position);
+          }
+        }
+      }
+      // 设置字幕
       if (externalSubtitles!.isNotEmpty) {
         log('Set external subtitle: ${externalSubtitles[0].name}');
         await player.setSubtitleTrack(
@@ -193,20 +220,61 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     return;
   }, [duration]);
 
+  useEffect(() {
+    () async {
+      if (completed) {
+        if (repeat == Repeat.one) return;
+        if (currentPlayIndex == playQueue.length - 1) {
+          if (repeat == Repeat.none) {
+            useAppStore().updateAutoPlay(false);
+          }
+          usePlayQueueStore().updateCurrentIndex(playQueue[0].index);
+        } else {
+          if (currentPlayIndex == playQueue.length - 1) return;
+          await usePlayQueueStore()
+              .updateCurrentIndex(playQueue[currentPlayIndex + 1].index);
+        }
+      }
+    }();
+    return null;
+  }, [completed, repeat]);
+
+  useEffect(() {
+    log('$repeat');
+    if (repeat == Repeat.one) {
+      player.setPlaylistMode(PlaylistMode.loop);
+    } else {
+      player.setPlaylistMode(PlaylistMode.none);
+    }
+    return;
+  }, [repeat]);
+
   void updatePosition(Duration newPosition) => position.value = newPosition;
 
   void updateSeeking(bool value) => seeking.value = value;
 
+  Future<void> saveProgress() async {
+    if (currentFile != null && player.state.duration != Duration.zero) {
+      log('Save progress: ${currentFile.name}');
+      useHistoryStore().add(Progress(
+        dateTime: DateTime.now().toUtc(),
+        position: player.state.position,
+        duration: player.state.duration,
+        file: currentFile,
+      ));
+    }
+  }
+
   return PlayerCore(
     player,
-    title,
-    currentFile,
     subtitle,
     subtitles,
     externalSubtitles ?? [],
     audio,
     audios,
     playing,
+    videoParams,
+    audioParams,
     duration == Duration.zero ? Duration.zero : position.value,
     duration,
     duration == Duration.zero ? Duration.zero : buffer,
@@ -217,5 +285,6 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     cover,
     updatePosition,
     updateSeeking,
+    saveProgress,
   );
 }

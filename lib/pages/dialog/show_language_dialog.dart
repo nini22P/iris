@@ -30,14 +30,14 @@ class LanguageDialog extends HookWidget {
           child: Column(
         children: [
           ListTile(
-            title: Text(t.auto),
+            title: Text(t.system),
             contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
-              value: 'auto',
+              value: 'system',
               groupValue: language,
-              onChanged: (_) => updateLanguage('auto'),
+              onChanged: (_) => updateLanguage('system'),
             ),
-            onTap: () => updateLanguage('auto'),
+            onTap: () => updateLanguage('system'),
           ),
           ...languages.entries.map(
             (e) => ListTile(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_core.dart';
-import 'package:iris/pages/player/audio_tracks.dart';
-import 'package:iris/pages/player/subtitles.dart';
+import 'package:iris/pages/audio_tracks.dart';
+import 'package:iris/pages/subtitles.dart';
 import 'package:iris/utils/get_localizations.dart';
 
 class ITab {
@@ -32,11 +32,21 @@ class SubtitleAndAudioTrack extends HookWidget {
     final tabController = useTabController(initialLength: tabs.length);
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Expanded(
           child: TabBarView(
             controller: tabController,
-            children: tabs.map((e) => Card(child: e.child)).toList(),
+            children: tabs
+                .map((e) => Card(
+                      color: Colors.transparent,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: e.child,
+                    ))
+                .toList(),
           ),
         ),
         Divider(

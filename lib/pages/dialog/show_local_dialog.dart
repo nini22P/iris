@@ -1,77 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:iris/models/storages/local_storage.dart';
+import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 
 Future<void> showLocalDialog(BuildContext context,
-        {LocalStorage? localStorage, bool? isFavorite}) async =>
+        {LocalStorage? storage}) async =>
     await showDialog<void>(
         context: context,
-        builder: (BuildContext context) => LocalDialog(
-              localStorage: localStorage,
-              isFavorite: isFavorite ?? false,
-            ));
+        builder: (BuildContext context) => LocalDialog(storage: storage));
 
 class LocalDialog extends HookWidget {
   const LocalDialog({
     super.key,
-    this.localStorage,
-    required this.isFavorite,
+    this.storage,
   });
-  final LocalStorage? localStorage;
-  final bool isFavorite;
+  final LocalStorage? storage;
 
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final bool isEdit = localStorage != null &&
-        (useStorageStore().state.storages.contains(localStorage!) ||
-            (isFavorite &&
-                useStorageStore()
-                    .state
-                    .favoriteStorages
-                    .contains(localStorage!)));
-
-    final name = useState(localStorage?.name ?? '');
-    final basePath = useState(localStorage?.basePath ?? []);
+    final bool isEdit = storage != null &&
+        (useStorageStore().state.storages.contains(storage!));
+    final type = useState(storage?.type ?? StorageType.internal);
+    final name = useState(storage?.name ?? '');
+    final basePath = useState(storage?.basePath ?? []);
 
     final isTested = useState(true);
 
-    void add() async {
-      if (isFavorite) return;
-      await useStorageStore().addStorage(
+    void add() {
+      useStorageStore().addStorage(
         LocalStorage(
-          id: 'local',
-          type: 'local',
+          type: type.value,
           name: name.value,
           basePath: basePath.value,
         ),
       );
     }
 
-    void update() async {
-      if (!isFavorite) {
-        await useStorageStore().updateStorage(
-          useStorageStore().state.storages.indexOf(localStorage!),
-          LocalStorage(
-            id: 'local',
-            type: 'local',
-            name: name.value,
-            basePath: basePath.value,
-          ),
-        );
-      } else {
-        await useStorageStore().updateFavoriteStorage(
-          useStorageStore().state.favoriteStorages.indexOf(localStorage!),
-          LocalStorage(
-            id: 'local',
-            type: 'local',
-            name: name.value,
-            basePath: basePath.value,
-          ),
-        );
-      }
+    void update() {
+      useStorageStore().updateStorage(
+        useStorageStore().state.storages.indexOf(storage! as Storage),
+        LocalStorage(
+          type: type.value,
+          name: name.value,
+          basePath: basePath.value,
+        ),
+      );
     }
 
     return AlertDialog(

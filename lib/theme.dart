@@ -4,13 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 ThemeData baseTheme(BuildContext context) {
   return ThemeData(
-    cardTheme: CardTheme(
-      color: Colors.transparent,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-    ),
     popupMenuTheme: PopupMenuThemeData(
       menuPadding: const EdgeInsets.all(0),
       shape: RoundedRectangleBorder(
@@ -53,7 +46,6 @@ CustomTheme getTheme({
     colorScheme: colorScheme,
     useMaterial3: true,
     textTheme: GoogleFonts.notoSansScTextTheme(),
-    cardTheme: baseTheme(context).cardTheme,
     popupMenuTheme: baseTheme(context).popupMenuTheme,
     listTileTheme: baseTheme(context).listTileTheme,
   );
@@ -65,7 +57,6 @@ CustomTheme getTheme({
           .copyWith(colorScheme: darkColorScheme)
           .textTheme,
     ),
-    cardTheme: baseTheme(context).cardTheme,
     popupMenuTheme: baseTheme(context).popupMenuTheme,
     listTileTheme: baseTheme(context).listTileTheme,
   );

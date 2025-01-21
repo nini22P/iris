@@ -1,74 +1,31 @@
-class AppState {
-  bool autoPlay;
-  bool loop;
-  int volume;
-  bool isMuted;
-  String theme;
-  String subtitleLanguage;
-  bool autoCheckUpdates;
-  String language;
-  bool autoResize;
+import 'package:flutter/material.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  AppState({
-    this.autoPlay = false,
-    this.loop = false,
-    this.volume = 100,
-    this.isMuted = false,
-    this.theme = 'auto',
-    this.subtitleLanguage = 'auto',
-    this.autoCheckUpdates = true,
-    this.language = 'auto',
-    this.autoResize = false,
-  });
+part 'app_state.freezed.dart';
+part 'app_state.g.dart';
 
-  AppState copyWith({
-    bool? autoPlay,
-    bool? loop,
-    int? volume,
-    bool? isMuted,
-    String? theme,
-    String? subtitleLanguage,
-    bool? autoCheckUpdates,
-    String? language,
-    bool? autoResize,
-  }) =>
-      AppState(
-        autoPlay: autoPlay ?? this.autoPlay,
-        loop: loop ?? this.loop,
-        volume: volume ?? this.volume,
-        isMuted: isMuted ?? this.isMuted,
-        theme: theme ?? this.theme,
-        subtitleLanguage: subtitleLanguage ?? this.subtitleLanguage,
-        autoCheckUpdates: autoCheckUpdates ?? this.autoCheckUpdates,
-        language: language ?? this.language,
-        autoResize: autoResize ?? this.autoResize,
-      );
+enum Repeat {
+  none,
+  all,
+  one,
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      'autoPlay': autoPlay,
-      'loop': loop,
-      'volume': volume,
-      'isMuted': isMuted,
-      'theme': theme,
-      'subtitleLanguage': subtitleLanguage,
-      'autoCheckUpdates': autoCheckUpdates,
-      'language': language,
-      'autoResize': autoResize,
-    };
-  }
+@freezed
+class AppState with _$AppState {
+  const factory AppState({
+    @Default(false) bool autoPlay,
+    @Default(false) bool shuffle,
+    @Default(Repeat.none) Repeat repeat,
+    @Default(BoxFit.contain) BoxFit fit,
+    @Default(100) int volume,
+    @Default(false) bool isMuted,
+    @Default(ThemeMode.system) ThemeMode themeMode,
+    @Default('none') String preferedSubtitleLanguage,
+    @Default('system') String language,
+    @Default(false) bool autoCheckUpdate,
+    @Default(false) bool autoResize,
+  }) = _AppState;
 
-  factory AppState.fromJson(Map<String, dynamic> json) {
-    return AppState(
-      autoPlay: json['autoPlay'] ?? true,
-      loop: json['loop'] ?? false,
-      volume: json['volume'] ?? 100,
-      isMuted: json['isMuted'] ?? false,
-      theme: json['theme'] ?? 'auto',
-      subtitleLanguage: json['subtitleLanguage'] ?? 'auto',
-      autoCheckUpdates: json['autoCheckUpdates'] ?? true,
-      language: json['language'] ?? 'auto',
-      autoResize: json['autoResize'] ?? false,
-    );
-  }
+  factory AppState.fromJson(Map<String, dynamic> json) =>
+      _$AppStateFromJson(json);
 }

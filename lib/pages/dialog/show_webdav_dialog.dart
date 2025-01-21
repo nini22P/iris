@@ -1,62 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:iris/models/storages/webdav_storage.dart';
+import 'package:iris/models/storages/storage.dart';
+import 'package:iris/models/storages/webdav.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:uuid/uuid.dart';
 
 Future<void> showWebDAVDialog(BuildContext context,
-        {WebdavStorage? webdavStorage, bool? isFavorite}) async =>
+        {WebDAVStorage? storage}) async =>
     await showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        return WebDAVDialog(
-          webdavStorage: webdavStorage,
-          isFavorite: isFavorite ?? false,
-        );
+        return WebDAVDialog(storage: storage);
       },
     );
 
 class WebDAVDialog extends HookWidget {
   const WebDAVDialog({
     super.key,
-    this.webdavStorage,
-    required this.isFavorite,
+    this.storage,
   });
-  final WebdavStorage? webdavStorage;
-  final bool isFavorite;
+  final WebDAVStorage? storage;
 
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final bool isEdit = webdavStorage != null &&
-        (useStorageStore().state.storages.contains(webdavStorage!) ||
-            (isFavorite &&
-                useStorageStore()
-                    .state
-                    .favoriteStorages
-                    .contains(webdavStorage!)));
+    final bool isEdit =
+        storage != null && (useStorageStore().state.storages.contains(storage));
 
-    final id = useMemoized(() => webdavStorage?.id ?? const Uuid().v4());
-    final name = useState(webdavStorage?.name ?? '');
-    final url = useState(webdavStorage?.url ?? '');
-    final basePath = useState(webdavStorage?.basePath ?? []);
-    final username = useState(webdavStorage?.username ?? '');
-    final password = useState(webdavStorage?.password ?? '');
-    final https = useState(webdavStorage?.https ?? false);
+    final id = useMemoized(() => storage?.id ?? const Uuid().v4());
+    final name = useState(storage?.name ?? '');
+    final url = useState(storage?.url ?? '');
+    final basePath = useState(storage?.basePath ?? []);
+    final username = useState(storage?.username ?? '');
+    final password = useState(storage?.password ?? '');
+    final https = useState(storage?.https ?? false);
 
     final isTested = useState(false);
 
     final TextEditingController portController =
-        useTextEditingController(text: webdavStorage?.port ?? '');
+        useTextEditingController(text: storage?.port ?? '');
 
-    void add() async {
-      if (isFavorite) return;
-      await useStorageStore().addStorage(
-        WebdavStorage(
+    void add() {
+      useStorageStore().addStorage(
+        WebDAVStorage(
           id: id,
-          type: 'webdav',
           name: name.value,
           url: url.value,
           basePath: basePath.value,
@@ -68,44 +57,25 @@ class WebDAVDialog extends HookWidget {
       );
     }
 
-    void update() async {
-      if (!isFavorite) {
-        await useStorageStore().updateStorage(
-          useStorageStore().state.storages.indexOf(webdavStorage!),
-          WebdavStorage(
-            id: id,
-            type: 'webdav',
-            name: name.value,
-            url: url.value,
-            basePath: basePath.value,
-            port: portController.text,
-            username: username.value,
-            password: password.value,
-            https: https.value,
-          ),
-        );
-      } else {
-        await useStorageStore().updateFavoriteStorage(
-          useStorageStore().state.storages.indexOf(webdavStorage!),
-          WebdavStorage(
-            id: id,
-            type: 'webdav',
-            name: name.value,
-            url: url.value,
-            basePath: basePath.value,
-            port: portController.text,
-            username: username.value,
-            password: password.value,
-            https: https.value,
-          ),
-        );
-      }
+    void update() {
+      useStorageStore().updateStorage(
+        useStorageStore().state.storages.indexOf(storage as Storage),
+        WebDAVStorage(
+          id: id,
+          name: name.value,
+          url: url.value,
+          basePath: basePath.value,
+          port: portController.text,
+          username: username.value,
+          password: password.value,
+          https: https.value,
+        ),
+      );
     }
 
     void testConnection() async {
-      final bool isConnected = await WebdavStorage(
+      final bool isConnected = await testWebDAV(WebDAVStorage(
         id: id,
-        type: 'webdav',
         name: name.value,
         url: url.value,
         basePath: basePath.value,
@@ -113,7 +83,7 @@ class WebDAVDialog extends HookWidget {
         username: username.value,
         password: password.value,
         https: https.value,
-      ).test();
+      ));
       isTested.value = isConnected;
     }
 
@@ -157,9 +127,10 @@ class WebDAVDialog extends HookWidget {
                     ),
                     initialValue: basePath.value.join('/'),
                     onChanged: (value) {
-                      basePath.value = value.trim().split('/')
-                        ..removeWhere((s) => s.isEmpty);
-
+                      final trimmedValue =
+                          value.trim().replaceAll(RegExp(r'^\/+|\/+$'), '');
+                      final finalPath = '/$trimmedValue';
+                      basePath.value = [finalPath];
                       isTested.value = false;
                     }),
                 const SizedBox(height: 16.0),
@@ -198,17 +169,21 @@ class WebDAVDialog extends HookWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               const Text('https'),
-                              Checkbox(
-                                value: https.value,
-                                onChanged: (_) {
-                                  isTested.value = false;
-                                  if (!https.value) {
-                                    portController.text = '443';
-                                  } else {
-                                    portController.text = '80';
-                                  }
-                                  https.value = !https.value;
-                                },
+                              Focus(
+                                descendantsAreFocusable: false,
+                                canRequestFocus: false,
+                                child: Checkbox(
+                                  value: https.value,
+                                  onChanged: (_) {
+                                    isTested.value = false;
+                                    if (!https.value) {
+                                      portController.text = '443';
+                                    } else {
+                                      portController.text = '80';
+                                    }
+                                    https.value = !https.value;
+                                  },
+                                ),
                               ),
                             ]),
                         onTap: () {
