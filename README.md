@@ -10,8 +10,10 @@ English | [中文](./README_CN.md)
 
 ## Features
 
-- [x] Supports multiple video formats
+- [x] Base on [media-kit](https://github.com/media-kit/media-kit)  Supports multiple video formats
 - [x] Local storage and WebDAV support
+- [x] Switchable subtitles and audio tracks
+- [x] Playback queue support for random and repeat
 
 ## Download
 
