@@ -1,7 +1,7 @@
 ## v1.1.0
 
 ### Breaking Changes
-* All configurations and storage will be cleared. Please reconfigure
+* All configurations will be cleared. Please reconfigure
 
 ### Changlog
 * Display all local storage
@@ -11,7 +11,7 @@
 * Support video zoom
 
 ### 重大变更
-* 所有配置和存储将被清空，请重新配置
+* 所有配置将被清空，请重新配置
 
 ### 更新日志
 * 显示所有本地存储
