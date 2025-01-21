@@ -1,3 +1,12 @@
+## v1.1.1
+
+### Changelog
+* Restore old update method for windows version (Double-click the `iris-updater.bat` in the same directory as the executable file to upgrade if you have problems updating.)
+
+### 更新日志
+* windows 版本恢复为旧的更新方式（更新出问题的可双击打开可执行文件同级目录下的 `iris-updater.bat` 升级）
+
+
 ## v1.1.0
 
 ### Breaking Changes
