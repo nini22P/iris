@@ -21,9 +21,7 @@ class ControlBarSlider extends HookWidget {
   Widget build(BuildContext context) {
     final PlayerController playerController =
         usePlayerController(context, playerCore);
-    return Focus(
-      descendantsAreFocusable: false,
-      canRequestFocus: false,
+    return ExcludeFocus(
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
         child: Row(

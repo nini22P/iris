@@ -61,6 +61,10 @@ class PlayerCore {
 }
 
 PlayerCore usePlayerCore(BuildContext context, Player player) {
+  final localStorages =
+      useStorageStore().select(context, (state) => state.localStorages);
+  final storages = useStorageStore().select(context, (state) => state.storages);
+
   final List<PlayQueueItem> playQueue =
       usePlayQueueStore().select(context, (state) => state.playQueue);
   final int currentIndex =
@@ -132,8 +136,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final Storage? storage = useMemoized(
       () => currentFile == null
           ? null
-          : useStorageStore().findById(currentFile.storageId),
-      [currentFile]);
+          : [...localStorages, ...storages].firstWhereOrNull(
+              (storage) => storage.id == currentFile.storageId),
+      [currentFile, localStorages, storages]);
 
   final getCover = useMemoized(() async {
     if (currentFile?.type != ContentType.audio) return null;
@@ -144,10 +149,8 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
 
     final images = filesFilter(files, [ContentType.image]);
 
-    return images
-            .where(
-                (image) => image.name.split('.').first.toLowerCase() == 'cover')
-            .firstOrNull ??
+    return images.firstWhereOrNull(
+            (image) => image.name.split('.').first.toLowerCase() == 'cover') ??
         images.firstOrNull;
   }, [currentFile, dir]);
 

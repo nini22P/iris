@@ -60,9 +60,10 @@ class IrisPlayer extends HookWidget {
         () => currentPlay != null
             ? '[${currentPlayIndex + 1}/${playQueue.length}] ${currentPlay.file.name} - ${INFO.title}'
             : INFO.title,
-        [currentPlay, currentPlayIndex, playQueue.length]);
+        [currentPlay, currentPlayIndex, playQueue]);
 
     final focusNode = useFocusNode();
+
     final player = useMemoized(
       () => Player(
         configuration: const PlayerConfiguration(

@@ -37,10 +37,8 @@ class CustomAppBar extends HookWidget {
           ],
         ),
       ),
-      child: SafeArea(
-        child: Focus(
-          descendantsAreFocusable: false,
-          canRequestFocus: false,
+      child: ExcludeFocus(
+        child: SafeArea(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [

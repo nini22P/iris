@@ -17,6 +17,7 @@ import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/widgets/custom_chip.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Files extends HookWidget {
   const Files({super.key, required this.storage});
@@ -29,6 +30,14 @@ class Files extends HookWidget {
 
     final refreshState = useState(false);
     void refresh() => refreshState.value = !refreshState.value;
+
+    final storageStatusFuture = useMemoized(
+        () async => !Platform.isAndroid
+            ? PermissionStatus.granted
+            : await Permission.storage.status,
+        [storage, refreshState.value]);
+
+    final storageStatus = useFuture(storageStatusFuture).data;
 
     final basePath = storage.basePath;
 
@@ -101,155 +110,171 @@ class Files extends HookWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : error
-                  ? Center(child: Text(t.unable_to_fetch_files))
-                  : filteredFiles.isEmpty
-                      ? const Center()
-                      : Card(
-                          color: Colors.transparent,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: ScrollablePositionedList.builder(
-                            itemScrollController: itemScrollController,
-                            scrollOffsetController: scrollOffsetController,
-                            itemPositionsListener: itemPositionsListener,
-                            scrollOffsetListener: scrollOffsetListener,
-                            itemCount: filteredFiles.length,
-                            itemBuilder: (context, index) => ListTile(
-                              contentPadding:
-                                  const EdgeInsets.fromLTRB(16, 0, 8, 0),
-                              visualDensity: const VisualDensity(
-                                  horizontal: 0, vertical: -4),
-                              leading: () {
-                                switch (filteredFiles[index].type) {
-                                  case ContentType.dir:
-                                    return const Icon(Icons.folder_rounded);
-                                  case ContentType.video:
-                                    return const Icon(Icons.movie_rounded);
-                                  case ContentType.audio:
-                                    return const Icon(Icons.audiotrack_rounded);
-                                  case ContentType.image:
-                                    return const Icon(Icons.image_rounded);
-                                  case ContentType.other:
-                                    return const Icon(Icons.file_copy_rounded);
-                                }
-                              }(),
-                              title: Text(
-                                filteredFiles[index].name,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
+          child: Platform.isAndroid &&
+                  storageStatus != PermissionStatus.granted &&
+                  storage is LocalStorage
+              ? Center(
+                  child: ElevatedButton(
+                      onPressed: () async {
+                        await Permission.storage.request();
+                        refresh();
+                      },
+                      child: Text(t.grant_storage_permission)),
+                )
+              : isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : error
+                      ? Center(child: Text(t.unable_to_fetch_files))
+                      : filteredFiles.isEmpty
+                          ? const Center()
+                          : Card(
+                              color: Colors.transparent,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              subtitle: filteredFiles[index].size != 0
-                                  ? Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          "${fileSizeConvert(filteredFiles[index].size)} MB",
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        () {
-                                          final Progress? progress =
-                                              useHistoryStore().findById(
-                                                  filteredFiles[index].getID());
-                                          if (progress != null &&
-                                              progress.file.type ==
-                                                  ContentType.video) {
-                                            if ((progress.duration
-                                                        .inMilliseconds -
-                                                    progress.position
-                                                        .inMilliseconds) <=
-                                                5000) {
-                                              return CustomChip(text: '100%');
-                                            }
-                                            final String progressString =
-                                                (progress.position
-                                                            .inMilliseconds /
-                                                        progress.duration
-                                                            .inMilliseconds *
-                                                        100)
-                                                    .toStringAsFixed(0);
-                                            return CustomChip(
-                                                text: '$progressString %');
-                                          } else {
-                                            return const SizedBox();
-                                          }
-                                        }(),
-                                        ...filteredFiles[index]
-                                            .subtitles!
-                                            .map((subtitle) => subtitle.uri
-                                                .split('.')
-                                                .last
-                                                .toUpperCase())
-                                            .toSet()
-                                            .toList()
-                                            .map(
-                                              (subtitleType) => Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  const SizedBox(width: 8),
-                                                  CustomChip(
-                                                    text: subtitleType,
-                                                    primary: true,
-                                                  ),
-                                                ],
+                              child: ScrollablePositionedList.builder(
+                                itemScrollController: itemScrollController,
+                                scrollOffsetController: scrollOffsetController,
+                                itemPositionsListener: itemPositionsListener,
+                                scrollOffsetListener: scrollOffsetListener,
+                                itemCount: filteredFiles.length,
+                                itemBuilder: (context, index) => ListTile(
+                                  contentPadding:
+                                      const EdgeInsets.fromLTRB(16, 0, 8, 0),
+                                  visualDensity: const VisualDensity(
+                                      horizontal: 0, vertical: -4),
+                                  leading: () {
+                                    switch (filteredFiles[index].type) {
+                                      case ContentType.dir:
+                                        return const Icon(Icons.folder_rounded);
+                                      case ContentType.video:
+                                        return const Icon(Icons.movie_rounded);
+                                      case ContentType.audio:
+                                        return const Icon(
+                                            Icons.audiotrack_rounded);
+                                      case ContentType.image:
+                                        return const Icon(Icons.image_rounded);
+                                      case ContentType.other:
+                                        return const Icon(
+                                            Icons.file_copy_rounded);
+                                    }
+                                  }(),
+                                  title: Text(
+                                    filteredFiles[index].name,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  subtitle: filteredFiles[index].size != 0
+                                      ? Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              "${fileSizeConvert(filteredFiles[index].size)} MB",
+                                              style: const TextStyle(
+                                                fontSize: 13,
                                               ),
                                             ),
-                                      ],
-                                    )
-                                  : null,
-                              trailing: filteredFiles[index].type ==
-                                          ContentType.video ||
-                                      filteredFiles[index].type ==
-                                          ContentType.audio
-                                  ? PopupMenuButton<FileOptions>(
-                                      clipBehavior: Clip.hardEdge,
-                                      constraints:
-                                          const BoxConstraints(minWidth: 200),
-                                      onSelected: (value) async {
-                                        switch (value) {
-                                          case FileOptions.addToPlayQueue:
-                                            usePlayQueueStore()
-                                                .add([filteredFiles[index]]);
-                                            break;
-                                          default:
-                                            break;
-                                        }
-                                      },
-                                      itemBuilder: (context) => [
-                                        PopupMenuItem(
-                                          value: FileOptions.addToPlayQueue,
-                                          child: Text(t.add_to_play_queue),
-                                        ),
-                                      ],
-                                    )
-                                  : null,
-                              onTap: () {
-                                if (filteredFiles[index].isDir == true &&
-                                    filteredFiles[index].name.isNotEmpty) {
-                                  useStorageStore().updateCurrentPath([
-                                    ...currentPath,
-                                    filteredFiles[index].name
-                                  ]);
-                                } else {
-                                  if (filteredFiles[index].type ==
-                                          ContentType.video ||
-                                      filteredFiles[index].type ==
-                                          ContentType.audio) {
-                                    play(filteredFiles, index);
-                                    Navigator.pop(context);
-                                  }
-                                }
-                              },
+                                            const Spacer(),
+                                            () {
+                                              final Progress? progress =
+                                                  useHistoryStore().findById(
+                                                      filteredFiles[index]
+                                                          .getID());
+                                              if (progress != null &&
+                                                  progress.file.type ==
+                                                      ContentType.video) {
+                                                if ((progress.duration
+                                                            .inMilliseconds -
+                                                        progress.position
+                                                            .inMilliseconds) <=
+                                                    5000) {
+                                                  return CustomChip(
+                                                      text: '100%');
+                                                }
+                                                final String progressString =
+                                                    (progress.position
+                                                                .inMilliseconds /
+                                                            progress.duration
+                                                                .inMilliseconds *
+                                                            100)
+                                                        .toStringAsFixed(0);
+                                                return CustomChip(
+                                                    text: '$progressString %');
+                                              } else {
+                                                return const SizedBox();
+                                              }
+                                            }(),
+                                            ...filteredFiles[index]
+                                                .subtitles!
+                                                .map((subtitle) => subtitle.uri
+                                                    .split('.')
+                                                    .last
+                                                    .toUpperCase())
+                                                .toSet()
+                                                .toList()
+                                                .map(
+                                                  (subtitleType) => Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      const SizedBox(width: 8),
+                                                      CustomChip(
+                                                        text: subtitleType,
+                                                        primary: true,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                          ],
+                                        )
+                                      : null,
+                                  trailing: filteredFiles[index].type ==
+                                              ContentType.video ||
+                                          filteredFiles[index].type ==
+                                              ContentType.audio
+                                      ? PopupMenuButton<FileOptions>(
+                                          clipBehavior: Clip.hardEdge,
+                                          constraints: const BoxConstraints(
+                                              minWidth: 200),
+                                          onSelected: (value) async {
+                                            switch (value) {
+                                              case FileOptions.addToPlayQueue:
+                                                usePlayQueueStore().add(
+                                                    [filteredFiles[index]]);
+                                                break;
+                                              default:
+                                                break;
+                                            }
+                                          },
+                                          itemBuilder: (context) => [
+                                            PopupMenuItem(
+                                              value: FileOptions.addToPlayQueue,
+                                              child: Text(t.add_to_play_queue),
+                                            ),
+                                          ],
+                                        )
+                                      : null,
+                                  onTap: () {
+                                    if (filteredFiles[index].isDir == true &&
+                                        filteredFiles[index].name.isNotEmpty) {
+                                      useStorageStore().updateCurrentPath([
+                                        ...currentPath,
+                                        filteredFiles[index].name
+                                      ]);
+                                    } else {
+                                      if (filteredFiles[index].type ==
+                                              ContentType.video ||
+                                          filteredFiles[index].type ==
+                                              ContentType.audio) {
+                                        play(filteredFiles, index);
+                                        Navigator.pop(context);
+                                      }
+                                    }
+                                  },
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
         ),
         Container(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),

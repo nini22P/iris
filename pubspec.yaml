@@ -65,6 +65,7 @@ dependencies:
   freezed_annotation: ^2.4.4
   disks_desktop: ^1.0.1
   android_x_storage: ^1.0.2
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:

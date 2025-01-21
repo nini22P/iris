@@ -1,12 +1,21 @@
 ## v1.1.0
+
+### Breaking Changes
+* All configurations and storage will be cleared. Please reconfigure
+
 ### Changlog
-* Add playback history
+* Display all local storage
+* Support playback history
 * Support random playback
 * Support loop playback
 * Support video zoom
 
+### 重大变更
+* 所有配置和存储将被清空，请重新配置
+
 ### 更新日志
-* 添加播放历史记录
+* 显示所有本地存储
+* 支持播放历史
 * 支持随机播放
 * 支持循环播放
 * 支持视频缩放
