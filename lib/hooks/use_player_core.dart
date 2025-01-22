@@ -129,7 +129,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   }
 
   final List<String> dir = useMemoized(
-    () => (currentFile == null) ? [] : ([...currentFile.path]..removeLast()),
+    () => currentFile == null || currentFile.path.isEmpty
+        ? []
+        : ([...currentFile.path]..removeLast()),
     [currentFile],
   );
 

@@ -44,6 +44,8 @@ class StoragesList extends HookWidget {
                     final storage = allStorages[index] as WebDAVStorage;
                     return Text(
                         'http${storage.https ? 's' : ''}://${storage.url}${storage.basePath.join('/')}');
+                  default:
+                    return null;
                 }
               }(),
         onTap: () {

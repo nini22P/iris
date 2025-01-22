@@ -206,7 +206,7 @@ class Files extends HookWidget {
                                               }
                                             }(),
                                             ...filteredFiles[index]
-                                                .subtitles!
+                                                .subtitles
                                                 .map((subtitle) => subtitle.uri
                                                     .split('.')
                                                     .last

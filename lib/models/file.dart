@@ -23,16 +23,16 @@ enum FileOptions {
 abstract class FileItem implements _$FileItem {
   const FileItem._();
   const factory FileItem({
-    required String storageId,
-    required StorageType storageType,
+    @Default('') String storageId,
+    @Default(StorageType.none) StorageType storageType,
     required String name,
     required String uri,
-    required List<String> path,
-    required bool isDir,
-    required int size,
+    @Default([]) List<String> path,
+    @Default(false) bool isDir,
+    @Default(0) int size,
     required ContentType type,
     String? auth,
-    List<Subtitle>? subtitles,
+    @Default([]) List<Subtitle> subtitles,
   }) = _FileItem;
 
   factory FileItem.fromJson(Map<String, dynamic> json) =>

@@ -86,9 +86,10 @@ class AppStore extends PersistentStore<AppState> {
       bool autoPlay = false;
 
       if (globals.arguments.isNotEmpty && globals.arguments[0].isNotEmpty) {
-        final filePath = globals.arguments[0];
-        if (checkContentType(filePath) == ContentType.video ||
-            checkContentType(filePath) == ContentType.audio) {
+        final uri = globals.arguments[0];
+        if (RegExp(r'^(http://|https://)').hasMatch(uri) ||
+            checkContentType(uri) == ContentType.video ||
+            checkContentType(uri) == ContentType.audio) {
           autoPlay = true;
         }
       }

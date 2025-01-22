@@ -5,6 +5,7 @@ import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/store/app_state.dart';
+import 'package:iris/pages/dialog/show_open_link_dialog.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/history.dart';
 import 'package:iris/pages/subtitle_and_audio_track.dart';
@@ -323,33 +324,50 @@ class ControlBar extends HookWidget {
                   clipBehavior: Clip.hardEdge,
                   constraints: const BoxConstraints(minWidth: 200),
                   itemBuilder: (BuildContext context) => [
-                    ...List.of(
-                      isDesktop
-                          ? [
-                              PopupMenuItem(
-                                child: ListTile(
-                                  mouseCursor: SystemMouseCursors.click,
-                                  leading: const Icon(
-                                    Icons.file_open_rounded,
-                                    size: 16.5,
-                                  ),
-                                  title: Text(t.open_file),
-                                  trailing: Text(
-                                    'Ctrl + O',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Theme.of(context).dividerColor,
-                                    ),
-                                  ),
-                                ),
-                                onTap: () async {
-                                  showControl();
-                                  await pickLocalFile();
-                                  showControl();
-                                },
-                              ),
-                            ]
-                          : [],
+                    if (isDesktop)
+                      PopupMenuItem(
+                        child: ListTile(
+                          mouseCursor: SystemMouseCursors.click,
+                          leading: const Icon(
+                            Icons.file_open_rounded,
+                            size: 16.5,
+                          ),
+                          title: Text(t.open_file),
+                          trailing: Text(
+                            'Ctrl + O',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).dividerColor,
+                            ),
+                          ),
+                        ),
+                        onTap: () async {
+                          showControl();
+                          await pickLocalFile();
+                          showControl();
+                        },
+                      ),
+                    PopupMenuItem(
+                      child: ListTile(
+                        mouseCursor: SystemMouseCursors.click,
+                        leading: const Icon(
+                          Icons.file_present_rounded,
+                          size: 16.5,
+                        ),
+                        title: Text(t.open_link),
+                        trailing: Text(
+                          'Ctrl + L',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).dividerColor,
+                          ),
+                        ),
+                      ),
+                      onTap: () async {
+                        showControl();
+                        await showOpenLinkDialog(context);
+                        showControl();
+                      },
                     ),
                     PopupMenuItem(
                       child: ListTile(

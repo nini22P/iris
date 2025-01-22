@@ -12,6 +12,7 @@ import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/info.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/local.dart';
+import 'package:iris/pages/dialog/show_open_link_dialog.dart';
 import 'package:iris/pages/player/audio.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/history.dart';
@@ -304,6 +305,12 @@ class IrisPlayer extends HookWidget {
                   direction: PopupDirection.right,
                 ),
               );
+              break;
+            // 打开链接
+            case LogicalKeyboardKey.keyL:
+              showControl();
+              await showOpenLinkDialog(context);
+              showControl();
               break;
             default:
               break;

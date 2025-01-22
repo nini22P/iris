@@ -53,8 +53,13 @@ class ReleaseDialog extends HookWidget {
 
     return AlertDialog(
       title: Text('${t.checked_new_version}: ${release.version}'),
-      content: SingleChildScrollView(
-        child: MarkdownBody(data: release.changeLog, shrinkWrap: true),
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 600,
+        ),
+        child: SingleChildScrollView(
+          child: MarkdownBody(data: release.changeLog, shrinkWrap: true),
+        ),
       ),
       actions: <Widget>[
         TextButton(

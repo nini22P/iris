@@ -118,6 +118,8 @@ class Storages extends HookWidget {
                           case StorageType.webdav:
                             showWebDAVDialog(context);
                             break;
+                          default:
+                            break;
                         }
                       },
                       itemBuilder: (BuildContext context) {

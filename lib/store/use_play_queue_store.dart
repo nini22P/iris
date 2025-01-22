@@ -77,7 +77,26 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
   Future<PlayQueueState?> load() async {
     try {
       if (globals.arguments.isNotEmpty && globals.arguments[0].isNotEmpty) {
-        final filePath = pathConverter(globals.arguments[0]);
+        final uri = globals.arguments[0];
+        if (RegExp(r'^(http://|https://)').hasMatch(uri)) {
+          final state = PlayQueueState(
+            playQueue: [
+              PlayQueueItem(
+                file: FileItem(
+                  name: uri,
+                  uri: uri,
+                  type: ContentType.video,
+                ),
+                index: 0,
+              )
+            ],
+            currentIndex: 0,
+          );
+          save(state);
+          return state;
+        }
+
+        final filePath = pathConverter(uri);
         if (checkContentType(filePath.last) == ContentType.video ||
             checkContentType(filePath.last) == ContentType.audio) {
           final state = await getLocalPlayQueue(filePath);
