@@ -6,6 +6,7 @@
 
 #include "generated_plugin_registrant.h"
 
+#include <desktop_drop/desktop_drop_plugin.h>
 #include <disks_desktop/disks_desktop_plugin.h>
 #include <dynamic_color/dynamic_color_plugin_c_api.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
@@ -19,6 +20,8 @@
 #include <window_size/window_size_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
+  DesktopDropPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("DesktopDropPlugin"));
   DisksDesktopPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("DisksDesktopPlugin"));
   DynamicColorPluginCApiRegisterWithRegistrar(

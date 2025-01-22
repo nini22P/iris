@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'dart:developer';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -17,6 +18,8 @@ import 'package:iris/pages/history.dart';
 import 'package:iris/pages/play_queue.dart';
 import 'package:iris/pages/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
+import 'package:iris/utils/check_content_type.dart';
+import 'package:iris/utils/path_converter.dart';
 import 'package:iris/widgets/popup.dart';
 import 'package:iris/pages/storage/storages.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -429,378 +432,411 @@ class IrisPlayer extends HookWidget {
             : Offset(0, 0),
         [fit, MediaQuery.of(context).size, videoViewSize]);
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (bool didPop, Object? result) async {
-        if (!didPop) {
-          await playerCore.saveProgress();
-          if (!canPop.value) {
-            canPop.value = true;
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(t.exit_app_back_again)),
-              );
+    return DropTarget(
+      onDragDone: (details) async {
+        final files = details.files
+            .map((file) => checkContentType(file.path) == ContentType.video ||
+                    checkContentType(file.path) == ContentType.audio
+                ? pathConverter(file.path)
+                : null)
+            .where((element) => element != null)
+            .toList();
+        if (files.isNotEmpty) {
+          final firstFile = files[0];
+          if (firstFile == null || firstFile.isEmpty) return;
+          final playQueue = await getLocalPlayQueue(firstFile);
+          if (playQueue == null || playQueue.playQueue.isEmpty) return;
+          final List<PlayQueueItem> filteredPlayQueue = [];
+          for (final item in playQueue.playQueue) {
+            final file = item.file;
+            if (files
+                .map((e) => e?.join('/'))
+                .toList()
+                .contains(file.path.join('/'))) {
+              filteredPlayQueue.add(item);
             }
-          } else {
-            exit(0);
           }
+          if (filteredPlayQueue.isEmpty) return;
+          useAppStore().updateAutoPlay(true);
+          usePlayQueueStore().update(filteredPlayQueue, playQueue.currentIndex);
         }
       },
-      child: KeyboardListener(
-        focusNode: focusNode,
-        onKeyEvent: onKeyEvent,
-        child: Stack(
-          children: [
-            // Video
-            Positioned(
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              child: MouseRegion(
-                cursor: isShowControl.value || !playerCore.playing
-                    ? SystemMouseCursors.basic
-                    : SystemMouseCursors.none,
-                onHover: (event) {
-                  if (event.kind != PointerDeviceKind.touch) {
-                    showControl();
-                  }
-                },
-                child: GestureDetector(
-                  onTap: () {
-                    if (isShowControl.value) {
-                      hideControl();
-                    } else {
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, Object? result) async {
+          if (!didPop) {
+            await playerCore.saveProgress();
+            if (!canPop.value) {
+              canPop.value = true;
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(t.exit_app_back_again)),
+                );
+              }
+            } else {
+              exit(0);
+            }
+          }
+        },
+        child: KeyboardListener(
+          focusNode: focusNode,
+          onKeyEvent: onKeyEvent,
+          child: Stack(
+            children: [
+              // Video
+              Positioned(
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                child: MouseRegion(
+                  cursor: isShowControl.value || !playerCore.playing
+                      ? SystemMouseCursors.basic
+                      : SystemMouseCursors.none,
+                  onHover: (event) {
+                    if (event.kind != PointerDeviceKind.touch) {
                       showControl();
                     }
                   },
-                  onTapDown: (details) {
-                    if (details.kind == PointerDeviceKind.touch) {
-                      isTouch.value = true;
-                    }
-                  },
-                  onDoubleTapDown: (details) async {
-                    if (details.kind == PointerDeviceKind.touch) {
-                      double position = details.globalPosition.dx /
-                          MediaQuery.of(context).size.width;
-                      if (position > 0.75) {
-                        if (isShowControl.value) {
-                          showControl();
-                        } else {
-                          showProgress();
-                        }
-                        await playerController.forward(10);
-                      } else if (position < 0.25) {
-                        if (isShowControl.value) {
-                          showControl();
-                        } else {
-                          showProgress();
-                        }
-                        playerController.backward(10);
-                      } else {
-                        if (playerCore.playing == true) {
-                          playerController.pause();
-                          showControl();
-                        } else {
-                          playerController.play();
-                        }
-                      }
-                    } else {
-                      if (isDesktop) {
-                        if (await windowManager.isFullScreen()) {
-                          await windowManager.setFullScreen(false);
-                          await resizeWindow(playerCore.aspectRatio);
-                        } else {
-                          await windowManager.setFullScreen(true);
-                        }
-                      }
-                    }
-                  },
-                  onLongPressStart: (details) {
-                    if (isTouch.value && playerCore.playing) {
-                      isLongPress.value = true;
-                      playerController.updateRate(2.0);
-                    }
-                  },
-                  onLongPressMoveUpdate: (details) {
-                    int fast = (details.offsetFromOrigin.dx / 50).toInt();
-                    if (fast >= 1) {
-                      playerController
-                          .updateRate(fast > 4 ? 5.0 : (1 + fast).toDouble());
-                    } else if (fast <= -1) {
-                      playerController.updateRate(fast < -3
-                          ? 0.25
-                          : (1 - 0.25 * fast.abs()).toDouble());
-                    }
-                  },
-                  onLongPressEnd: (details) {
-                    playerController.updateRate(1.0);
-                    isTouch.value = false;
-                    isLongPress.value = false;
-                  },
-                  onLongPressCancel: () {
-                    playerController.updateRate(1.0);
-                    isTouch.value = false;
-                    isLongPress.value = false;
-                  },
-                  onPanStart: (details) async {
-                    if (isDesktop && details.kind != PointerDeviceKind.touch) {
-                      showControlForHover(windowManager.startDragging());
-                    } else if (details.kind == PointerDeviceKind.touch) {
-                      isTouch.value = true;
-                      playerCore.updateSeeking(true);
-                    }
-                  },
-                  onPanUpdate: (details) {
-                    if (isTouch.value && playerCore.seeking) {
-                      double x = details.delta.dx;
-                      int seconds =
-                          (x * 5 + playerCore.position.inSeconds).toInt();
-                      Duration position = Duration(
-                          seconds: seconds < 0
-                              ? 0
-                              : seconds > playerCore.duration.inSeconds
-                                  ? playerCore.duration.inSeconds
-                                  : seconds);
-                      playerCore.updatePosition(position);
+                  child: GestureDetector(
+                    onTap: () {
                       if (isShowControl.value) {
-                        showControl();
+                        hideControl();
                       } else {
-                        showProgress();
-                      }
-                    }
-                  },
-                  onPanEnd: (details) async {
-                    if (isTouch.value && playerCore.seeking) {
-                      isTouch.value = false;
-                      await playerController.seekTo(playerCore.position);
-                      playerCore.updateSeeking(false);
-                    }
-                  },
-                  onPanCancel: () async {
-                    if (isTouch.value && playerCore.seeking) {
-                      isTouch.value = false;
-                      playerCore.updateSeeking(false);
-                    }
-                  },
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          color: Colors.black,
-                        ),
-                      ),
-                      Positioned(
-                        left: videoViewOffset.dx,
-                        top: videoViewOffset.dy,
-                        width: videoViewSize.width,
-                        height: videoViewSize.height,
-                        child: Video(
-                          key: ValueKey(currentPlay?.file.getID()),
-                          controller: controller,
-                          controls: NoVideoControls,
-                          fit: fit == BoxFit.none ? BoxFit.contain : fit,
-                          // wakelock: mediaType == 'video',
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Audio
-            Positioned(
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              child: currentPlay?.file.type == ContentType.audio
-                  ? Audio(playerCore: playerCore)
-                  : Container(),
-            ),
-            Positioned(
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              child: Center(
-                child: playerCore.rate != 1.0 && isTouch.value
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${playerCore.rate} ×',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            height: 1,
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
-            ),
-            Positioned(
-              left: -28,
-              right: -28,
-              bottom: -16,
-              height: 32,
-              child: isShowProgress.value &&
-                      !isShowControl.value &&
-                      currentPlay?.file.type != ContentType.audio
-                  ? ControlBarSlider(
-                      playerCore: playerCore,
-                      showControl: showControl,
-                      disabled: true,
-                    )
-                  : const SizedBox(),
-            ),
-            Positioned(
-              left: 12,
-              top: 12,
-              child: isShowProgress.value &&
-                      !isShowControl.value &&
-                      currentPlay?.file.type != ContentType.audio
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          currentPlay != null ? title : '',
-                          style: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontSize: 20,
-                            height: 1,
-                            decoration: TextDecoration.none,
-                            shadows: const [
-                              Shadow(
-                                color: Colors.black,
-                                offset: Offset(0, 0),
-                                blurRadius: 1,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : const SizedBox(),
-            ),
-            Positioned(
-              left: 12,
-              bottom: 6,
-              child: isShowProgress.value &&
-                      !isShowControl.value &&
-                      currentPlay?.file.type != ContentType.audio
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${formatDurationToMinutes(playerCore.position)} / ${formatDurationToMinutes(playerCore.duration)}',
-                          style: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontSize: 16,
-                            height: 2,
-                            decoration: TextDecoration.none,
-                            shadows: const [
-                              Shadow(
-                                color: Colors.black,
-                                offset: Offset(0, 0),
-                                blurRadius: 1,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : const SizedBox(),
-            ),
-            // AppBar
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOutCubicEmphasized,
-              top: isShowControl.value ||
-                      currentPlay?.file.type == ContentType.audio
-                  ? 0
-                  : -72,
-              left: 0,
-              right: 0,
-              child: MouseRegion(
-                onHover: (event) {
-                  if (event.kind != PointerDeviceKind.touch) {
-                    isHover.value = true;
-                    showControl();
-                  }
-                },
-                child: GestureDetector(
-                  onTap: () => showControl(),
-                  onDoubleTap: () async {
-                    if (isDesktop && await windowManager.isMaximized()) {
-                      await windowManager.unmaximize();
-                      await resizeWindow(playerCore.aspectRatio);
-                    } else {
-                      await windowManager.maximize();
-                    }
-                  },
-                  onPanStart: (details) async {
-                    if (isDesktop) {
-                      showControlForHover(windowManager.startDragging());
-                    }
-                  },
-                  child: CustomAppBar(
-                    title: title,
-                    playerCore: playerCore,
-                    actions: [
-                      const SizedBox(width: 8),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // ControlBar
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOutCubicEmphasized,
-              bottom: isShowControl.value ||
-                      currentPlay?.file.type == ContentType.audio
-                  ? 0
-                  : -96,
-              left: 0,
-              right: 0,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: MouseRegion(
-                    onHover: (event) {
-                      if (event.kind != PointerDeviceKind.touch) {
-                        isHover.value = true;
                         showControl();
                       }
                     },
-                    child: GestureDetector(
-                      onTap: () => showControl(),
-                      child: ControlBar(
+                    onTapDown: (details) {
+                      if (details.kind == PointerDeviceKind.touch) {
+                        isTouch.value = true;
+                      }
+                    },
+                    onDoubleTapDown: (details) async {
+                      if (details.kind == PointerDeviceKind.touch) {
+                        double position = details.globalPosition.dx /
+                            MediaQuery.of(context).size.width;
+                        if (position > 0.75) {
+                          if (isShowControl.value) {
+                            showControl();
+                          } else {
+                            showProgress();
+                          }
+                          await playerController.forward(10);
+                        } else if (position < 0.25) {
+                          if (isShowControl.value) {
+                            showControl();
+                          } else {
+                            showProgress();
+                          }
+                          playerController.backward(10);
+                        } else {
+                          if (playerCore.playing == true) {
+                            playerController.pause();
+                            showControl();
+                          } else {
+                            playerController.play();
+                          }
+                        }
+                      } else {
+                        if (isDesktop) {
+                          if (await windowManager.isFullScreen()) {
+                            await windowManager.setFullScreen(false);
+                            await resizeWindow(playerCore.aspectRatio);
+                          } else {
+                            await windowManager.setFullScreen(true);
+                          }
+                        }
+                      }
+                    },
+                    onLongPressStart: (details) {
+                      if (isTouch.value && playerCore.playing) {
+                        isLongPress.value = true;
+                        playerController.updateRate(2.0);
+                      }
+                    },
+                    onLongPressMoveUpdate: (details) {
+                      int fast = (details.offsetFromOrigin.dx / 50).toInt();
+                      if (fast >= 1) {
+                        playerController
+                            .updateRate(fast > 4 ? 5.0 : (1 + fast).toDouble());
+                      } else if (fast <= -1) {
+                        playerController.updateRate(fast < -3
+                            ? 0.25
+                            : (1 - 0.25 * fast.abs()).toDouble());
+                      }
+                    },
+                    onLongPressEnd: (details) {
+                      playerController.updateRate(1.0);
+                      isTouch.value = false;
+                      isLongPress.value = false;
+                    },
+                    onLongPressCancel: () {
+                      playerController.updateRate(1.0);
+                      isTouch.value = false;
+                      isLongPress.value = false;
+                    },
+                    onPanStart: (details) async {
+                      if (isDesktop &&
+                          details.kind != PointerDeviceKind.touch) {
+                        showControlForHover(windowManager.startDragging());
+                      } else if (details.kind == PointerDeviceKind.touch) {
+                        isTouch.value = true;
+                        playerCore.updateSeeking(true);
+                      }
+                    },
+                    onPanUpdate: (details) {
+                      if (isTouch.value && playerCore.seeking) {
+                        double x = details.delta.dx;
+                        int seconds =
+                            (x * 5 + playerCore.position.inSeconds).toInt();
+                        Duration position = Duration(
+                            seconds: seconds < 0
+                                ? 0
+                                : seconds > playerCore.duration.inSeconds
+                                    ? playerCore.duration.inSeconds
+                                    : seconds);
+                        playerCore.updatePosition(position);
+                        if (isShowControl.value) {
+                          showControl();
+                        } else {
+                          showProgress();
+                        }
+                      }
+                    },
+                    onPanEnd: (details) async {
+                      if (isTouch.value && playerCore.seeking) {
+                        isTouch.value = false;
+                        await playerController.seekTo(playerCore.position);
+                        playerCore.updateSeeking(false);
+                      }
+                    },
+                    onPanCancel: () async {
+                      if (isTouch.value && playerCore.seeking) {
+                        isTouch.value = false;
+                        playerCore.updateSeeking(false);
+                      }
+                    },
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            color: Colors.black,
+                          ),
+                        ),
+                        Positioned(
+                          left: videoViewOffset.dx,
+                          top: videoViewOffset.dy,
+                          width: videoViewSize.width,
+                          height: videoViewSize.height,
+                          child: Video(
+                            key: ValueKey(currentPlay?.file.getID()),
+                            controller: controller,
+                            controls: NoVideoControls,
+                            fit: fit == BoxFit.none ? BoxFit.contain : fit,
+                            // wakelock: mediaType == 'video',
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Audio
+              Positioned(
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                child: currentPlay?.file.type == ContentType.audio
+                    ? Audio(playerCore: playerCore)
+                    : Container(),
+              ),
+              Positioned(
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                child: Center(
+                  child: playerCore.rate != 1.0 && isTouch.value
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${playerCore.rate} ×',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              height: 1,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+              ),
+              Positioned(
+                left: -28,
+                right: -28,
+                bottom: -16,
+                height: 32,
+                child: isShowProgress.value &&
+                        !isShowControl.value &&
+                        currentPlay?.file.type != ContentType.audio
+                    ? ControlBarSlider(
                         playerCore: playerCore,
                         showControl: showControl,
-                        showControlForHover: showControlForHover,
+                        disabled: true,
+                      )
+                    : const SizedBox(),
+              ),
+              Positioned(
+                left: 12,
+                top: 12,
+                child: isShowProgress.value &&
+                        !isShowControl.value &&
+                        currentPlay?.file.type != ContentType.audio
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            currentPlay != null ? title : '',
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                              fontSize: 20,
+                              height: 1,
+                              decoration: TextDecoration.none,
+                              shadows: const [
+                                Shadow(
+                                  color: Colors.black,
+                                  offset: Offset(0, 0),
+                                  blurRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                    : const SizedBox(),
+              ),
+              Positioned(
+                left: 12,
+                bottom: 6,
+                child: isShowProgress.value &&
+                        !isShowControl.value &&
+                        currentPlay?.file.type != ContentType.audio
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${formatDurationToMinutes(playerCore.position)} / ${formatDurationToMinutes(playerCore.duration)}',
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                              fontSize: 16,
+                              height: 2,
+                              decoration: TextDecoration.none,
+                              shadows: const [
+                                Shadow(
+                                  color: Colors.black,
+                                  offset: Offset(0, 0),
+                                  blurRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                    : const SizedBox(),
+              ),
+              // AppBar
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOutCubicEmphasized,
+                top: isShowControl.value ||
+                        currentPlay?.file.type == ContentType.audio
+                    ? 0
+                    : -72,
+                left: 0,
+                right: 0,
+                child: MouseRegion(
+                  onHover: (event) {
+                    if (event.kind != PointerDeviceKind.touch) {
+                      isHover.value = true;
+                      showControl();
+                    }
+                  },
+                  child: GestureDetector(
+                    onTap: () => showControl(),
+                    onDoubleTap: () async {
+                      if (isDesktop && await windowManager.isMaximized()) {
+                        await windowManager.unmaximize();
+                        await resizeWindow(playerCore.aspectRatio);
+                      } else {
+                        await windowManager.maximize();
+                      }
+                    },
+                    onPanStart: (details) async {
+                      if (isDesktop) {
+                        showControlForHover(windowManager.startDragging());
+                      }
+                    },
+                    child: CustomAppBar(
+                      title: title,
+                      playerCore: playerCore,
+                      actions: [
+                        const SizedBox(width: 8),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // ControlBar
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOutCubicEmphasized,
+                bottom: isShowControl.value ||
+                        currentPlay?.file.type == ContentType.audio
+                    ? 0
+                    : -96,
+                left: 0,
+                right: 0,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: MouseRegion(
+                      onHover: (event) {
+                        if (event.kind != PointerDeviceKind.touch) {
+                          isHover.value = true;
+                          showControl();
+                        }
+                      },
+                      child: GestureDetector(
+                        onTap: () => showControl(),
+                        child: ControlBar(
+                          playerCore: playerCore,
+                          showControl: showControl,
+                          showControlForHover: showControlForHover,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

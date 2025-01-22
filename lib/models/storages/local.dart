@@ -6,6 +6,7 @@ import 'package:disks_desktop/disks_desktop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:iris/models/storages/storage.dart';
+import 'package:iris/models/store/play_queue_state.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/files_filter.dart';
@@ -17,40 +18,6 @@ import 'package:iris/utils/path_converter.dart';
 import 'package:path/path.dart' as p;
 import 'package:iris/models/file.dart';
 import 'package:iris/utils/check_content_type.dart';
-
-Future<void> pickLocalFile() async {
-  FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: [...Formats.video, ...Formats.audio]);
-
-  if (result != null) {
-    final filePath = pathConverter(result.files.first.path!);
-    final basePath = filePath.sublist(0, filePath.length - 1);
-    final files = await LocalStorage(
-      type: StorageType.internal,
-      name: result.files.first.name,
-      basePath: basePath,
-    ).getFiles(basePath);
-
-    final List<FileItem> filteredFiles =
-        filesFilter(files, [ContentType.video, ContentType.audio]);
-    final List<PlayQueueItem> playQueue = filteredFiles
-        .asMap()
-        .entries
-        .map((entry) => PlayQueueItem(file: entry.value, index: entry.key))
-        .toList();
-
-    final clickedFile = filteredFiles
-        .where((file) => file.path.join('/') == filePath.join('/'))
-        .first;
-    final index = filteredFiles.indexOf(clickedFile);
-
-    if (playQueue.isEmpty || index < 0) return;
-
-    await useAppStore().updateAutoPlay(true);
-    await usePlayQueueStore().update(playQueue, index);
-  }
-}
 
 Future<List<FileItem>> getLocalFiles(
     LocalStorage storage, List<String> path) async {
@@ -158,4 +125,52 @@ Future<List<LocalStorage>> getLocalStorages(
     return storages;
   }
   return [];
+}
+
+Future<PlayQueueState?> getLocalPlayQueue(List<String> filePath) async {
+  final type = checkContentType(filePath.last);
+
+  if (type != ContentType.video && type != ContentType.audio) {
+    return null;
+  }
+
+  final dirPath = filePath.sublist(0, filePath.length - 1);
+  final files = await LocalStorage(
+    type: StorageType.internal,
+    name: filePath.last,
+    basePath: dirPath,
+  ).getFiles(dirPath);
+  final List<FileItem> filteredFiles =
+      filesFilter(files, [ContentType.video, ContentType.audio]);
+  final List<PlayQueueItem> playQueue = filteredFiles
+      .asMap()
+      .entries
+      .map((entry) => PlayQueueItem(file: entry.value, index: entry.key))
+      .toList();
+
+  final clickedFile = filteredFiles
+      .where((file) => file.path.join('/') == filePath.join('/'))
+      .first;
+  final index = filteredFiles.indexOf(clickedFile);
+  return PlayQueueState(
+    playQueue: playQueue,
+    currentIndex: index < 0 || index >= playQueue.length ? 0 : index,
+  );
+}
+
+Future<void> pickLocalFile() async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: [...Formats.video, ...Formats.audio]);
+
+  if (result != null) {
+    final filePath = pathConverter(result.files.first.path!);
+    final playQueue = await getLocalPlayQueue(filePath);
+
+    if (playQueue == null || playQueue.playQueue.isEmpty) return;
+
+    await useAppStore().updateAutoPlay(true);
+    await usePlayQueueStore()
+        .update(playQueue.playQueue, playQueue.currentIndex);
+  }
 }

@@ -66,6 +66,7 @@ dependencies:
   disks_desktop: ^1.0.1
   android_x_storage: ^1.0.2
   permission_handler: ^11.3.1
+  desktop_drop: ^0.5.0
 
 dev_dependencies:
   flutter_test:

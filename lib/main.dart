@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
@@ -10,8 +12,13 @@ import 'package:iris/utils/is_desktop.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'globals.dart' as globals;
 
-void main() async {
+void main(List<String> arguments) async {
+  globals.arguments = arguments;
+
+  log('Arguments: $arguments');
+
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
 

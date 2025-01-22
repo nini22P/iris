@@ -4,8 +4,12 @@ import 'package:collection/collection.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/file.dart';
+import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/store/play_queue_state.dart';
 import 'package:iris/store/persistent_store.dart';
+import 'package:iris/globals.dart' as globals;
+import 'package:iris/utils/check_content_type.dart';
+import 'package:iris/utils/path_converter.dart';
 
 class PlayQueueStore extends PersistentStore<PlayQueueState> {
   PlayQueueStore() : super(PlayQueueState());
@@ -72,6 +76,18 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
   @override
   Future<PlayQueueState?> load() async {
     try {
+      if (globals.arguments.isNotEmpty && globals.arguments[0].isNotEmpty) {
+        final filePath = pathConverter(globals.arguments[0]);
+        if (checkContentType(filePath.last) == ContentType.video ||
+            checkContentType(filePath.last) == ContentType.audio) {
+          final state = await getLocalPlayQueue(filePath);
+          if (state != null && state.playQueue.isNotEmpty) {
+            save(state);
+            return state;
+          }
+        }
+      }
+
       AndroidOptions getAndroidOptions() => const AndroidOptions(
             encryptedSharedPreferences: true,
           );

@@ -3,8 +3,11 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:iris/models/file.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/persistent_store.dart';
+import 'package:iris/globals.dart' as globals;
+import 'package:iris/utils/check_content_type.dart';
 
 class AppStore extends PersistentStore<AppState> {
   AppStore() : super(AppState());
@@ -80,6 +83,16 @@ class AppStore extends PersistentStore<AppState> {
   @override
   Future<AppState?> load() async {
     try {
+      bool autoPlay = false;
+
+      if (globals.arguments.isNotEmpty && globals.arguments[0].isNotEmpty) {
+        final filePath = globals.arguments[0];
+        if (checkContentType(filePath) == ContentType.video ||
+            checkContentType(filePath) == ContentType.audio) {
+          autoPlay = true;
+        }
+      }
+
       AndroidOptions getAndroidOptions() => const AndroidOptions(
             encryptedSharedPreferences: true,
           );
@@ -88,7 +101,7 @@ class AppStore extends PersistentStore<AppState> {
       String? appState = await storage.read(key: 'app_state');
       if (appState != null) {
         return AppState.fromJson(json.decode(appState)).copyWith(
-          autoPlay: false,
+          autoPlay: autoPlay,
         );
       }
     } catch (e) {
