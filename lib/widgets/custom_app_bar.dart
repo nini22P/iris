@@ -120,7 +120,8 @@ class CustomAppBar extends HookWidget {
                                 onPressed: () async {
                                   if (isFullScreen) {
                                     await windowManager.setFullScreen(false);
-                                    await resizeWindow(playerCore.aspectRatio);
+                                    await resizeWindow(
+                                        playerCore.videoParams?.aspect);
                                   } else {
                                     await windowManager.setFullScreen(true);
                                   }
@@ -140,7 +141,8 @@ class CustomAppBar extends HookWidget {
                                 onPressed: () async {
                                   if (isMaximized) {
                                     await windowManager.unmaximize();
-                                    await resizeWindow(playerCore.aspectRatio);
+                                    await resizeWindow(
+                                        playerCore.videoParams?.aspect);
                                   } else {
                                     await windowManager.maximize();
                                   }

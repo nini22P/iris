@@ -14,6 +14,11 @@ import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/files_filter.dart';
 import 'package:media_kit/media_kit.dart';
 
+enum MediaType {
+  video,
+  audio,
+}
+
 class PlayerCore {
   final Player player;
   final SubtitleTrack subtitle;
@@ -24,13 +29,13 @@ class PlayerCore {
   final bool playing;
   final VideoParams? videoParams;
   final AudioParams? audioParams;
+  final MediaType? mediaType;
   final Duration position;
   final Duration duration;
   final Duration buffer;
   final bool seeking;
   final bool completed;
   final double rate;
-  final double aspectRatio;
   final FileItem? cover;
   final void Function(Duration) updatePosition;
   final void Function(bool) updateSeeking;
@@ -46,13 +51,13 @@ class PlayerCore {
     this.playing,
     this.videoParams,
     this.audioParams,
+    this.mediaType,
     this.position,
     this.duration,
     this.buffer,
     this.seeking,
     this.completed,
     this.rate,
-    this.aspectRatio,
     this.cover,
     this.updatePosition,
     this.updateSeeking,
@@ -115,10 +120,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           (subtitle) => subtitles.any((item) => item.title == subtitle.name)),
       [currentFile?.subtitles, subtitles]);
 
-  double aspectRatio =
-      videoParams != null && videoParams.w != null && videoParams.h != null
-          ? (videoParams.w! / videoParams.h!)
-          : 0;
+  final MediaType? mediaType = useMemoized(
+      () => videoParams?.aspect != null ? MediaType.video : MediaType.audio,
+      [videoParams?.aspect]);
 
   final positionStream = useStream(player.stream.position);
 
@@ -277,13 +281,13 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     playing,
     videoParams,
     audioParams,
+    mediaType,
     duration == Duration.zero ? Duration.zero : position.value,
     duration,
     duration == Duration.zero ? Duration.zero : buffer,
     seeking.value,
     completed,
     rate,
-    aspectRatio,
     cover,
     updatePosition,
     updateSeeking,

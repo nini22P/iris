@@ -134,10 +134,10 @@ class IrisPlayer extends HookWidget {
 
     useEffect(() {
       if (isDesktop) {
-        resizeWindow(playerCore.aspectRatio);
+        resizeWindow(playerCore.videoParams?.aspect);
       }
       return;
-    }, [playerCore.aspectRatio]);
+    }, [playerCore.videoParams?.aspect]);
 
     useEffect(() {
       if (appLifecycleState == AppLifecycleState.paused) {
@@ -229,7 +229,7 @@ class IrisPlayer extends HookWidget {
     }, [title, playerCore.playing]);
 
     useEffect(() {
-      if (isShowControl.value || currentPlay?.file.type == ContentType.audio) {
+      if (isShowControl.value || playerCore.mediaType != MediaType.video) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       } else {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
@@ -548,7 +548,7 @@ class IrisPlayer extends HookWidget {
                         if (isDesktop) {
                           if (await windowManager.isFullScreen()) {
                             await windowManager.setFullScreen(false);
-                            await resizeWindow(playerCore.aspectRatio);
+                            await resizeWindow(playerCore.videoParams?.aspect);
                           } else {
                             await windowManager.setFullScreen(true);
                           }
@@ -658,7 +658,7 @@ class IrisPlayer extends HookWidget {
                 top: 0,
                 right: 0,
                 bottom: 0,
-                child: currentPlay?.file.type == ContentType.audio
+                child: playerCore.mediaType == MediaType.audio
                     ? Audio(playerCore: playerCore)
                     : Container(),
               ),
@@ -697,7 +697,7 @@ class IrisPlayer extends HookWidget {
                 height: 32,
                 child: isShowProgress.value &&
                         !isShowControl.value &&
-                        currentPlay?.file.type != ContentType.audio
+                        playerCore.mediaType != MediaType.audio
                     ? ControlBarSlider(
                         playerCore: playerCore,
                         showControl: showControl,
@@ -710,7 +710,7 @@ class IrisPlayer extends HookWidget {
                 top: 12,
                 child: isShowProgress.value &&
                         !isShowControl.value &&
-                        currentPlay?.file.type != ContentType.audio
+                        playerCore.mediaType != MediaType.audio
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -741,7 +741,7 @@ class IrisPlayer extends HookWidget {
                 bottom: 6,
                 child: isShowProgress.value &&
                         !isShowControl.value &&
-                        currentPlay?.file.type != ContentType.audio
+                        playerCore.mediaType != MediaType.audio
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -772,7 +772,8 @@ class IrisPlayer extends HookWidget {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOutCubicEmphasized,
                 top: isShowControl.value ||
-                        currentPlay?.file.type == ContentType.audio
+                        playerCore.mediaType != MediaType.video ||
+                        !playerCore.playing
                     ? 0
                     : -72,
                 left: 0,
@@ -789,7 +790,7 @@ class IrisPlayer extends HookWidget {
                     onDoubleTap: () async {
                       if (isDesktop && await windowManager.isMaximized()) {
                         await windowManager.unmaximize();
-                        await resizeWindow(playerCore.aspectRatio);
+                        await resizeWindow(playerCore.videoParams?.aspect);
                       } else {
                         await windowManager.maximize();
                       }
@@ -814,7 +815,8 @@ class IrisPlayer extends HookWidget {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOutCubicEmphasized,
                 bottom: isShowControl.value ||
-                        currentPlay?.file.type == ContentType.audio
+                        playerCore.mediaType != MediaType.video ||
+                        !playerCore.playing
                     ? 0
                     : -96,
                 left: 0,

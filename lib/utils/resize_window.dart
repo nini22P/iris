@@ -5,13 +5,11 @@ import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart';
 
 Future<void> resizeWindow(double? videoAspectRatio) async {
-  if (await windowManager.isFullScreen() ||
-      await windowManager.isMaximized() ||
-      videoAspectRatio == null) {
+  if (await windowManager.isFullScreen() || await windowManager.isMaximized()) {
     return;
   }
 
-  if (videoAspectRatio == 0) {
+  if (videoAspectRatio == null || videoAspectRatio == 0) {
     windowManager.setAspectRatio(0);
     return;
   }
