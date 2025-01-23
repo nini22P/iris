@@ -10,6 +10,7 @@ import 'package:iris/pages/home_page.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/theme.dart';
 import 'package:iris/utils/is_desktop.dart';
+import 'package:iris/utils/request_storage_permission.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:window_manager/window_manager.dart';
@@ -61,7 +62,9 @@ class MyApp extends HookWidget {
     useEffect(() {
       () async {
         globals.storagePermissionStatus = Platform.isAndroid
-            ? await Permission.storage.status
+            ? await isAndroid11OrHigher()
+                ? await Permission.manageExternalStorage.status
+                : await Permission.storage.status
             : PermissionStatus.granted;
       }();
       return null;

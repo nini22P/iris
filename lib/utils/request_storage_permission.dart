@@ -7,11 +7,9 @@ Future<void> requestStoragePermission() async {
   if (!Platform.isAndroid) {
     return;
   }
-  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
 
   if (globals.storagePermissionStatus != PermissionStatus.granted) {
-    if (androidInfo.version.sdkInt >= 30) {
+    if (await isAndroid11OrHigher()) {
       globals.storagePermissionStatus =
           await Permission.manageExternalStorage.request();
     } else {
@@ -23,4 +21,10 @@ Future<void> requestStoragePermission() async {
       }
     }
   }
+}
+
+Future<bool> isAndroid11OrHigher() async {
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+  return androidInfo.version.sdkInt >= 30;
 }
