@@ -63,6 +63,7 @@ class StorageStore extends PersistentStore<StorageState> {
 
   @override
   Future<StorageState?> load() async {
+    log('Loading StorageState');
     try {
       AndroidOptions getAndroidOptions() => const AndroidOptions(
             encryptedSharedPreferences: true,

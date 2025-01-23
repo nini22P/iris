@@ -14,7 +14,7 @@ import 'package:iris/utils/files_sort.dart';
 import 'package:iris/utils/find_subtitle.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/is_desktop.dart';
-import 'package:iris/utils/path_converter.dart';
+import 'package:iris/utils/path_conv.dart';
 import 'package:path/path.dart' as p;
 import 'package:iris/models/file.dart';
 import 'package:iris/utils/check_content_type.dart';
@@ -53,7 +53,7 @@ Future<List<FileItem>> getLocalFiles(
           storageId: storage.id,
           storageType: storage.type,
           name: p.basename(entity.path),
-          uri: pathConverter(entity.path).join('/'),
+          uri: pathConv(entity.path).join('/'),
           path: [...path, p.basename(entity.path)],
           isDir: isDir,
           size: size,
@@ -164,13 +164,15 @@ Future<void> pickLocalFile() async {
       allowedExtensions: [...Formats.video, ...Formats.audio]);
 
   if (result != null) {
-    final filePath = pathConverter(result.files.first.path!);
+    final filePath = pathConv(result.files.first.path!);
     final playQueue = await getLocalPlayQueue(filePath);
 
     if (playQueue == null || playQueue.playQueue.isEmpty) return;
 
     await useAppStore().updateAutoPlay(true);
-    await usePlayQueueStore()
-        .update(playQueue.playQueue, playQueue.currentIndex);
+    await usePlayQueueStore().update(
+      playQueue: playQueue.playQueue,
+      index: playQueue.currentIndex,
+    );
   }
 }

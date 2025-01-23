@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
@@ -166,7 +167,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     if (currentFile == null || playQueue.isEmpty) {
       player.stop();
     } else {
-      log('Now playing: ${currentFile.name}, auto play: $autoPlay');
+      log('Now playing: ${currentFile.uri}, auto play: $autoPlay');
       player.open(
         Media(currentFile.uri,
             httpHeaders: currentFile.auth != null
@@ -177,6 +178,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     }
     return () {
       if (currentFile != null && player.state.duration == Duration.zero) {
+        if (Platform.isAndroid && currentFile.uri.startsWith('content://')) {
+          return;
+        }
         log('Save progress: ${currentFile.name}');
         useHistoryStore().add(Progress(
           dateTime: DateTime.now().toUtc(),
@@ -261,6 +265,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
 
   Future<void> saveProgress() async {
     if (currentFile != null && player.state.duration != Duration.zero) {
+      if (Platform.isAndroid && currentFile.uri.startsWith('content://')) {
+        return;
+      }
       log('Save progress: ${currentFile.name}');
       useHistoryStore().add(Progress(
         dateTime: DateTime.now().toUtc(),

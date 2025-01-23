@@ -34,7 +34,7 @@ class History extends HookWidget {
           .values
           .toList();
 
-      usePlayQueueStore().update(playQueue, index);
+      usePlayQueueStore().update(playQueue: playQueue, index: index);
     }
 
     return Column(

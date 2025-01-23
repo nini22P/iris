@@ -1,9 +1,17 @@
+import 'dart:developer';
+import 'dart:io';
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:iris/models/file.dart';
 import 'package:iris/pages/player/iris_player.dart';
+import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/theme.dart';
+import 'package:iris/utils/decode_uri.dart';
+import 'package:iris/globals.dart' as globals;
 
 class HomePage extends HookWidget {
   const HomePage({super.key});
@@ -18,6 +26,35 @@ class HomePage extends HookWidget {
       ));
       return null;
     }, []);
+
+    final appLinks = useMemoized(() => AppLinks());
+    final Uri? uri = useStream(appLinks.uriLinkStream).data;
+
+    useEffect(() {
+      () async {
+        if (uri != null && globals.initUri?.path != uri.path) {
+          log('Uri: $uri');
+          if (Platform.isAndroid) {
+            final decodedPath = decodePath(uri.path);
+            final fileName = Uri.decodeComponent(decodedPath.last);
+            await useAppStore().updateAutoPlay(true);
+            await usePlayQueueStore().update(
+              playQueue: [
+                PlayQueueItem(
+                  file: FileItem(
+                    name: fileName,
+                    uri: uri.toString(),
+                  ),
+                  index: 0,
+                ),
+              ],
+              index: 0,
+            );
+          }
+        }
+      }();
+      return null;
+    }, [uri]);
 
     return Scaffold(
       body: Theme(

@@ -8,6 +8,7 @@ import 'package:iris/models/store/app_state.dart';
 import 'package:iris/pages/dialog/show_open_link_dialog.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/history.dart';
+import 'package:iris/pages/show_open_link_bottom_sheet.dart';
 import 'package:iris/pages/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -364,8 +365,9 @@ class ControlBar extends HookWidget {
                         ),
                       ),
                       onTap: () async {
-                        showControl();
-                        await showOpenLinkDialog(context);
+                        isDesktop
+                            ? await showOpenLinkDialog(context)
+                            : await showOpenLinkBottomSheet(context);
                         showControl();
                       },
                     ),

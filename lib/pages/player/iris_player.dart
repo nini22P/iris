@@ -17,10 +17,11 @@ import 'package:iris/pages/player/audio.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/history.dart';
 import 'package:iris/pages/play_queue.dart';
+import 'package:iris/pages/show_open_link_bottom_sheet.dart';
 import 'package:iris/pages/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/utils/check_content_type.dart';
-import 'package:iris/utils/path_converter.dart';
+import 'package:iris/utils/path_conv.dart';
 import 'package:iris/widgets/popup.dart';
 import 'package:iris/pages/storage/storages.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -309,7 +310,9 @@ class IrisPlayer extends HookWidget {
             // 打开链接
             case LogicalKeyboardKey.keyL:
               showControl();
-              await showOpenLinkDialog(context);
+              isDesktop
+                  ? await showOpenLinkDialog(context)
+                  : await showOpenLinkBottomSheet(context);
               showControl();
               break;
             default:
@@ -444,7 +447,7 @@ class IrisPlayer extends HookWidget {
         final files = details.files
             .map((file) => checkContentType(file.path) == ContentType.video ||
                     checkContentType(file.path) == ContentType.audio
-                ? pathConverter(file.path)
+                ? pathConv(file.path)
                 : null)
             .where((element) => element != null)
             .toList();
@@ -465,7 +468,8 @@ class IrisPlayer extends HookWidget {
           }
           if (filteredPlayQueue.isEmpty) return;
           useAppStore().updateAutoPlay(true);
-          usePlayQueueStore().update(filteredPlayQueue, playQueue.currentIndex);
+          usePlayQueueStore().update(
+              playQueue: filteredPlayQueue, index: playQueue.currentIndex);
         }
       },
       child: PopScope(
@@ -772,8 +776,7 @@ class IrisPlayer extends HookWidget {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOutCubicEmphasized,
                 top: isShowControl.value ||
-                        playerCore.mediaType != MediaType.video ||
-                        !playerCore.playing
+                        playerCore.mediaType != MediaType.video
                     ? 0
                     : -72,
                 left: 0,
@@ -815,8 +818,7 @@ class IrisPlayer extends HookWidget {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOutCubicEmphasized,
                 bottom: isShowControl.value ||
-                        playerCore.mediaType != MediaType.video ||
-                        !playerCore.playing
+                        playerCore.mediaType != MediaType.video
                     ? 0
                     : -96,
                 left: 0,

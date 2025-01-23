@@ -4,14 +4,21 @@ import 'package:iris/models/file.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 
-Future<void> showOpenLinkDialog(BuildContext context) async =>
-    await showDialog<void>(
+Future<void> showOpenLinkBottomSheet(BuildContext context) async =>
+    await showModalBottomSheet<void>(
       context: context,
-      builder: (context) => const OpenLinkDialog(),
+      isScrollControlled: true,
+      builder: (context) => SingleChildScrollView(
+        child: Padding(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: const OpenLinkBottomSheet(),
+        ),
+      ),
     );
 
-class OpenLinkDialog extends HookWidget {
-  const OpenLinkDialog({super.key});
+class OpenLinkBottomSheet extends HookWidget {
+  const OpenLinkBottomSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,16 +45,18 @@ class OpenLinkDialog extends HookWidget {
       }
     }
 
-    return AlertDialog(
-      // actionsPadding: const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(t.open_link,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-      content: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 600,
-        ),
-        child: SingleChildScrollView(
-          child: TextFormField(
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            t.open_link,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
             autofocus: true,
             initialValue: '',
             onChanged: (value) => url.value = value,
@@ -60,6 +69,7 @@ class OpenLinkDialog extends HookWidget {
             decoration: InputDecoration(
               hintText: 'https://example.com/xxx.mp4',
               hintStyle: TextStyle(color: Theme.of(context).disabledColor),
+              border: OutlineInputBorder(),
             ),
             onFieldSubmitted: (value) {
               if (value.isNotEmpty &&
@@ -68,21 +78,25 @@ class OpenLinkDialog extends HookWidget {
               }
             },
           ),
-        ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'Cancel'),
+                child: Text(t.cancel),
+              ),
+              TextButton(
+                onPressed: url.value.isNotEmpty &&
+                        RegExp(r'^(http://|https://)').hasMatch(url.value)
+                    ? play
+                    : null,
+                child: Text(t.play),
+              ),
+            ],
+          ),
+        ],
       ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.pop(context, 'Cancel'),
-          child: Text(t.cancel),
-        ),
-        TextButton(
-          onPressed: url.value.isNotEmpty &&
-                  RegExp(r'^(http://|https://)').hasMatch(url.value)
-              ? play
-              : null,
-          child: Text(t.play),
-        ),
-      ],
     );
   }
 }

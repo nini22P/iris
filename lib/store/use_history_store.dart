@@ -34,6 +34,7 @@ class HistoryStore extends PersistentStore<HistoryState> {
 
   @override
   Future<HistoryState?> load() async {
+    log('Loading HistoryState');
     try {
       AndroidOptions getAndroidOptions() => const AndroidOptions(
             encryptedSharedPreferences: true,

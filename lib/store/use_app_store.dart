@@ -3,11 +3,9 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
-import 'package:iris/models/file.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/persistent_store.dart';
 import 'package:iris/globals.dart' as globals;
-import 'package:iris/utils/check_content_type.dart';
 
 class AppStore extends PersistentStore<AppState> {
   AppStore() : super(AppState());
@@ -82,27 +80,18 @@ class AppStore extends PersistentStore<AppState> {
 
   @override
   Future<AppState?> load() async {
+    log('Loading AppState');
     try {
-      bool autoPlay = false;
-
-      if (globals.arguments.isNotEmpty && globals.arguments[0].isNotEmpty) {
-        final uri = globals.arguments[0];
-        if (RegExp(r'^(http://|https://)').hasMatch(uri) ||
-            checkContentType(uri) == ContentType.video ||
-            checkContentType(uri) == ContentType.audio) {
-          autoPlay = true;
-        }
-      }
-
       AndroidOptions getAndroidOptions() => const AndroidOptions(
             encryptedSharedPreferences: true,
           );
       final storage = FlutterSecureStorage(aOptions: getAndroidOptions());
 
       String? appState = await storage.read(key: 'app_state');
+
       if (appState != null) {
         return AppState.fromJson(json.decode(appState)).copyWith(
-          autoPlay: autoPlay,
+          autoPlay: globals.initUri == null ? false : true,
         );
       }
     } catch (e) {

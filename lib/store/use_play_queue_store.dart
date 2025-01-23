@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
@@ -8,22 +9,35 @@ import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/store/play_queue_state.dart';
 import 'package:iris/store/persistent_store.dart';
 import 'package:iris/globals.dart' as globals;
-import 'package:iris/utils/check_content_type.dart';
-import 'package:iris/utils/path_converter.dart';
+import 'package:iris/store/use_app_store.dart';
+import 'package:iris/utils/decode_uri.dart';
+import 'package:iris/utils/is_desktop.dart';
+import 'package:iris/utils/path_conv.dart';
 
 class PlayQueueStore extends PersistentStore<PlayQueueState> {
   PlayQueueStore() : super(PlayQueueState());
 
-  Future<void> update(List<PlayQueueItem> playQueue, int? index) async {
+  Future<void> update({
+    required List<PlayQueueItem> playQueue,
+    int? index,
+  }) async {
     set(state.copyWith(
       playQueue: playQueue,
       currentIndex: index ?? state.currentIndex,
     ));
+    if (Platform.isAndroid &&
+        state.playQueue.any((e) => e.file.uri.startsWith('content://'))) {
+      return;
+    }
     await save(state);
   }
 
   Future<void> updateCurrentIndex(int index) async {
     set(state.copyWith(currentIndex: index));
+    if (Platform.isAndroid &&
+        state.playQueue.any((e) => e.file.uri.startsWith('content://'))) {
+      return;
+    }
     await save(state);
   }
 
@@ -44,6 +58,10 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
         .toList();
 
     set(state.copyWith(playQueue: [...state.playQueue, ...playQueue]));
+    if (Platform.isAndroid &&
+        state.playQueue.any((e) => e.file.uri.startsWith('content://'))) {
+      return;
+    }
     await save(state);
   }
 
@@ -70,14 +88,20 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
         ));
       }
     }
+    if (Platform.isAndroid &&
+        state.playQueue.any((e) => e.file.uri.startsWith('content://'))) {
+      return;
+    }
     await save(state);
   }
 
   @override
   Future<PlayQueueState?> load() async {
+    log('Loading PlayQueueState');
     try {
-      if (globals.arguments.isNotEmpty && globals.arguments[0].isNotEmpty) {
-        final uri = globals.arguments[0];
+      if (isDesktop && globals.arguments.isNotEmpty) {
+        String uri = globals.arguments[0];
+        // 在线播放
         if (RegExp(r'^(http://|https://)').hasMatch(uri)) {
           final state = PlayQueueState(
             playQueue: [
@@ -85,7 +109,6 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
                 file: FileItem(
                   name: uri,
                   uri: uri,
-                  type: ContentType.video,
                 ),
                 index: 0,
               )
@@ -96,15 +119,34 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
           return state;
         }
 
-        final filePath = pathConverter(uri);
-        if (checkContentType(filePath.last) == ContentType.video ||
-            checkContentType(filePath.last) == ContentType.audio) {
-          final state = await getLocalPlayQueue(filePath);
-          if (state != null && state.playQueue.isNotEmpty) {
-            save(state);
-            return state;
-          }
+        // 本地播放
+        final filePath = pathConv(uri);
+        final state = await getLocalPlayQueue(filePath);
+        if (state != null && state.playQueue.isNotEmpty) {
+          save(state);
+          return state;
         }
+      }
+
+      final uri = globals.initUri;
+
+      // Android
+      if (uri != null && Platform.isAndroid) {
+        final decodedPath = decodePath(uri.path);
+        final fileName = Uri.decodeComponent(decodedPath.last);
+        await useAppStore().updateAutoPlay(true);
+        return PlayQueueState(
+          playQueue: [
+            PlayQueueItem(
+              file: FileItem(
+                name: fileName,
+                uri: uri.toString(),
+              ),
+              index: 0,
+            ),
+          ],
+          currentIndex: 0,
+        );
       }
 
       AndroidOptions getAndroidOptions() => const AndroidOptions(

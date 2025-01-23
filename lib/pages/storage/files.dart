@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:iris/globals.dart' as globals;
 import 'package:iris/models/file.dart';
 import 'package:iris/models/progress.dart';
 import 'package:iris/models/storages/storage.dart';
@@ -30,14 +31,6 @@ class Files extends HookWidget {
 
     final refreshState = useState(false);
     void refresh() => refreshState.value = !refreshState.value;
-
-    final storageStatusFuture = useMemoized(
-        () async => !Platform.isAndroid
-            ? PermissionStatus.granted
-            : await Permission.storage.status,
-        [storage, refreshState.value]);
-
-    final storageStatus = useFuture(storageStatusFuture).data;
 
     final basePath = storage.basePath;
 
@@ -93,7 +86,7 @@ class Files extends HookWidget {
 
       await useAppStore().updateAutoPlay(true);
       await useAppStore().updateShuffle(false);
-      await usePlayQueueStore().update(playQueue, newIndex);
+      await usePlayQueueStore().update(playQueue: playQueue, index: newIndex);
     }
 
     void back() {
@@ -111,12 +104,14 @@ class Files extends HookWidget {
       children: [
         Expanded(
           child: Platform.isAndroid &&
-                  storageStatus != PermissionStatus.granted &&
+                  globals.storagePermissionStatus != PermissionStatus.granted &&
                   storage is LocalStorage
               ? Center(
                   child: ElevatedButton(
                       onPressed: () async {
                         await Permission.storage.request();
+                        globals.storagePermissionStatus =
+                            await Permission.storage.status;
                         refresh();
                       },
                       child: Text(t.grant_storage_permission)),
