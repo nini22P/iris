@@ -16,6 +16,7 @@ import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/files_filter.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/request_storage_permission.dart';
 import 'package:iris/widgets/custom_chip.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -109,9 +110,7 @@ class Files extends HookWidget {
               ? Center(
                   child: ElevatedButton(
                       onPressed: () async {
-                        await Permission.storage.request();
-                        globals.storagePermissionStatus =
-                            await Permission.storage.status;
+                        await requestStoragePermission();
                         refresh();
                       },
                       child: Text(t.grant_storage_permission)),

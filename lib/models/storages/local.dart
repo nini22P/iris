@@ -160,8 +160,9 @@ Future<PlayQueueState?> getLocalPlayQueue(List<String> filePath) async {
 
 Future<void> pickLocalFile() async {
   FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: [...Formats.video, ...Formats.audio]);
+    type: FileType.custom,
+    allowedExtensions: [...Formats.video, ...Formats.audio],
+  );
 
   if (result != null) {
     final filePath = pathConv(result.files.first.path!);

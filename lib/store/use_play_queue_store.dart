@@ -10,6 +10,7 @@ import 'package:iris/models/store/play_queue_state.dart';
 import 'package:iris/store/persistent_store.dart';
 import 'package:iris/globals.dart' as globals;
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/utils/check_content_type.dart';
 import 'package:iris/utils/decode_uri.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/utils/path_conv.dart';
@@ -121,10 +122,12 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
 
         // 本地播放
         final filePath = pathConv(uri);
-        final state = await getLocalPlayQueue(filePath);
-        if (state != null && state.playQueue.isNotEmpty) {
-          save(state);
-          return state;
+        if (isMediaFile(filePath.last)) {
+          final state = await getLocalPlayQueue(filePath);
+          if (state != null && state.playQueue.isNotEmpty) {
+            save(state);
+            return state;
+          }
         }
       }
 

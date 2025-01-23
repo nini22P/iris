@@ -321,7 +321,6 @@ class ControlBar extends HookWidget {
                 //   ),
                 // ),
                 PopupMenuButton(
-                  // tooltip: t.more_options,
                   clipBehavior: Clip.hardEdge,
                   constraints: const BoxConstraints(minWidth: 200),
                   itemBuilder: (BuildContext context) => [
@@ -344,7 +343,12 @@ class ControlBar extends HookWidget {
                         ),
                         onTap: () async {
                           showControl();
-                          await pickLocalFile();
+                          if (isDesktop) {
+                            await pickLocalFile();
+                          }
+                          // if (Platform.isAndroid) {
+                          //   await pickAndroidFile();
+                          // }
                           showControl();
                         },
                       ),

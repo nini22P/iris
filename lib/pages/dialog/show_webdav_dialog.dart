@@ -32,7 +32,7 @@ class WebDAVDialog extends HookWidget {
     final id = useMemoized(() => storage?.id ?? const Uuid().v4());
     final name = useState(storage?.name ?? '');
     final url = useState(storage?.url ?? '');
-    final basePath = useState(storage?.basePath ?? []);
+    final basePath = useState(storage?.basePath ?? ['/']);
     final username = useState(storage?.username ?? '');
     final password = useState(storage?.password ?? '');
     final https = useState(storage?.https ?? false);
