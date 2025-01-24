@@ -177,7 +177,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       );
     }
     return () {
-      if (currentFile != null && player.state.duration == Duration.zero) {
+      if (currentFile != null && player.state.duration != Duration.zero) {
         if (Platform.isAndroid && currentFile.uri.startsWith('content://')) {
           return;
         }
@@ -235,12 +235,10 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       if (completed) {
         if (repeat == Repeat.one) return;
         if (currentPlayIndex == playQueue.length - 1) {
-          if (repeat == Repeat.none) {
-            useAppStore().updateAutoPlay(false);
+          if (repeat == Repeat.all) {
+            await usePlayQueueStore().updateCurrentIndex(playQueue[0].index);
           }
-          usePlayQueueStore().updateCurrentIndex(playQueue[0].index);
         } else {
-          if (currentPlayIndex == playQueue.length - 1) return;
           await usePlayQueueStore()
               .updateCurrentIndex(playQueue[currentPlayIndex + 1].index);
         }

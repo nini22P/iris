@@ -93,11 +93,7 @@ class AppStore extends PersistentStore<AppState> {
 
       if (appState != null) {
         return AppState.fromJson(json.decode(appState)).copyWith(
-          autoPlay: (globals.arguments.isNotEmpty &&
-                  (RegExp(r'^(http://|https://)')
-                          .hasMatch(globals.arguments[0]) ||
-                      isMediaFile(pathConv(globals.arguments[0]).last))) ||
-              globals.initUri != null,
+          autoPlay: false,
         );
       }
     } catch (e) {

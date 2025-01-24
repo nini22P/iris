@@ -116,6 +116,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
             ],
             currentIndex: 0,
           );
+          await useAppStore().updateAutoPlay(true);
           save(state);
           return state;
         }
@@ -125,6 +126,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
         if (isMediaFile(filePath.last)) {
           final state = await getLocalPlayQueue(filePath);
           if (state != null && state.playQueue.isNotEmpty) {
+            await useAppStore().updateAutoPlay(true);
             save(state);
             return state;
           }
