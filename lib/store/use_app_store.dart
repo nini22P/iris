@@ -5,9 +5,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/persistent_store.dart';
-import 'package:iris/globals.dart' as globals;
-import 'package:iris/utils/check_content_type.dart';
-import 'package:iris/utils/path_conv.dart';
 
 class AppStore extends PersistentStore<AppState> {
   AppStore() : super(AppState());

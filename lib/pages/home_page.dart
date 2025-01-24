@@ -10,8 +10,8 @@ import 'package:iris/pages/player/iris_player.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/theme.dart';
-import 'package:iris/utils/decode_uri.dart';
 import 'package:iris/globals.dart' as globals;
+import 'package:saf_util/saf_util.dart';
 
 class HomePage extends HookWidget {
   const HomePage({super.key});
@@ -35,21 +35,24 @@ class HomePage extends HookWidget {
         if (uri != null && globals.initUri?.path != uri.path) {
           log('Uri: $uri');
           if (Platform.isAndroid) {
-            final decodedPath = decodePath(uri.path);
-            final fileName = Uri.decodeComponent(decodedPath.last);
-            await useAppStore().updateAutoPlay(true);
-            await usePlayQueueStore().update(
-              playQueue: [
-                PlayQueueItem(
-                  file: FileItem(
-                    name: fileName,
-                    uri: uri.toString(),
+            final file =
+                await SafUtil().documentFileFromUri(uri.toString(), false);
+            if (file != null) {
+              await useAppStore().updateAutoPlay(true);
+              await usePlayQueueStore().update(
+                playQueue: [
+                  PlayQueueItem(
+                    file: FileItem(
+                      name: file.name,
+                      uri: uri.toString(),
+                      size: file.length,
+                    ),
+                    index: 0,
                   ),
-                  index: 0,
-                ),
-              ],
-              index: 0,
-            );
+                ],
+                index: 0,
+              );
+            }
           }
         }
       }();

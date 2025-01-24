@@ -978,6 +978,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  saf_util:
+    dependency: "direct main"
+    description:
+      name: saf_util
+      sha256: "4e07d11463a97cd3feecb66192e423e6d17f082f16f1acf2ce923a538cacced0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.2"
   safe_local_storage:
     dependency: transitive
     description:

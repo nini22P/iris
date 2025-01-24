@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
@@ -324,34 +326,33 @@ class ControlBar extends HookWidget {
                   clipBehavior: Clip.hardEdge,
                   constraints: const BoxConstraints(minWidth: 200),
                   itemBuilder: (BuildContext context) => [
-                    if (isDesktop)
-                      PopupMenuItem(
-                        child: ListTile(
-                          mouseCursor: SystemMouseCursors.click,
-                          leading: const Icon(
-                            Icons.file_open_rounded,
-                            size: 16.5,
-                          ),
-                          title: Text(t.open_file),
-                          trailing: Text(
-                            'Ctrl + O',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).dividerColor,
-                            ),
+                    PopupMenuItem(
+                      child: ListTile(
+                        mouseCursor: SystemMouseCursors.click,
+                        leading: const Icon(
+                          Icons.file_open_rounded,
+                          size: 16.5,
+                        ),
+                        title: Text(t.open_file),
+                        trailing: Text(
+                          'Ctrl + O',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).dividerColor,
                           ),
                         ),
-                        onTap: () async {
-                          showControl();
-                          if (isDesktop) {
-                            await pickLocalFile();
-                          }
-                          // if (Platform.isAndroid) {
-                          //   await pickAndroidFile();
-                          // }
-                          showControl();
-                        },
                       ),
+                      onTap: () async {
+                        showControl();
+                        if (isDesktop) {
+                          await pickLocalFile();
+                        }
+                        if (Platform.isAndroid) {
+                          await pickAndroidFile();
+                        }
+                        showControl();
+                      },
+                    ),
                     PopupMenuItem(
                       child: ListTile(
                         mouseCursor: SystemMouseCursors.click,

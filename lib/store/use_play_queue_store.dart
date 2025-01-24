@@ -11,9 +11,9 @@ import 'package:iris/store/persistent_store.dart';
 import 'package:iris/globals.dart' as globals;
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/check_content_type.dart';
-import 'package:iris/utils/decode_uri.dart';
 import 'package:iris/utils/is_desktop.dart';
 import 'package:iris/utils/path_conv.dart';
+import 'package:saf_util/saf_util.dart';
 
 class PlayQueueStore extends PersistentStore<PlayQueueState> {
   PlayQueueStore() : super(PlayQueueState());
@@ -137,21 +137,23 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
 
       // Android
       if (uri != null && Platform.isAndroid) {
-        final decodedPath = decodePath(uri.path);
-        final fileName = Uri.decodeComponent(decodedPath.last);
-        await useAppStore().updateAutoPlay(true);
-        return PlayQueueState(
-          playQueue: [
-            PlayQueueItem(
-              file: FileItem(
-                name: fileName,
-                uri: uri.toString(),
+        final file = await SafUtil().documentFileFromUri(uri.toString(), false);
+        if (file != null) {
+          await useAppStore().updateAutoPlay(true);
+          return PlayQueueState(
+            playQueue: [
+              PlayQueueItem(
+                file: FileItem(
+                  name: file.name,
+                  uri: uri.toString(),
+                  size: file.length,
+                ),
+                index: 0,
               ),
-              index: 0,
-            ),
-          ],
-          currentIndex: 0,
-        );
+            ],
+            currentIndex: 0,
+          );
+        }
       }
 
       AndroidOptions getAndroidOptions() => const AndroidOptions(

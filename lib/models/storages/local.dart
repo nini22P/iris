@@ -18,6 +18,7 @@ import 'package:iris/utils/path_conv.dart';
 import 'package:path/path.dart' as p;
 import 'package:iris/models/file.dart';
 import 'package:iris/utils/check_content_type.dart';
+import 'package:saf_util/saf_util.dart';
 
 Future<List<FileItem>> getLocalFiles(
     LocalStorage storage, List<String> path) async {
@@ -174,6 +175,26 @@ Future<void> pickLocalFile() async {
     await usePlayQueueStore().update(
       playQueue: playQueue.playQueue,
       index: playQueue.currentIndex,
+    );
+  }
+}
+
+Future<void> pickAndroidFile() async {
+  final file = await SafUtil().pickFile(mimeTypes: ['video/*', 'audio/*']);
+  if (file != null) {
+    await useAppStore().updateAutoPlay(true);
+    await usePlayQueueStore().update(
+      playQueue: [
+        PlayQueueItem(
+          file: FileItem(
+            name: file.name,
+            uri: file.uri,
+            size: file.length,
+          ),
+          index: 0,
+        ),
+      ],
+      index: 0,
     );
   }
 }
