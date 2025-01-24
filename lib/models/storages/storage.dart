@@ -49,7 +49,7 @@ sealed class Storage with _$Storage implements _Storage {
     required String id,
     @Default(StorageType.webdav) StorageType type,
     required String name,
-    required String url,
+    @JsonKey(name: 'url') required String host,
     required List<String> basePath,
     required String port,
     required String username,
