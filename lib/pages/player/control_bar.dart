@@ -381,91 +381,99 @@ class ControlBar extends HookWidget {
                         showControl();
                       },
                     ),
-                    PopupMenuItem(
-                      child: ListTile(
-                        mouseCursor: SystemMouseCursors.click,
-                        leading: Icon(
-                          Icons.shuffle_rounded,
-                          size: 20,
-                          color: !shuffle
-                              ? Theme.of(context).disabledColor
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        title: Text('${t.shuffle}: ${shuffle ? t.on : t.off}'),
-                        trailing: Text(
-                          'Ctrl + X',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).dividerColor,
+                    if (MediaQuery.of(context).size.width < 600)
+                      PopupMenuItem(
+                        child: ListTile(
+                          mouseCursor: SystemMouseCursors.click,
+                          leading: Icon(
+                            Icons.shuffle_rounded,
+                            size: 20,
+                            color: !shuffle
+                                ? Theme.of(context).disabledColor
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                          ),
+                          title:
+                              Text('${t.shuffle}: ${shuffle ? t.on : t.off}'),
+                          trailing: Text(
+                            'Ctrl + X',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).dividerColor,
+                            ),
                           ),
                         ),
+                        onTap: () {
+                          showControl();
+                          shuffle
+                              ? playerController.sortPlayQueue()
+                              : playerController.shufflePlayQueue();
+                          useAppStore().updateShuffle(!shuffle);
+                        },
                       ),
-                      onTap: () {
-                        showControl();
-                        shuffle
-                            ? playerController.sortPlayQueue()
-                            : playerController.shufflePlayQueue();
-                        useAppStore().updateShuffle(!shuffle);
-                      },
-                    ),
-                    PopupMenuItem(
-                      child: ListTile(
-                        mouseCursor: SystemMouseCursors.click,
-                        leading: Icon(
-                          repeat == Repeat.one
-                              ? Icons.repeat_one_rounded
-                              : Icons.repeat_rounded,
-                          size: 20,
-                          color: repeat == Repeat.none
-                              ? Theme.of(context).disabledColor
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        title: Text(repeat == Repeat.one
-                            ? t.repeat_one
-                            : repeat == Repeat.all
-                                ? t.repeat_all
-                                : t.repeat_none),
-                        trailing: Text(
-                          'Ctrl + R',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).dividerColor,
+                    if (MediaQuery.of(context).size.width < 600)
+                      PopupMenuItem(
+                        child: ListTile(
+                          mouseCursor: SystemMouseCursors.click,
+                          leading: Icon(
+                            repeat == Repeat.one
+                                ? Icons.repeat_one_rounded
+                                : Icons.repeat_rounded,
+                            size: 20,
+                            color: repeat == Repeat.none
+                                ? Theme.of(context).disabledColor
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                          ),
+                          title: Text(repeat == Repeat.one
+                              ? t.repeat_one
+                              : repeat == Repeat.all
+                                  ? t.repeat_all
+                                  : t.repeat_none),
+                          trailing: Text(
+                            'Ctrl + R',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).dividerColor,
+                            ),
                           ),
                         ),
+                        onTap: () {
+                          showControl();
+                          useAppStore().toggleRepeat();
+                        },
                       ),
-                      onTap: () {
-                        showControl();
-                        useAppStore().toggleRepeat();
-                      },
-                    ),
-                    PopupMenuItem(
-                      child: ListTile(
-                        mouseCursor: SystemMouseCursors.click,
-                        leading: Icon(
-                          fit == BoxFit.contain
-                              ? Icons.fit_screen_rounded
-                              : fit == BoxFit.fill
-                                  ? Icons.aspect_ratio_rounded
-                                  : fit == BoxFit.cover
-                                      ? Icons.crop_landscape_rounded
-                                      : Icons.crop_free_rounded,
-                          size: 20,
-                        ),
-                        title: Text(
-                            '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'}'),
-                        trailing: Text(
-                          'Ctrl + V',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).dividerColor,
+                    if (MediaQuery.of(context).size.width < 600)
+                      PopupMenuItem(
+                        child: ListTile(
+                          mouseCursor: SystemMouseCursors.click,
+                          leading: Icon(
+                            fit == BoxFit.contain
+                                ? Icons.fit_screen_rounded
+                                : fit == BoxFit.fill
+                                    ? Icons.aspect_ratio_rounded
+                                    : fit == BoxFit.cover
+                                        ? Icons.crop_landscape_rounded
+                                        : Icons.crop_free_rounded,
+                            size: 20,
+                          ),
+                          title: Text(
+                              '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'}'),
+                          trailing: Text(
+                            'Ctrl + V',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).dividerColor,
+                            ),
                           ),
                         ),
+                        onTap: () {
+                          showControl();
+                          useAppStore().toggleFit();
+                        },
                       ),
-                      onTap: () {
-                        showControl();
-                        useAppStore().toggleFit();
-                      },
-                    ),
                     PopupMenuItem(
                       child: ListTile(
                         mouseCursor: SystemMouseCursors.click,

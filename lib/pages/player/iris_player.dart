@@ -5,6 +5,7 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
@@ -35,6 +36,7 @@ import 'package:iris/pages/player/control_bar.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 import 'package:window_manager/window_manager.dart';
 
 class IrisPlayer extends HookWidget {
@@ -126,12 +128,33 @@ class IrisPlayer extends HookWidget {
     final isHover = useState(false);
     final isTouch = useState(false);
     final isLongPress = useState(false);
+    final startPosition = useState<Offset?>(null);
+    final isHorizontalGesture = useState(false);
+    final isVerticalGesture = useState(false);
 
     final controlHideTimer = useRef<Timer?>(null);
     final progressHideTimer = useRef<Timer?>(null);
 
     final isShowControl = useState(true);
     final isShowProgress = useState(false);
+
+    final brightness =
+        useStream(ScreenBrightness().onCurrentBrightnessChanged).data;
+    final volume = useState<double?>(null);
+
+    useEffect(() {
+      () async {
+        volume.value = await FlutterVolumeController.getVolume();
+      }();
+      return;
+    }, []);
+
+    useEffect(() {
+      if (volume.value != null) {
+        FlutterVolumeController.setVolume(volume.value!);
+      }
+      return;
+    }, [volume.value]);
 
     AppLifecycleState? appLifecycleState = useAppLifecycleState();
 
@@ -599,38 +622,86 @@ class IrisPlayer extends HookWidget {
                         showControlForHover(windowManager.startDragging());
                       } else if (details.kind == PointerDeviceKind.touch) {
                         isTouch.value = true;
-                        playerCore.updateSeeking(true);
+                        startPosition.value = details.globalPosition;
                       }
                     },
-                    onPanUpdate: (details) {
-                      if (isTouch.value && playerCore.seeking) {
-                        double x = details.delta.dx;
-                        int seconds =
-                            (x * 5 + playerCore.position.inSeconds).toInt();
-                        Duration position = Duration(
-                            seconds: seconds < 0
-                                ? 0
-                                : seconds > playerCore.duration.inSeconds
-                                    ? playerCore.duration.inSeconds
-                                    : seconds);
-                        playerCore.updatePosition(position);
-                        if (isShowControl.value) {
-                          showControl();
-                        } else {
-                          showProgress();
+                    onPanUpdate: (details) async {
+                      if (isTouch.value && startPosition.value != null) {
+                        double dx = (details.globalPosition.dx -
+                                startPosition.value!.dx)
+                            .abs();
+                        double dy = (details.globalPosition.dy -
+                                startPosition.value!.dy)
+                            .abs();
+                        if (!isHorizontalGesture.value &&
+                            !isVerticalGesture.value) {
+                          if (dx > dy) {
+                            isHorizontalGesture.value = true;
+                            playerCore.updateSeeking(true);
+                          } else {
+                            isVerticalGesture.value = true;
+                          }
+                        }
+
+                        // 调整进度
+                        if (isHorizontalGesture.value && playerCore.seeking) {
+                          double dx = details.delta.dx;
+                          int seconds =
+                              (dx * 5 + playerCore.position.inSeconds).toInt();
+                          Duration position = Duration(
+                              seconds: seconds < 0
+                                  ? 0
+                                  : seconds > playerCore.duration.inSeconds
+                                      ? playerCore.duration.inSeconds
+                                      : seconds);
+                          playerCore.updatePosition(position);
+                          if (isShowControl.value) {
+                            showControl();
+                          } else {
+                            showProgress();
+                          }
+                        }
+
+                        // 亮度和音量
+                        final startDX = startPosition.value?.dx;
+                        if (startDX != null && isVerticalGesture.value) {
+                          double dy = details.delta.dy;
+                          if (startDX <
+                              (MediaQuery.of(context).size.width / 2)) {
+                            if (brightness != null) {
+                              final newBrightness = brightness - dy / 200;
+                              ScreenBrightness()
+                                  .setScreenBrightness(newBrightness > 1
+                                      ? 1
+                                      : newBrightness < 0
+                                          ? 0
+                                          : newBrightness);
+                            }
+                          } else {
+                            if (volume.value != null) {
+                              volume.value = volume.value! - dy / 200;
+                            }
+                          }
                         }
                       }
                     },
                     onPanEnd: (details) async {
-                      if (isTouch.value && playerCore.seeking) {
-                        isTouch.value = false;
+                      isTouch.value = false;
+                      isHorizontalGesture.value = false;
+                      isVerticalGesture.value = false;
+                      startPosition.value = null;
+                      if (playerCore.seeking) {
                         await playerController.seekTo(playerCore.position);
                         playerCore.updateSeeking(false);
                       }
                     },
                     onPanCancel: () async {
-                      if (isTouch.value && playerCore.seeking) {
-                        isTouch.value = false;
+                      isTouch.value = false;
+                      isHorizontalGesture.value = false;
+                      isVerticalGesture.value = false;
+                      startPosition.value = null;
+                      if (playerCore.seeking) {
+                        await playerController.seekTo(playerCore.position);
                         playerCore.updateSeeking(false);
                       }
                     },

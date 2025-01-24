@@ -65,6 +65,7 @@ const allDependencies = <Package>[
   _flutter_secure_storage_platform_interface,
   _flutter_secure_storage_web,
   _flutter_secure_storage_windows,
+  _flutter_volume_controller,
   _flutter_zustand,
   _freezed,
   _freezed_annotation,
@@ -204,6 +205,7 @@ const dependencies = <Package>[
   _flutter_hooks,
   _flutter_markdown,
   _flutter_secure_storage,
+  _flutter_volume_controller,
   _flutter_zustand,
   _freezed_annotation,
   _google_fonts,
@@ -219,6 +221,7 @@ const dependencies = <Package>[
   _permission_handler,
   _provider,
   _saf_util,
+  _screen_brightness,
   _scrollable_positioned_list,
   _url_launcher,
   _uuid,
@@ -4207,6 +4210,39 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
     isMarkdown: false,
     isSdk: false,
     dependencies: [PackageRef('flutter'), PackageRef('flutter_secure_storage_platform_interface')]
+  );
+
+/// flutter_volume_controller 1.3.3
+const _flutter_volume_controller = Package(
+    name: 'flutter_volume_controller',
+    description: 'A Flutter plugin to control system volume and listen for volume changes on different platforms.',
+    homepage: 'https://github.com/yosemiteyss/flutter_volume_controller',
+    authors: [],
+    version: '1.3.3',
+    license: '''MIT License
+
+Copyright (c) 2022 yosemiteyss
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.''',
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('flutter'), PackageRef('flutter_plugin_android_lifecycle')]
   );
 
 /// flutter_zustand 0.0.5

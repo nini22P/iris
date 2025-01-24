@@ -35,14 +35,17 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
-  media_kit: ^1.1.11
-  media_kit_video: ^1.2.5
-  media_kit_libs_video: ^1.0.5
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   file_picker: ^8.1.4
   flutter_breadcrumb: ^1.0.1
   flutter_hooks: ^0.20.5
   flutter_secure_storage: ^8.1.0
   flutter_zustand: ^0.0.5
+  media_kit: ^1.1.11
+  media_kit_video: ^1.2.5
+  media_kit_libs_video: ^1.0.5
   path: ^1.9.0
   path_provider: ^2.1.5
   package_info_plus: ^8.1.1
@@ -51,9 +54,6 @@ dependencies:
   window_manager: ^0.4.3
   url_launcher: ^6.3.1
   scrollable_positioned_list: ^0.3.8
-  flutter_localizations:
-    sdk: flutter
-  intl: any
   google_fonts: ^6.2.1
   dynamic_color: ^1.7.0
   window_size: ^0.1.0
@@ -70,6 +70,8 @@ dependencies:
   app_links: ^6.3.3
   device_info_plus: ^11.2.1
   saf_util: ^0.6.2
+  screen_brightness: ^0.2.2
+  flutter_volume_controller: ^1.3.3
 
 dev_dependencies:
   flutter_test:

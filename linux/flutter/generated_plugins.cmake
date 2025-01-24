@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   dynamic_color
   flutter_secure_storage_linux
+  flutter_volume_controller
   gtk
   media_kit_libs_linux
   media_kit_video

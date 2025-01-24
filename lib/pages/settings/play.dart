@@ -4,7 +4,6 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/is_desktop.dart';
-import 'package:window_manager/window_manager.dart';
 
 class Play extends HookWidget {
   const Play({super.key});
