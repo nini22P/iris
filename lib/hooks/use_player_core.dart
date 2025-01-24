@@ -78,6 +78,8 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final bool autoPlay =
       useAppStore().select(context, (state) => state.autoPlay);
   final Repeat repeat = useAppStore().select(context, (state) => state.repeat);
+  final bool alwaysPlayFromBeginning =
+      useAppStore().select(context, (state) => state.alwaysPlayFromBeginning);
 
   final history = useHistoryStore().select(context, (state) => state.history);
 
@@ -202,7 +204,8 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       if (currentFile != null && currentFile.type == ContentType.video) {
         Progress? progress = history[currentFile.getID()];
         if (progress != null) {
-          if (progress.duration.inMilliseconds == duration.inMilliseconds &&
+          if (!alwaysPlayFromBeginning &&
+              progress.duration.inMilliseconds == duration.inMilliseconds &&
               (progress.duration.inMilliseconds -
                       progress.position.inMilliseconds) >
                   5000) {

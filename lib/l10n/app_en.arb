@@ -9,6 +9,8 @@
   "add_webdav_storage": "Add WebDAV storage",
   "always_on_top_off": "Always on top: Off",
   "always_on_top_on": "Always on top: On",
+  "always_play_from_beginning": "Always play from the beginning",
+  "always_play_from_beginning_description": "When enabled, this option will automatically start the video from the beginning each time it is played",
   "app_description": "A lightweight video player",
   "audio_track": "Audio track",
   "author": "Author",

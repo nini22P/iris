@@ -387,6 +387,9 @@ class IrisPlayer extends HookWidget {
           case LogicalKeyboardKey.f11:
             windowManager.setFullScreen(!await windowManager.isFullScreen());
             break;
+          case LogicalKeyboardKey.tab:
+            showControl();
+            break;
           default:
             break;
         }

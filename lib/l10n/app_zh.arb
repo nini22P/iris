@@ -9,6 +9,8 @@
   "add_webdav_storage": "添加 WebDAV 存储",
   "always_on_top_off": "窗口置顶: 关",
   "always_on_top_on": "窗口置顶: 开",
+  "always_play_from_beginning": "总是从头开始播放",
+  "always_play_from_beginning_description": "启用此选项后，每次播放视频时将自动从头开始播放",
   "app_description": "轻量级视频播放器",
   "audio_track": "音轨",
   "author": "作者",

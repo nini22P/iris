@@ -77,6 +77,12 @@ class AppStore extends PersistentStore<AppState> {
     await save(state);
   }
 
+  Future<void> toggleAlwaysPlayFromBeginning() async {
+    set(state.copyWith(
+        alwaysPlayFromBeginning: !state.alwaysPlayFromBeginning));
+    await save(state);
+  }
+
   @override
   Future<AppState?> load() async {
     logger('Loading AppState');

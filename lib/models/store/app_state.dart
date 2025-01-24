@@ -24,6 +24,7 @@ class AppState with _$AppState {
     @Default('system') String language,
     @Default(false) bool autoCheckUpdate,
     @Default(false) bool autoResize,
+    @Default(false) bool alwaysPlayFromBeginning,
   }) = _AppState;
 
   factory AppState.fromJson(Map<String, dynamic> json) =>
