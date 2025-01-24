@@ -1,5 +1,4 @@
-import 'dart:developer';
-
+import 'package:iris/utils/logger.dart';
 import 'package:path/path.dart' as p;
 
 List<String> pathConv(String path) {
@@ -20,7 +19,7 @@ List<String> pathConv(String path) {
         .where((element) => element.isNotEmpty)
         .toList();
   } on FormatException catch (e) {
-    log("Error decoding: $e");
+    logger("Error decoding: $e");
     return [];
   }
 }

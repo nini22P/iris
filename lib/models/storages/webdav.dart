@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/utils/check_content_type.dart';
 import 'package:iris/utils/find_subtitle.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 import 'package:iris/models/file.dart';
 
@@ -31,7 +31,7 @@ Future<bool> testWebDAV(WebDAVStorage storage) async {
     await client.readDir(basePath.join('/'));
     return true;
   } catch (e) {
-    log(e.toString());
+    logger(e.toString());
     return false;
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -12,6 +11,7 @@ import 'package:iris/globals.dart' as globals;
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/check_content_type.dart';
 import 'package:iris/utils/is_desktop.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/path_conv.dart';
 import 'package:saf_util/saf_util.dart';
 
@@ -98,7 +98,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
 
   @override
   Future<PlayQueueState?> load() async {
-    log('Loading PlayQueueState');
+    logger('Loading PlayQueueState');
     try {
       if (isDesktop && globals.arguments.isNotEmpty) {
         String uri = globals.arguments[0];
@@ -137,7 +137,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
 
       // Android
       if (uri != null && Platform.isAndroid) {
-        final file = await SafUtil().documentFileFromUri(uri.toString(), false);
+        final file = await SafUtil().documentFileFromUri(uri, false);
         if (file != null) {
           await useAppStore().updateAutoPlay(true);
           return PlayQueueState(
@@ -145,7 +145,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
               PlayQueueItem(
                 file: FileItem(
                   name: file.name,
-                  uri: uri.toString(),
+                  uri: file.uri,
                   size: file.length,
                 ),
                 index: 0,
@@ -166,7 +166,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
         return PlayQueueState.fromJson(json.decode(appState));
       }
     } catch (e) {
-      log('Error loading PlayQueueState: $e');
+      logger('Error loading PlayQueueState: $e');
     }
     return null;
   }
@@ -182,7 +182,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
       await storage.write(
           key: 'playQueue_state', value: json.encode(state.toJson()));
     } catch (e) {
-      log('Error saving PlayQueueState: $e');
+      logger('Error saving PlayQueueState: $e');
     }
   }
 }

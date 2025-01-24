@@ -323,6 +323,11 @@ class ControlBar extends HookWidget {
                 //   ),
                 // ),
                 PopupMenuButton(
+                  icon: const Icon(
+                    Icons.more_vert_rounded,
+                    size: 20,
+                  ),
+                  iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
                   clipBehavior: Clip.hardEdge,
                   constraints: const BoxConstraints(minWidth: 200),
                   itemBuilder: (BuildContext context) => [

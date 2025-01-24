@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -13,6 +12,7 @@ import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/files_filter.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:media_kit/media_kit.dart';
 
 enum MediaType {
@@ -167,7 +167,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     if (currentFile == null || playQueue.isEmpty) {
       player.stop();
     } else {
-      log('Now playing: ${currentFile.uri}, auto play: $autoPlay');
+      logger('Now playing: ${currentFile.uri}, auto play: $autoPlay');
       player.open(
         Media(currentFile.uri,
             httpHeaders: currentFile.auth != null
@@ -181,7 +181,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
         if (Platform.isAndroid && currentFile.uri.startsWith('content://')) {
           return;
         }
-        log('Save progress: ${currentFile.name}');
+        logger('Save progress: ${currentFile.name}');
         useHistoryStore().add(Progress(
           dateTime: DateTime.now().toUtc(),
           position: player.state.position,
@@ -206,14 +206,15 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
               (progress.duration.inMilliseconds -
                       progress.position.inMilliseconds) >
                   5000) {
-            log('Resume progress: ${currentFile.name} position: ${progress.position} duration: ${progress.duration}');
+            logger(
+                'Resume progress: ${currentFile.name} position: ${progress.position} duration: ${progress.duration}');
             await player.seek(progress.position);
           }
         }
       }
       // 设置字幕
       if (externalSubtitles!.isNotEmpty) {
-        log('Set external subtitle: ${externalSubtitles[0].name}');
+        logger('Set external subtitle: ${externalSubtitles[0].name}');
         await player.setSubtitleTrack(
           SubtitleTrack.uri(
             externalSubtitles[0].uri,
@@ -221,7 +222,8 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           ),
         );
       } else if (subtitles.length > 1) {
-        log('Set subtitle: ${subtitles[1].title ?? subtitles[1].language ?? subtitles[1].id}');
+        logger(
+            'Set subtitle: ${subtitles[1].title ?? subtitles[1].language ?? subtitles[1].id}');
         await player.setSubtitleTrack(subtitles[1]);
       } else {
         await player.setSubtitleTrack(SubtitleTrack.no());
@@ -248,7 +250,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   }, [completed, repeat]);
 
   useEffect(() {
-    log('$repeat');
+    logger('$repeat');
     if (repeat == Repeat.one) {
       player.setPlaylistMode(PlaylistMode.loop);
     } else {
@@ -266,7 +268,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       if (Platform.isAndroid && currentFile.uri.startsWith('content://')) {
         return;
       }
-      log('Save progress: ${currentFile.name}');
+      logger('Save progress: ${currentFile.name}');
       useHistoryStore().add(Progress(
         dateTime: DateTime.now().toUtc(),
         position: player.state.position,

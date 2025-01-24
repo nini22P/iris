@@ -1,34 +1,38 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:iris/info.dart';
+import 'package:iris/models/file.dart';
 import 'package:iris/pages/home_page.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/theme.dart';
 import 'package:iris/utils/is_desktop.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/request_storage_permission.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:saf_util/saf_util.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'globals.dart' as globals;
 
 void main(List<String> arguments) async {
-  log('arguments: $arguments');
+  logger('arguments: $arguments');
   globals.arguments = arguments;
 
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
 
   final appLinks = AppLinks();
-  final initUri = await appLinks.getInitialLink();
+  final initUri = await appLinks.getInitialLinkString();
 
   if (initUri != null) {
-    log('initUri: $initUri');
+    logger('initUri: $initUri');
     globals.initUri = initUri;
   }
 
@@ -60,6 +64,14 @@ class MyApp extends HookWidget {
   @override
   Widget build(BuildContext context) {
     useEffect(() {
+      SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+      ));
+      return null;
+    }, []);
+
+    useEffect(() {
       () async {
         globals.storagePermissionStatus = Platform.isAndroid
             ? await isAndroid11OrHigher()
@@ -73,6 +85,37 @@ class MyApp extends HookWidget {
     ThemeMode themeMode =
         useAppStore().select(context, (state) => state.themeMode);
     String language = useAppStore().select(context, (state) => state.language);
+
+    final appLinks = useMemoized(() => AppLinks());
+    final String? uri = useStream(appLinks.stringLinkStream).data;
+
+    useEffect(() {
+      () async {
+        if (uri != null && globals.initUri != uri) {
+          logger('Uri: $uri');
+          if (Platform.isAndroid) {
+            final file = await SafUtil().documentFileFromUri(uri, false);
+            if (file != null) {
+              await useAppStore().updateAutoPlay(true);
+              await usePlayQueueStore().update(
+                playQueue: [
+                  PlayQueueItem(
+                    file: FileItem(
+                      name: file.name,
+                      uri: file.uri,
+                      size: file.length,
+                    ),
+                    index: 0,
+                  ),
+                ],
+                index: 0,
+              );
+            }
+          }
+        }
+      }();
+      return null;
+    }, [uri]);
 
     return DynamicColorBuilder(builder: (
       ColorScheme? lightDynamic,

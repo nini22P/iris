@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:android_x_storage/android_x_storage.dart';
 import 'package:collection/collection.dart';
@@ -14,6 +13,7 @@ import 'package:iris/utils/files_sort.dart';
 import 'package:iris/utils/find_subtitle.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/is_desktop.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/path_conv.dart';
 import 'package:path/path.dart' as p;
 import 'package:iris/models/file.dart';
@@ -36,10 +36,12 @@ Future<List<FileItem>> getLocalFiles(
         try {
           size = await file.length();
         } on PathAccessException catch (e) {
-          log('PathAccessException when getting file size for ${entity.path}: $e, setting size to 0');
+          logger(
+              'PathAccessException when getting file size for ${entity.path}: $e, setting size to 0');
           size = 0;
         } catch (e) {
-          log('Error getting file size for ${entity.path}: $e, setting size to 0');
+          logger(
+              'Error getting file size for ${entity.path}: $e, setting size to 0');
           size = 0;
         }
       }
@@ -64,7 +66,7 @@ Future<List<FileItem>> getLocalFiles(
           subtitles: subtitles));
     }
   } catch (e) {
-    log('Error reading directory $path : $e');
+    logger('Error reading directory $path : $e');
     return [];
   }
 

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
-import 'dart:developer';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +20,7 @@ import 'package:iris/pages/show_open_link_bottom_sheet.dart';
 import 'package:iris/pages/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/utils/check_content_type.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/path_conv.dart';
 import 'package:iris/widgets/popup.dart';
 import 'package:iris/pages/storage/storages.dart';
@@ -45,6 +45,8 @@ class IrisPlayer extends HookWidget {
     final t = getLocalizations(context);
     final shuffle = useAppStore().select(context, (state) => state.shuffle);
     final fit = useAppStore().select(context, (state) => state.fit);
+    final autoResize =
+        useAppStore().select(context, (state) => state.autoResize);
 
     final playQueue =
         usePlayQueueStore().select(context, (state) => state.playQueue);
@@ -63,7 +65,9 @@ class IrisPlayer extends HookWidget {
 
     final title = useMemoized(
         () => currentPlay != null
-            ? '[${currentPlayIndex + 1}/${playQueue.length}] ${currentPlay.file.name} - ${INFO.title}'
+            ? playQueue.length > 1
+                ? '[${currentPlayIndex + 1}/${playQueue.length}] ${currentPlay.file.name}'
+                : currentPlay.file.name
             : INFO.title,
         [currentPlay, currentPlayIndex, playQueue]);
 
@@ -90,7 +94,7 @@ class IrisPlayer extends HookWidget {
           final Directory fontsDirectory = Directory(fontsDir);
           if (!await fontsDirectory.exists()) {
             await fontsDirectory.create(recursive: true);
-            log('fonts directory created');
+            logger('fonts directory created');
           }
 
           final File file = File("$fontsDir/NotoSansCJKsc-Medium.otf");
@@ -100,7 +104,7 @@ class IrisPlayer extends HookWidget {
             final Uint8List buffer = data.buffer.asUint8List();
             await file.create(recursive: true);
             await file.writeAsBytes(buffer);
-            log('NotoSansCJKsc-Medium.otf copied');
+            logger('NotoSansCJKsc-Medium.otf copied');
           }
 
           await nativePlayer.setProperty("sub-fonts-dir", fontsDir);
@@ -135,14 +139,14 @@ class IrisPlayer extends HookWidget {
 
     useEffect(() {
       if (isDesktop) {
-        resizeWindow(playerCore.videoParams?.aspect);
+        resizeWindow(!autoResize ? 0 : playerCore.videoParams?.aspect);
       }
       return;
-    }, [playerCore.videoParams?.aspect]);
+    }, [playerCore.videoParams?.aspect, autoResize]);
 
     useEffect(() {
       if (appLifecycleState == AppLifecycleState.paused) {
-        log('App lifecycle state: paused');
+        logger('App lifecycle state: paused');
         playerCore.saveProgress();
       }
       return;

@@ -4,5 +4,5 @@ library my_app.globals;
 import 'package:permission_handler/permission_handler.dart';
 
 List<String> arguments = [];
-Uri? initUri;
+String? initUri;
 PermissionStatus? storagePermissionStatus;

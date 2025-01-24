@@ -25,9 +25,6 @@ class Play extends HookWidget {
               leading: const Icon(Icons.aspect_ratio_rounded),
               title: Text(t.auto_resize),
               onTap: () {
-                if (autoResize) {
-                  windowManager.setAspectRatio(0);
-                }
                 useAppStore().toggleAutoResize();
               },
               trailing: Checkbox(

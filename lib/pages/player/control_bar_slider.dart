@@ -58,7 +58,10 @@ class ControlBarSlider extends HookWidget {
                         trackHeight: 3,
                       ),
                       child: Slider(
-                        value: playerCore.buffer.inSeconds.toDouble(),
+                        value: playerCore.buffer.inSeconds.toDouble() >
+                                playerCore.duration.inSeconds.toDouble()
+                            ? 0
+                            : playerCore.buffer.inSeconds.toDouble(),
                         min: 0,
                         max: playerCore.duration.inSeconds.toDouble(),
                         onChanged: null,
@@ -90,7 +93,8 @@ class ControlBarSlider extends HookWidget {
                       trackHeight: 4,
                     ),
                     child: Slider(
-                      value: playerCore.duration.inSeconds.toDouble() == 0
+                      value: playerCore.position.inSeconds.toDouble() >
+                              playerCore.duration.inSeconds.toDouble()
                           ? 0
                           : playerCore.position.inSeconds.toDouble(),
                       min: 0,

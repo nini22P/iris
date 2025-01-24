@@ -1,6 +1,7 @@
-import 'dart:developer';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart';
 
@@ -20,9 +21,9 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
 
   windowManager.setAspectRatio(videoAspectRatio);
 
-  Rect bounds = await windowManager.getBounds();
+  Rect oldBounds = await windowManager.getBounds();
 
-  if (bounds.size.aspectRatio.toStringAsFixed(2) ==
+  if (oldBounds.size.aspectRatio.toStringAsFixed(2) ==
       videoAspectRatio.toStringAsFixed(2)) {
     return;
   }
@@ -35,38 +36,50 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
   double screenHeight = screen.frame.size.height;
   double screenAspectRatio = screen.frame.size.aspectRatio;
 
-  Size size = Size(bounds.size.height * videoAspectRatio, bounds.size.height);
+  double oldArea = oldBounds.size.width * oldBounds.size.height;
+
+  double newHeight = math.sqrt(oldArea / videoAspectRatio);
+  double newWidth = newHeight * videoAspectRatio;
+
+  Size size = oldBounds.size.aspectRatio < 1
+      ? Size(oldBounds.size.height * videoAspectRatio, oldBounds.size.height)
+      : Size(newWidth, newHeight);
 
   if (size.width < screenWidth / screen.scaleFactor &&
       size.height < screenHeight / screen.scaleFactor) {
-    log('Window resize: $size');
+    logger('Window resize: $size');
 
     windowManager.setBounds(
       null,
       position: Offset(
-          bounds.left < 0
-              ? 0
-              : screenWidth / screen.scaleFactor - bounds.left < size.width / 2
-                  ? screenWidth / screen.scaleFactor - size.width
-                  : bounds.left + bounds.size.width / 2 - size.width / 2 < 0
-                      ? 0
-                      : bounds.left + bounds.size.width / 2 - size.width / 2,
-          bounds.top),
+        oldBounds.left < 0
+            ? 0
+            : screenWidth / screen.scaleFactor - oldBounds.left < size.width / 2
+                ? screenWidth / screen.scaleFactor - size.width
+                : oldBounds.left + oldBounds.size.width / 2 - size.width / 2 < 0
+                    ? 0
+                    : oldBounds.left +
+                        oldBounds.size.width / 2 -
+                        size.width / 2,
+        oldBounds.top + oldBounds.size.height / 2 - size.height / 2 <= 0
+            ? 0
+            : oldBounds.top + oldBounds.size.height / 2 - size.height / 2,
+      ),
       size: size,
       animate: true,
     );
   } else {
-    Offset position = await calcWindowPosition(
-      size,
-      Alignment.center,
-    );
-
     if (screenAspectRatio > videoAspectRatio) {
       double height = screenHeight * 0.9 / screen.scaleFactor;
       double width = height * videoAspectRatio;
       Size size = Size(width, height);
 
-      log('Window resize: $size');
+      Offset position = await calcWindowPosition(
+        size,
+        Alignment.center,
+      );
+
+      logger('Window resize to center: $size');
 
       windowManager.setBounds(
         null,
@@ -79,7 +92,12 @@ Future<void> resizeWindow(double? videoAspectRatio) async {
       double height = width / videoAspectRatio;
       Size size = Size(width, height);
 
-      log('Window resize: $size');
+      Offset position = await calcWindowPosition(
+        size,
+        Alignment.center,
+      );
+
+      logger('Window resize to center: $size');
 
       windowManager.setBounds(
         null,

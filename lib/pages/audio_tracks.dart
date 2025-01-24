@@ -1,8 +1,8 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:media_kit/media_kit.dart';
 
 class AudioTracks extends HookWidget {
@@ -42,7 +42,8 @@ class AudioTracks extends HookWidget {
                     ),
             ),
             onTap: () {
-              log('Set audio track: ${audio.title ?? audio.language ?? audio.id}');
+              logger(
+                  'Set audio track: ${audio.title ?? audio.language ?? audio.id}');
               playerCore.player.setAudioTrack(audio);
               Navigator.of(context).pop();
             },

@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/persistent_store.dart';
+import 'package:iris/utils/logger.dart';
 
 class AppStore extends PersistentStore<AppState> {
   AppStore() : super(AppState());
@@ -79,7 +79,7 @@ class AppStore extends PersistentStore<AppState> {
 
   @override
   Future<AppState?> load() async {
-    log('Loading AppState');
+    logger('Loading AppState');
     try {
       AndroidOptions getAndroidOptions() => const AndroidOptions(
             encryptedSharedPreferences: true,
@@ -94,7 +94,7 @@ class AppStore extends PersistentStore<AppState> {
         );
       }
     } catch (e) {
-      log('Error loading AppState: $e');
+      logger('Error loading AppState: $e');
     }
     return null;
   }
@@ -109,7 +109,7 @@ class AppStore extends PersistentStore<AppState> {
 
       await storage.write(key: 'app_state', value: json.encode(state.toJson()));
     } catch (e) {
-      log('Error saving AppState: $e');
+      logger('Error saving AppState: $e');
     }
   }
 }
