@@ -27,7 +27,7 @@ Future<bool> testWebDAV(WebDAVStorage storage) async {
     client.setSendTimeout(4000);
     client.setReceiveTimeout(4000);
 
-    await client.ping();
+    // await client.ping();
     await client.readDir(basePath.join('/'));
     return true;
   } catch (e) {

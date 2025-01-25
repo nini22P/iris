@@ -237,7 +237,7 @@ class WebDAVDialog extends HookWidget {
         ),
         TextButton(
           onPressed: testConnection,
-          child: Text(t.connection_test),
+          child: Text(t.test_connection),
         ),
         TextButton(
           onPressed: isTested.value
