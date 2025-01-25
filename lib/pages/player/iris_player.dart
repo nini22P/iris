@@ -131,6 +131,8 @@ class IrisPlayer extends HookWidget {
     final startPosition = useState<Offset?>(null);
     final isHorizontalGesture = useState(false);
     final isVerticalGesture = useState(false);
+    final isLeftGesture = useState(false);
+    final isRightGesture = useState(false);
 
     final controlHideTimer = useRef<Timer?>(null);
     final progressHideTimer = useRef<Timer?>(null);
@@ -138,20 +140,64 @@ class IrisPlayer extends HookWidget {
     final isShowControl = useState(true);
     final isShowProgress = useState(false);
 
-    final brightness =
-        useStream(ScreenBrightness().onCurrentBrightnessChanged).data;
+    final brightness = useState<double?>(null);
     final volume = useState<double?>(null);
 
     useEffect(() {
-      () async {
-        volume.value = await FlutterVolumeController.getVolume();
-      }();
-      return;
-    }, []);
+      try {
+        () async {
+          if (!isLeftGesture.value) return;
+          brightness.value = await ScreenBrightness().current;
+        }();
+      } catch (e) {
+        logger('Error getting brightness: $e');
+      }
+      return () => brightness.value = null;
+    }, [isLeftGesture.value]);
 
     useEffect(() {
-      if (volume.value != null) {
-        FlutterVolumeController.setVolume(volume.value!);
+      try {
+        () async {
+          if (!isRightGesture.value) return;
+          await FlutterVolumeController.updateShowSystemUI(false);
+          volume.value = await FlutterVolumeController.getVolume();
+        }();
+      } catch (e) {
+        logger('Error getting volume: $e');
+      }
+      return () => volume.value = null;
+    }, [isRightGesture.value]);
+
+    useEffect(() {
+      try {
+        if (brightness.value != null && isLeftGesture.value) {
+          ScreenBrightness().setScreenBrightness(brightness.value!);
+        }
+      } catch (e) {
+        logger('Error setting brightness: $e');
+      }
+      return;
+    }, [brightness.value]);
+
+    // 退出时重置亮度
+    useEffect(
+      () => () {
+        try {
+          ScreenBrightness().resetScreenBrightness();
+        } catch (e) {
+          logger('Error resetting brightness: $e');
+        }
+      },
+      [],
+    );
+
+    useEffect(() {
+      try {
+        if (volume.value != null && isRightGesture.value) {
+          FlutterVolumeController.setVolume(volume.value!);
+        }
+      } catch (e) {
+        logger('Error setting volume: $e');
       }
       return;
     }, [volume.value]);
@@ -664,23 +710,34 @@ class IrisPlayer extends HookWidget {
 
                         // 亮度和音量
                         final startDX = startPosition.value?.dx;
-                        if (startDX != null && isVerticalGesture.value) {
+                        if (isVerticalGesture.value && startDX != null) {
+                          if (!isLeftGesture.value && !isRightGesture.value) {
+                            if (startDX <
+                                (MediaQuery.of(context).size.width / 2)) {
+                              isLeftGesture.value = true;
+                            } else {
+                              isRightGesture.value = true;
+                            }
+                          }
+
                           double dy = details.delta.dy;
-                          if (startDX <
-                              (MediaQuery.of(context).size.width / 2)) {
-                            if (brightness != null) {
-                              final newBrightness = brightness - dy / 200;
-                              ScreenBrightness()
-                                  .setScreenBrightness(newBrightness > 1
-                                      ? 1
-                                      : newBrightness < 0
-                                          ? 0
-                                          : newBrightness);
-                            }
-                          } else {
-                            if (volume.value != null) {
-                              volume.value = volume.value! - dy / 200;
-                            }
+
+                          if (isLeftGesture.value && brightness.value != null) {
+                            final newBrightness = brightness.value! - dy / 200;
+                            brightness.value = newBrightness > 1
+                                ? 1
+                                : newBrightness < 0
+                                    ? 0
+                                    : newBrightness;
+                          }
+
+                          if (isRightGesture.value && volume.value != null) {
+                            final newVolume = volume.value! - dy / 200;
+                            volume.value = newVolume > 1
+                                ? 1
+                                : newVolume < 0
+                                    ? 0
+                                    : newVolume;
                           }
                         }
                       }
@@ -689,6 +746,8 @@ class IrisPlayer extends HookWidget {
                       isTouch.value = false;
                       isHorizontalGesture.value = false;
                       isVerticalGesture.value = false;
+                      isLeftGesture.value = false;
+                      isRightGesture.value = false;
                       startPosition.value = null;
                       if (playerCore.seeking) {
                         await playerController.seekTo(playerCore.position);
@@ -696,11 +755,13 @@ class IrisPlayer extends HookWidget {
                       }
                     },
                     onPanCancel: () async {
-                      isTouch.value = false;
                       isHorizontalGesture.value = false;
                       isVerticalGesture.value = false;
+                      isLeftGesture.value = false;
+                      isRightGesture.value = false;
                       startPosition.value = null;
                       if (playerCore.seeking) {
+                        isTouch.value = false;
                         await playerController.seekTo(playerCore.position);
                         playerCore.updateSeeking(false);
                       }
@@ -735,121 +796,196 @@ class IrisPlayer extends HookWidget {
                 ),
               ),
               // Audio
-              Positioned(
-                left: 0,
-                top: 0,
-                right: 0,
-                bottom: 0,
-                child: playerCore.mediaType == MediaType.audio
-                    ? Audio(playerCore: playerCore)
-                    : Container(),
-              ),
-              Positioned(
-                left: 0,
-                top: 0,
-                right: 0,
-                bottom: 0,
-                child: Center(
-                  child: playerCore.rate != 1.0 && isTouch.value
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 12,
+              if (playerCore.mediaType == MediaType.audio)
+                Positioned(
+                    left: 0,
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Audio(playerCore: playerCore)),
+              // 播放速度
+              if (playerCore.rate != 1.0)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 18, 12),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.speed_rounded,
+                            color: Colors.white,
+                            size: 24,
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${playerCore.rate} ×',
+                          const SizedBox(width: 12),
+                          Text(
+                            playerCore.rate.toString(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 24,
                               height: 1,
                             ),
                           ),
-                        )
-                      : null,
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              Positioned(
-                left: -28,
-                right: -28,
-                bottom: -16,
-                height: 32,
-                child: isShowProgress.value &&
-                        !isShowControl.value &&
-                        playerCore.mediaType != MediaType.audio
-                    ? ControlBarSlider(
-                        playerCore: playerCore,
-                        showControl: showControl,
-                        disabled: true,
-                      )
-                    : const SizedBox(),
-              ),
-              Positioned(
-                left: 12,
-                top: 12,
-                child: isShowProgress.value &&
-                        !isShowControl.value &&
-                        playerCore.mediaType != MediaType.audio
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              // 屏幕亮度
+              if (isLeftGesture.value && brightness.value != null)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 18, 12),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            currentPlay != null ? title : '',
-                            style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                              fontSize: 20,
-                              height: 1,
-                              decoration: TextDecoration.none,
-                              shadows: const [
-                                Shadow(
-                                  color: Colors.black,
-                                  offset: Offset(0, 0),
-                                  blurRadius: 1,
-                                ),
-                              ],
+                          Icon(
+                            Icons.brightness_6_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: 100,
+                            child: LinearProgressIndicator(
+                              value: brightness.value,
+                              backgroundColor: Colors.grey,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           ),
                         ],
-                      )
-                    : const SizedBox(),
-              ),
-              Positioned(
-                left: 12,
-                bottom: 6,
-                child: isShowProgress.value &&
-                        !isShowControl.value &&
-                        playerCore.mediaType != MediaType.audio
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      ),
+                    ),
+                  ),
+                ),
+              // 音量
+              if (isRightGesture.value && volume.value != null)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 18, 12),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            '${formatDurationToMinutes(playerCore.position)} / ${formatDurationToMinutes(playerCore.duration)}',
-                            style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                              fontSize: 16,
-                              height: 2,
-                              decoration: TextDecoration.none,
-                              shadows: const [
-                                Shadow(
-                                  color: Colors.black,
-                                  offset: Offset(0, 0),
-                                  blurRadius: 1,
-                                ),
-                              ],
+                          Icon(
+                            Icons.volume_up_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: 100,
+                            child: LinearProgressIndicator(
+                              value: volume.value,
+                              backgroundColor: Colors.grey,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           ),
                         ],
-                      )
-                    : const SizedBox(),
-              ),
-              // AppBar
+                      ),
+                    ),
+                  ),
+                ),
+              if (isShowProgress.value &&
+                  !isShowControl.value &&
+                  playerCore.mediaType != MediaType.audio)
+                Positioned(
+                  left: -28,
+                  right: -28,
+                  bottom: -16,
+                  height: 32,
+                  child: ControlBarSlider(
+                    playerCore: playerCore,
+                    showControl: showControl,
+                    disabled: true,
+                  ),
+                ),
+              if (isShowProgress.value &&
+                  !isShowControl.value &&
+                  playerCore.mediaType != MediaType.audio)
+                Positioned(
+                  left: 12,
+                  top: 12,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        currentPlay != null ? title : '',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 20,
+                          height: 1,
+                          decoration: TextDecoration.none,
+                          shadows: const [
+                            Shadow(
+                              color: Colors.black,
+                              offset: Offset(0, 0),
+                              blurRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (isShowProgress.value &&
+                  !isShowControl.value &&
+                  playerCore.mediaType != MediaType.audio)
+                Positioned(
+                  left: 12,
+                  bottom: 6,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${formatDurationToMinutes(playerCore.position)} / ${formatDurationToMinutes(playerCore.duration)}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 16,
+                          height: 2,
+                          decoration: TextDecoration.none,
+                          shadows: const [
+                            Shadow(
+                              color: Colors.black,
+                              offset: Offset(0, 0),
+                              blurRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              // 标题栏
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOutCubicEmphasized,
@@ -891,7 +1027,7 @@ class IrisPlayer extends HookWidget {
                   ),
                 ),
               ),
-              // ControlBar
+              // 控制栏
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOutCubicEmphasized,
