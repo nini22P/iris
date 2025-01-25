@@ -14,6 +14,7 @@ English | [中文](./README_CN.md)
 - [x] Local storage and WebDAV support
 - [x] Switchable subtitle and audio track
 - [x] Playback queue support for random and repeat
+- [x] Comprehensive gesture support
 
 ## Download
 
