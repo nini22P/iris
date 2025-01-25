@@ -5,10 +5,11 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:iris/hooks/use_brightness.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
+import 'package:iris/hooks/use_volume.dart';
 import 'package:iris/info.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/local.dart';
@@ -36,7 +37,6 @@ import 'package:iris/pages/player/control_bar.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:screen_brightness/screen_brightness.dart';
 import 'package:window_manager/window_manager.dart';
 
 class IrisPlayer extends HookWidget {
@@ -140,67 +140,8 @@ class IrisPlayer extends HookWidget {
     final isShowControl = useState(true);
     final isShowProgress = useState(false);
 
-    final brightness = useState<double?>(null);
-    final volume = useState<double?>(null);
-
-    useEffect(() {
-      try {
-        () async {
-          if (!isLeftGesture.value) return;
-          brightness.value = await ScreenBrightness().current;
-        }();
-      } catch (e) {
-        logger('Error getting brightness: $e');
-      }
-      return () => brightness.value = null;
-    }, [isLeftGesture.value]);
-
-    useEffect(() {
-      try {
-        () async {
-          if (!isRightGesture.value) return;
-          await FlutterVolumeController.updateShowSystemUI(false);
-          volume.value = await FlutterVolumeController.getVolume();
-        }();
-      } catch (e) {
-        logger('Error getting volume: $e');
-      }
-      return () => volume.value = null;
-    }, [isRightGesture.value]);
-
-    useEffect(() {
-      try {
-        if (brightness.value != null && isLeftGesture.value) {
-          ScreenBrightness().setScreenBrightness(brightness.value!);
-        }
-      } catch (e) {
-        logger('Error setting brightness: $e');
-      }
-      return;
-    }, [brightness.value]);
-
-    // 退出时重置亮度
-    useEffect(
-      () => () {
-        try {
-          ScreenBrightness().resetScreenBrightness();
-        } catch (e) {
-          logger('Error resetting brightness: $e');
-        }
-      },
-      [],
-    );
-
-    useEffect(() {
-      try {
-        if (volume.value != null && isRightGesture.value) {
-          FlutterVolumeController.setVolume(volume.value!);
-        }
-      } catch (e) {
-        logger('Error setting volume: $e');
-      }
-      return;
-    }, [volume.value]);
+    final brightness = useBrightness(isLeftGesture.value);
+    final volume = useVolume(isRightGesture.value);
 
     AppLifecycleState? appLifecycleState = useAppLifecycleState();
 
@@ -821,17 +762,20 @@ class IrisPlayer extends HookWidget {
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.speed_rounded,
-                            color: Colors.white,
-                            size: 24,
+                          Transform.translate(
+                            offset: const Offset(0, 1.5),
+                            child: Icon(
+                              Icons.speed_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Text(
                             playerCore.rate.toString(),
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 24,
+                              fontSize: 20,
                               height: 1,
                             ),
                           ),
@@ -858,7 +802,11 @@ class IrisPlayer extends HookWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.brightness_6_rounded,
+                            brightness.value == 0
+                                ? Icons.brightness_low_rounded
+                                : brightness.value! < 1
+                                    ? Icons.brightness_medium_rounded
+                                    : Icons.brightness_high_rounded,
                             color: Colors.white,
                             size: 24,
                           ),
@@ -867,6 +815,7 @@ class IrisPlayer extends HookWidget {
                             width: 100,
                             child: LinearProgressIndicator(
                               value: brightness.value,
+                              borderRadius: BorderRadius.circular(4),
                               backgroundColor: Colors.grey,
                               valueColor:
                                   AlwaysStoppedAnimation<Color>(Colors.white),
@@ -895,7 +844,11 @@ class IrisPlayer extends HookWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.volume_up_rounded,
+                            volume.value == 0
+                                ? Icons.volume_mute_rounded
+                                : volume.value! < 0.5
+                                    ? Icons.volume_down_rounded
+                                    : Icons.volume_up_rounded,
                             color: Colors.white,
                             size: 24,
                           ),
@@ -904,6 +857,7 @@ class IrisPlayer extends HookWidget {
                             width: 100,
                             child: LinearProgressIndicator(
                               value: volume.value,
+                              borderRadius: BorderRadius.circular(4),
                               backgroundColor: Colors.grey,
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 Colors.white,

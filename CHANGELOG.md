@@ -1,3 +1,24 @@
+## v1.2.0
+
+### Changelog
+* Support jumping to video playback from external clicks (Windows version can play by command line or dragging files to the window)
+* Support adjusting brightness and volume gestures (Brightness gestures are not available on Windows version)
+* Support playing online links
+* Add an option to always start playback from the beginning
+* On Android 11 and above, file reading is changed to using the "Manage All Files" permission
+* Improved WebDAV connection test function
+* Improved some visual effects
+
+### 更新日志
+* 支持从外部点击视频跳转播放（Windows 版本可以通过命令行或者拖拽文件到窗口播放）
+* 支持调整亮度和音量手势（Windows 版本调整亮度手势不可用）
+* 支持播放在线链接
+* 添加总是从头开始播放的选项
+* Android 11 以上读取文件时改为使用 `管理所有文件` 权限
+* 改进 WebDAV 测试连接功能
+* 改进了部分视觉效果
+
+
 ## v1.1.1
 
 ### Changelog
