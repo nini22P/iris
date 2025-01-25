@@ -32,7 +32,7 @@ class Favorites extends HookWidget {
             );
           } else if (storage is WebDAVStorage) {
             return Text(
-                'http${storage.https ? 's' : ''}://${storage.url}${favorites[index].path.join('/')}');
+                'http${storage.https ? 's' : ''}://${storage.host}${favorites[index].path.join('/')}');
           }
         }(),
         onTap: () {

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
@@ -5,8 +7,10 @@ import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/store/app_state.dart';
+import 'package:iris/pages/dialog/show_open_link_dialog.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/history.dart';
+import 'package:iris/pages/show_open_link_bottom_sheet.dart';
 import 'package:iris/pages/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -290,7 +294,7 @@ class ControlBar extends HookWidget {
                           showControl();
                           if (isFullScreen) {
                             await windowManager.setFullScreen(false);
-                            await resizeWindow(playerCore.aspectRatio);
+                            await resizeWindow(playerCore.videoParams?.aspect);
                           } else {
                             await windowManager.setFullScreen(true);
                           }
@@ -319,123 +323,157 @@ class ControlBar extends HookWidget {
                 //   ),
                 // ),
                 PopupMenuButton(
-                  // tooltip: t.more_options,
+                  icon: const Icon(
+                    Icons.more_vert_rounded,
+                    size: 20,
+                  ),
+                  iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
                   clipBehavior: Clip.hardEdge,
                   constraints: const BoxConstraints(minWidth: 200),
                   itemBuilder: (BuildContext context) => [
-                    ...List.of(
-                      isDesktop
-                          ? [
-                              PopupMenuItem(
-                                child: ListTile(
-                                  mouseCursor: SystemMouseCursors.click,
-                                  leading: const Icon(
-                                    Icons.file_open_rounded,
-                                    size: 16.5,
-                                  ),
-                                  title: Text(t.open_file),
-                                  trailing: Text(
-                                    'Ctrl + O',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Theme.of(context).dividerColor,
-                                    ),
-                                  ),
-                                ),
-                                onTap: () async {
-                                  showControl();
-                                  await pickLocalFile();
-                                  showControl();
-                                },
-                              ),
-                            ]
-                          : [],
-                    ),
                     PopupMenuItem(
                       child: ListTile(
                         mouseCursor: SystemMouseCursors.click,
-                        leading: Icon(
-                          Icons.shuffle_rounded,
-                          size: 20,
-                          color: !shuffle
-                              ? Theme.of(context).disabledColor
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        leading: const Icon(
+                          Icons.file_open_rounded,
+                          size: 16.5,
                         ),
-                        title: Text('${t.shuffle}: ${shuffle ? t.on : t.off}'),
+                        title: Text(t.open_file),
                         trailing: Text(
-                          'Ctrl + X',
+                          'Ctrl + O',
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(context).dividerColor,
                           ),
                         ),
                       ),
-                      onTap: () {
+                      onTap: () async {
                         showControl();
-                        shuffle
-                            ? playerController.sortPlayQueue()
-                            : playerController.shufflePlayQueue();
-                        useAppStore().updateShuffle(!shuffle);
+                        if (isDesktop) {
+                          await pickLocalFile();
+                        }
+                        if (Platform.isAndroid) {
+                          await pickAndroidFile();
+                        }
+                        showControl();
                       },
                     ),
                     PopupMenuItem(
                       child: ListTile(
                         mouseCursor: SystemMouseCursors.click,
-                        leading: Icon(
-                          repeat == Repeat.one
-                              ? Icons.repeat_one_rounded
-                              : Icons.repeat_rounded,
-                          size: 20,
-                          color: repeat == Repeat.none
-                              ? Theme.of(context).disabledColor
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        leading: const Icon(
+                          Icons.file_present_rounded,
+                          size: 16.5,
                         ),
-                        title: Text(repeat == Repeat.one
-                            ? t.repeat_one
-                            : repeat == Repeat.all
-                                ? t.repeat_all
-                                : t.repeat_none),
+                        title: Text(t.open_link),
                         trailing: Text(
-                          'Ctrl + R',
+                          'Ctrl + L',
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(context).dividerColor,
                           ),
                         ),
                       ),
-                      onTap: () {
+                      onTap: () async {
+                        isDesktop
+                            ? await showOpenLinkDialog(context)
+                            : await showOpenLinkBottomSheet(context);
                         showControl();
-                        useAppStore().toggleRepeat();
                       },
                     ),
-                    PopupMenuItem(
-                      child: ListTile(
-                        mouseCursor: SystemMouseCursors.click,
-                        leading: Icon(
-                          fit == BoxFit.contain
-                              ? Icons.fit_screen_rounded
-                              : fit == BoxFit.fill
-                                  ? Icons.aspect_ratio_rounded
-                                  : fit == BoxFit.cover
-                                      ? Icons.crop_landscape_rounded
-                                      : Icons.crop_free_rounded,
-                          size: 20,
-                        ),
-                        title: Text(
-                            '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'}'),
-                        trailing: Text(
-                          'Ctrl + V',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).dividerColor,
+                    if (MediaQuery.of(context).size.width < 600)
+                      PopupMenuItem(
+                        child: ListTile(
+                          mouseCursor: SystemMouseCursors.click,
+                          leading: Icon(
+                            Icons.shuffle_rounded,
+                            size: 20,
+                            color: !shuffle
+                                ? Theme.of(context).disabledColor
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                          ),
+                          title:
+                              Text('${t.shuffle}: ${shuffle ? t.on : t.off}'),
+                          trailing: Text(
+                            'Ctrl + X',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).dividerColor,
+                            ),
                           ),
                         ),
+                        onTap: () {
+                          showControl();
+                          shuffle
+                              ? playerController.sortPlayQueue()
+                              : playerController.shufflePlayQueue();
+                          useAppStore().updateShuffle(!shuffle);
+                        },
                       ),
-                      onTap: () {
-                        showControl();
-                        useAppStore().toggleFit();
-                      },
-                    ),
+                    if (MediaQuery.of(context).size.width < 600)
+                      PopupMenuItem(
+                        child: ListTile(
+                          mouseCursor: SystemMouseCursors.click,
+                          leading: Icon(
+                            repeat == Repeat.one
+                                ? Icons.repeat_one_rounded
+                                : Icons.repeat_rounded,
+                            size: 20,
+                            color: repeat == Repeat.none
+                                ? Theme.of(context).disabledColor
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                          ),
+                          title: Text(repeat == Repeat.one
+                              ? t.repeat_one
+                              : repeat == Repeat.all
+                                  ? t.repeat_all
+                                  : t.repeat_none),
+                          trailing: Text(
+                            'Ctrl + R',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).dividerColor,
+                            ),
+                          ),
+                        ),
+                        onTap: () {
+                          showControl();
+                          useAppStore().toggleRepeat();
+                        },
+                      ),
+                    if (MediaQuery.of(context).size.width < 600)
+                      PopupMenuItem(
+                        child: ListTile(
+                          mouseCursor: SystemMouseCursors.click,
+                          leading: Icon(
+                            fit == BoxFit.contain
+                                ? Icons.fit_screen_rounded
+                                : fit == BoxFit.fill
+                                    ? Icons.aspect_ratio_rounded
+                                    : fit == BoxFit.cover
+                                        ? Icons.crop_landscape_rounded
+                                        : Icons.crop_free_rounded,
+                            size: 20,
+                          ),
+                          title: Text(
+                              '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'}'),
+                          trailing: Text(
+                            'Ctrl + V',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).dividerColor,
+                            ),
+                          ),
+                        ),
+                        onTap: () {
+                          showControl();
+                          useAppStore().toggleFit();
+                        },
+                      ),
                     PopupMenuItem(
                       child: ListTile(
                         mouseCursor: SystemMouseCursors.click,

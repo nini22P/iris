@@ -3,9 +3,12 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  app_links
+  desktop_drop
   disks_desktop
   dynamic_color
   flutter_secure_storage_windows
+  flutter_volume_controller
   media_kit_libs_windows_video
   media_kit_video
   permission_handler_windows

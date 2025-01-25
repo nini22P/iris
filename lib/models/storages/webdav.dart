@@ -1,13 +1,13 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/utils/check_content_type.dart';
 import 'package:iris/utils/find_subtitle.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 import 'package:iris/models/file.dart';
 
 Future<bool> testWebDAV(WebDAVStorage storage) async {
-  final url = storage.url;
+  final host = storage.host;
   final port = storage.port;
   final username = storage.username;
   final password = storage.password;
@@ -16,7 +16,7 @@ Future<bool> testWebDAV(WebDAVStorage storage) async {
 
   try {
     var client = webdav.newClient(
-      "http${https ? 's' : ''}://$url:$port",
+      "http${https ? 's' : ''}://$host:$port",
       user: username,
       password: password,
       debug: false,
@@ -27,11 +27,11 @@ Future<bool> testWebDAV(WebDAVStorage storage) async {
     client.setSendTimeout(4000);
     client.setReceiveTimeout(4000);
 
-    await client.ping();
+    // await client.ping();
     await client.readDir(basePath.join('/'));
     return true;
   } catch (e) {
-    log(e.toString());
+    logger(e.toString());
     return false;
   }
 }
@@ -39,14 +39,14 @@ Future<bool> testWebDAV(WebDAVStorage storage) async {
 Future<List<FileItem>> getWebDAVFiles(
     WebDAVStorage storage, List<String> path) async {
   final id = storage.id;
-  final url = storage.url;
+  final host = storage.host;
   final port = storage.port;
   final username = storage.username;
   final password = storage.password;
   final https = storage.https;
 
   var client = webdav.newClient(
-    "http${https ? 's' : ''}://$url:$port",
+    "http${https ? 's' : ''}://$host:$port",
     user: username,
     password: password,
     debug: false,
@@ -63,7 +63,7 @@ Future<List<FileItem>> getWebDAVFiles(
   var files = await client.readDir(path.join('/'));
 
   final String baseUri =
-      'http${https ? 's' : ''}://$url:$port${path.join('/')}';
+      'http${https ? 's' : ''}://$host:$port${path.join('/')}';
 
   return await Future.wait(files.map((file) async => FileItem(
         storageId: id,

@@ -1,25 +1,44 @@
 import 'dart:convert';
-import 'dart:developer';
+import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/file.dart';
+import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/store/play_queue_state.dart';
 import 'package:iris/store/persistent_store.dart';
+import 'package:iris/globals.dart' as globals;
+import 'package:iris/store/use_app_store.dart';
+import 'package:iris/utils/check_content_type.dart';
+import 'package:iris/utils/is_desktop.dart';
+import 'package:iris/utils/logger.dart';
+import 'package:iris/utils/path_conv.dart';
+import 'package:saf_util/saf_util.dart';
 
 class PlayQueueStore extends PersistentStore<PlayQueueState> {
   PlayQueueStore() : super(PlayQueueState());
 
-  Future<void> update(List<PlayQueueItem> playQueue, int? index) async {
+  Future<void> update({
+    required List<PlayQueueItem> playQueue,
+    int? index,
+  }) async {
     set(state.copyWith(
       playQueue: playQueue,
       currentIndex: index ?? state.currentIndex,
     ));
+    if (Platform.isAndroid &&
+        state.playQueue.any((e) => e.file.uri.startsWith('content://'))) {
+      return;
+    }
     await save(state);
   }
 
   Future<void> updateCurrentIndex(int index) async {
     set(state.copyWith(currentIndex: index));
+    if (Platform.isAndroid &&
+        state.playQueue.any((e) => e.file.uri.startsWith('content://'))) {
+      return;
+    }
     await save(state);
   }
 
@@ -40,6 +59,10 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
         .toList();
 
     set(state.copyWith(playQueue: [...state.playQueue, ...playQueue]));
+    if (Platform.isAndroid &&
+        state.playQueue.any((e) => e.file.uri.startsWith('content://'))) {
+      return;
+    }
     await save(state);
   }
 
@@ -66,12 +89,73 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
         ));
       }
     }
+    if (Platform.isAndroid &&
+        state.playQueue.any((e) => e.file.uri.startsWith('content://'))) {
+      return;
+    }
     await save(state);
   }
 
   @override
   Future<PlayQueueState?> load() async {
+    logger('Loading PlayQueueState');
     try {
+      if (isDesktop && globals.arguments.isNotEmpty) {
+        String uri = globals.arguments[0];
+        // 在线播放
+        if (RegExp(r'^(http://|https://)').hasMatch(uri)) {
+          final state = PlayQueueState(
+            playQueue: [
+              PlayQueueItem(
+                file: FileItem(
+                  name: uri,
+                  uri: uri,
+                ),
+                index: 0,
+              )
+            ],
+            currentIndex: 0,
+          );
+          await useAppStore().updateAutoPlay(true);
+          save(state);
+          return state;
+        }
+
+        // 本地播放
+        final filePath = pathConv(uri);
+        if (isMediaFile(filePath.last)) {
+          final state = await getLocalPlayQueue(filePath);
+          if (state != null && state.playQueue.isNotEmpty) {
+            await useAppStore().updateAutoPlay(true);
+            save(state);
+            return state;
+          }
+        }
+      }
+
+      final uri = globals.initUri;
+
+      // Android
+      if (uri != null && Platform.isAndroid) {
+        final file = await SafUtil().documentFileFromUri(uri, false);
+        if (file != null) {
+          await useAppStore().updateAutoPlay(true);
+          return PlayQueueState(
+            playQueue: [
+              PlayQueueItem(
+                file: FileItem(
+                  name: file.name,
+                  uri: file.uri,
+                  size: file.length,
+                ),
+                index: 0,
+              ),
+            ],
+            currentIndex: 0,
+          );
+        }
+      }
+
       AndroidOptions getAndroidOptions() => const AndroidOptions(
             encryptedSharedPreferences: true,
           );
@@ -82,7 +166,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
         return PlayQueueState.fromJson(json.decode(appState));
       }
     } catch (e) {
-      log('Error loading PlayQueueState: $e');
+      logger('Error loading PlayQueueState: $e');
     }
     return null;
   }
@@ -98,7 +182,7 @@ class PlayQueueStore extends PersistentStore<PlayQueueState> {
       await storage.write(
           key: 'playQueue_state', value: json.encode(state.toJson()));
     } catch (e) {
-      log('Error saving PlayQueueState: $e');
+      logger('Error saving PlayQueueState: $e');
     }
   }
 }

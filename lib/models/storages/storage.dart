@@ -11,6 +11,7 @@ part 'storage.freezed.dart';
 part 'storage.g.dart';
 
 enum StorageType {
+  none,
   internal,
   usb,
   sdcard,
@@ -48,7 +49,7 @@ sealed class Storage with _$Storage implements _Storage {
     required String id,
     @Default(StorageType.webdav) StorageType type,
     required String name,
-    required String url,
+    @JsonKey(name: 'url') required String host,
     required List<String> basePath,
     required String port,
     required String username,
@@ -68,11 +69,14 @@ sealed class Storage with _$Storage implements _Storage {
         return await getLocalFiles(this as LocalStorage, path);
       case StorageType.webdav:
         return await getWebDAVFiles(this as WebDAVStorage, path);
+      default:
+        return [];
     }
   }
 }
 
 Future<void> openInFolder(BuildContext context, FileItem file) async {
+  if (file.path.isEmpty) return;
   Storage? storage = useStorageStore().findById(file.storageId);
   if (storage != null) {
     useStorageStore()

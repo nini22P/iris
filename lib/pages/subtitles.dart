@@ -1,9 +1,8 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/hooks/use_player_core.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:media_kit/media_kit.dart';
 
 class Subtitles extends HookWidget {
@@ -41,7 +40,8 @@ class Subtitles extends HookWidget {
                     ),
             ),
             onTap: () {
-              log('Set subtitle: ${subtitle.title ?? subtitle.language ?? subtitle.id}');
+              logger(
+                  'Set subtitle: ${subtitle.title ?? subtitle.language ?? subtitle.id}');
               playerCore.player.setSubtitleTrack(subtitle);
               Navigator.of(context).pop();
             },
@@ -56,7 +56,7 @@ class Subtitles extends HookWidget {
               ),
             ),
             onTap: () {
-              log('Set external subtitle: ${subtitle.name}');
+              logger('Set external subtitle: ${subtitle.name}');
               playerCore.player.setSubtitleTrack(
                 SubtitleTrack.uri(
                   subtitle.uri,

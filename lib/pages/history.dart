@@ -34,7 +34,7 @@ class History extends HookWidget {
           .values
           .toList();
 
-      usePlayQueueStore().update(playQueue, index);
+      usePlayQueueStore().update(playQueue: playQueue, index: index);
     }
 
     return Column(
@@ -67,8 +67,9 @@ class History extends HookWidget {
                 ),
                 subtitle: Row(
                   children: [
-                    Text(
-                        "${fileSizeConvert(historyList[index].value.file.size)} MB"),
+                    if (historyList[index].value.file.size > 0)
+                      Text(
+                          "${fileSizeConvert(historyList[index].value.file.size)} MB"),
                     const Spacer(),
                     () {
                       final Progress? progress = useHistoryStore()
@@ -93,7 +94,7 @@ class History extends HookWidget {
                     ...historyList[index]
                         .value
                         .file
-                        .subtitles!
+                        .subtitles
                         .map((subtitle) =>
                             subtitle.uri.split('.').last.toUpperCase())
                         .toSet()
@@ -139,10 +140,11 @@ class History extends HookWidget {
                       value: FileOptions.remove,
                       child: Text(t.remove),
                     ),
-                    PopupMenuItem(
-                      value: FileOptions.openInFolder,
-                      child: Text(t.open_in_folder),
-                    ),
+                    if (historyList[index].value.file.path.isNotEmpty)
+                      PopupMenuItem(
+                        value: FileOptions.openInFolder,
+                        child: Text(t.open_in_folder),
+                      ),
                   ],
                 ),
                 onTap: () {

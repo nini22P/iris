@@ -1,22 +1,29 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
-import 'dart:developer';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:iris/hooks/use_brightness.dart';
 import 'package:iris/hooks/use_player_controller.dart';
 import 'package:iris/hooks/use_player_core.dart';
+import 'package:iris/hooks/use_volume.dart';
 import 'package:iris/info.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/local.dart';
+import 'package:iris/pages/dialog/show_open_link_dialog.dart';
 import 'package:iris/pages/player/audio.dart';
 import 'package:iris/pages/player/control_bar_slider.dart';
 import 'package:iris/pages/history.dart';
 import 'package:iris/pages/play_queue.dart';
+import 'package:iris/pages/show_open_link_bottom_sheet.dart';
 import 'package:iris/pages/subtitle_and_audio_track.dart';
 import 'package:iris/pages/settings/settings.dart';
+import 'package:iris/utils/check_content_type.dart';
+import 'package:iris/utils/logger.dart';
+import 'package:iris/utils/path_conv.dart';
 import 'package:iris/widgets/popup.dart';
 import 'package:iris/pages/storage/storages.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -40,6 +47,8 @@ class IrisPlayer extends HookWidget {
     final t = getLocalizations(context);
     final shuffle = useAppStore().select(context, (state) => state.shuffle);
     final fit = useAppStore().select(context, (state) => state.fit);
+    final autoResize =
+        useAppStore().select(context, (state) => state.autoResize);
 
     final playQueue =
         usePlayQueueStore().select(context, (state) => state.playQueue);
@@ -58,7 +67,9 @@ class IrisPlayer extends HookWidget {
 
     final title = useMemoized(
         () => currentPlay != null
-            ? '[${currentPlayIndex + 1}/${playQueue.length}] ${currentPlay.file.name} - ${INFO.title}'
+            ? playQueue.length > 1
+                ? '[${currentPlayIndex + 1}/${playQueue.length}] ${currentPlay.file.name}'
+                : currentPlay.file.name
             : INFO.title,
         [currentPlay, currentPlayIndex, playQueue]);
 
@@ -85,7 +96,7 @@ class IrisPlayer extends HookWidget {
           final Directory fontsDirectory = Directory(fontsDir);
           if (!await fontsDirectory.exists()) {
             await fontsDirectory.create(recursive: true);
-            log('fonts directory created');
+            logger('fonts directory created');
           }
 
           final File file = File("$fontsDir/NotoSansCJKsc-Medium.otf");
@@ -95,7 +106,7 @@ class IrisPlayer extends HookWidget {
             final Uint8List buffer = data.buffer.asUint8List();
             await file.create(recursive: true);
             await file.writeAsBytes(buffer);
-            log('NotoSansCJKsc-Medium.otf copied');
+            logger('NotoSansCJKsc-Medium.otf copied');
           }
 
           await nativePlayer.setProperty("sub-fonts-dir", fontsDir);
@@ -117,6 +128,11 @@ class IrisPlayer extends HookWidget {
     final isHover = useState(false);
     final isTouch = useState(false);
     final isLongPress = useState(false);
+    final startPosition = useState<Offset?>(null);
+    final isHorizontalGesture = useState(false);
+    final isVerticalGesture = useState(false);
+    final isLeftGesture = useState(false);
+    final isRightGesture = useState(false);
 
     final controlHideTimer = useRef<Timer?>(null);
     final progressHideTimer = useRef<Timer?>(null);
@@ -124,20 +140,23 @@ class IrisPlayer extends HookWidget {
     final isShowControl = useState(true);
     final isShowProgress = useState(false);
 
+    final brightness = useBrightness(isLeftGesture.value);
+    final volume = useVolume(isRightGesture.value);
+
     AppLifecycleState? appLifecycleState = useAppLifecycleState();
 
     final canPop = useState(false);
 
     useEffect(() {
       if (isDesktop) {
-        resizeWindow(playerCore.aspectRatio);
+        resizeWindow(!autoResize ? 0 : playerCore.videoParams?.aspect);
       }
       return;
-    }, [playerCore.aspectRatio]);
+    }, [playerCore.videoParams?.aspect, autoResize]);
 
     useEffect(() {
       if (appLifecycleState == AppLifecycleState.paused) {
-        log('App lifecycle state: paused');
+        logger('App lifecycle state: paused');
         playerCore.saveProgress();
       }
       return;
@@ -225,7 +244,7 @@ class IrisPlayer extends HookWidget {
     }, [title, playerCore.playing]);
 
     useEffect(() {
-      if (isShowControl.value || currentPlay?.file.type == ContentType.audio) {
+      if (isShowControl.value || playerCore.mediaType != MediaType.video) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       } else {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
@@ -302,6 +321,14 @@ class IrisPlayer extends HookWidget {
                 ),
               );
               break;
+            // 打开链接
+            case LogicalKeyboardKey.keyL:
+              showControl();
+              isDesktop
+                  ? await showOpenLinkDialog(context)
+                  : await showOpenLinkBottomSheet(context);
+              showControl();
+              break;
             default:
               break;
           }
@@ -370,6 +397,9 @@ class IrisPlayer extends HookWidget {
           case LogicalKeyboardKey.f11:
             windowManager.setFullScreen(!await windowManager.isFullScreen());
             break;
+          case LogicalKeyboardKey.tab:
+            showControl();
+            break;
           default:
             break;
         }
@@ -429,378 +459,563 @@ class IrisPlayer extends HookWidget {
             : Offset(0, 0),
         [fit, MediaQuery.of(context).size, videoViewSize]);
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (bool didPop, Object? result) async {
-        if (!didPop) {
-          await playerCore.saveProgress();
-          if (!canPop.value) {
-            canPop.value = true;
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(t.exit_app_back_again)),
-              );
+    return DropTarget(
+      onDragDone: (details) async {
+        final files = details.files
+            .map((file) => checkContentType(file.path) == ContentType.video ||
+                    checkContentType(file.path) == ContentType.audio
+                ? pathConv(file.path)
+                : null)
+            .where((element) => element != null)
+            .toList();
+        if (files.isNotEmpty) {
+          final firstFile = files[0];
+          if (firstFile == null || firstFile.isEmpty) return;
+          final playQueue = await getLocalPlayQueue(firstFile);
+          if (playQueue == null || playQueue.playQueue.isEmpty) return;
+          final List<PlayQueueItem> filteredPlayQueue = [];
+          for (final item in playQueue.playQueue) {
+            final file = item.file;
+            if (files
+                .map((e) => e?.join('/'))
+                .toList()
+                .contains(file.path.join('/'))) {
+              filteredPlayQueue.add(item);
             }
-          } else {
-            exit(0);
           }
+          if (filteredPlayQueue.isEmpty) return;
+          useAppStore().updateAutoPlay(true);
+          usePlayQueueStore().update(
+              playQueue: filteredPlayQueue, index: playQueue.currentIndex);
         }
       },
-      child: KeyboardListener(
-        focusNode: focusNode,
-        onKeyEvent: onKeyEvent,
-        child: Stack(
-          children: [
-            // Video
-            Positioned(
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              child: MouseRegion(
-                cursor: isShowControl.value || !playerCore.playing
-                    ? SystemMouseCursors.basic
-                    : SystemMouseCursors.none,
-                onHover: (event) {
-                  if (event.kind != PointerDeviceKind.touch) {
-                    showControl();
-                  }
-                },
-                child: GestureDetector(
-                  onTap: () {
-                    if (isShowControl.value) {
-                      hideControl();
-                    } else {
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, Object? result) async {
+          if (!didPop) {
+            await playerCore.saveProgress();
+            if (!canPop.value) {
+              canPop.value = true;
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(t.exit_app_back_again)),
+                );
+              }
+            } else {
+              exit(0);
+            }
+          }
+        },
+        child: KeyboardListener(
+          focusNode: focusNode,
+          onKeyEvent: onKeyEvent,
+          child: Stack(
+            children: [
+              // Video
+              Positioned(
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                child: MouseRegion(
+                  cursor: isShowControl.value || !playerCore.playing
+                      ? SystemMouseCursors.basic
+                      : SystemMouseCursors.none,
+                  onHover: (event) {
+                    if (event.kind != PointerDeviceKind.touch) {
                       showControl();
                     }
                   },
-                  onTapDown: (details) {
-                    if (details.kind == PointerDeviceKind.touch) {
-                      isTouch.value = true;
-                    }
-                  },
-                  onDoubleTapDown: (details) async {
-                    if (details.kind == PointerDeviceKind.touch) {
-                      double position = details.globalPosition.dx /
-                          MediaQuery.of(context).size.width;
-                      if (position > 0.75) {
-                        if (isShowControl.value) {
-                          showControl();
-                        } else {
-                          showProgress();
-                        }
-                        await playerController.forward(10);
-                      } else if (position < 0.25) {
-                        if (isShowControl.value) {
-                          showControl();
-                        } else {
-                          showProgress();
-                        }
-                        playerController.backward(10);
-                      } else {
-                        if (playerCore.playing == true) {
-                          playerController.pause();
-                          showControl();
-                        } else {
-                          playerController.play();
-                        }
-                      }
-                    } else {
-                      if (isDesktop) {
-                        if (await windowManager.isFullScreen()) {
-                          await windowManager.setFullScreen(false);
-                          await resizeWindow(playerCore.aspectRatio);
-                        } else {
-                          await windowManager.setFullScreen(true);
-                        }
-                      }
-                    }
-                  },
-                  onLongPressStart: (details) {
-                    if (isTouch.value && playerCore.playing) {
-                      isLongPress.value = true;
-                      playerController.updateRate(2.0);
-                    }
-                  },
-                  onLongPressMoveUpdate: (details) {
-                    int fast = (details.offsetFromOrigin.dx / 50).toInt();
-                    if (fast >= 1) {
-                      playerController
-                          .updateRate(fast > 4 ? 5.0 : (1 + fast).toDouble());
-                    } else if (fast <= -1) {
-                      playerController.updateRate(fast < -3
-                          ? 0.25
-                          : (1 - 0.25 * fast.abs()).toDouble());
-                    }
-                  },
-                  onLongPressEnd: (details) {
-                    playerController.updateRate(1.0);
-                    isTouch.value = false;
-                    isLongPress.value = false;
-                  },
-                  onLongPressCancel: () {
-                    playerController.updateRate(1.0);
-                    isTouch.value = false;
-                    isLongPress.value = false;
-                  },
-                  onPanStart: (details) async {
-                    if (isDesktop && details.kind != PointerDeviceKind.touch) {
-                      showControlForHover(windowManager.startDragging());
-                    } else if (details.kind == PointerDeviceKind.touch) {
-                      isTouch.value = true;
-                      playerCore.updateSeeking(true);
-                    }
-                  },
-                  onPanUpdate: (details) {
-                    if (isTouch.value && playerCore.seeking) {
-                      double x = details.delta.dx;
-                      int seconds =
-                          (x * 5 + playerCore.position.inSeconds).toInt();
-                      Duration position = Duration(
-                          seconds: seconds < 0
-                              ? 0
-                              : seconds > playerCore.duration.inSeconds
-                                  ? playerCore.duration.inSeconds
-                                  : seconds);
-                      playerCore.updatePosition(position);
+                  child: GestureDetector(
+                    onTap: () {
                       if (isShowControl.value) {
-                        showControl();
+                        hideControl();
                       } else {
-                        showProgress();
-                      }
-                    }
-                  },
-                  onPanEnd: (details) async {
-                    if (isTouch.value && playerCore.seeking) {
-                      isTouch.value = false;
-                      await playerController.seekTo(playerCore.position);
-                      playerCore.updateSeeking(false);
-                    }
-                  },
-                  onPanCancel: () async {
-                    if (isTouch.value && playerCore.seeking) {
-                      isTouch.value = false;
-                      playerCore.updateSeeking(false);
-                    }
-                  },
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          color: Colors.black,
-                        ),
-                      ),
-                      Positioned(
-                        left: videoViewOffset.dx,
-                        top: videoViewOffset.dy,
-                        width: videoViewSize.width,
-                        height: videoViewSize.height,
-                        child: Video(
-                          key: ValueKey(currentPlay?.file.getID()),
-                          controller: controller,
-                          controls: NoVideoControls,
-                          fit: fit == BoxFit.none ? BoxFit.contain : fit,
-                          // wakelock: mediaType == 'video',
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Audio
-            Positioned(
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              child: currentPlay?.file.type == ContentType.audio
-                  ? Audio(playerCore: playerCore)
-                  : Container(),
-            ),
-            Positioned(
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              child: Center(
-                child: playerCore.rate != 1.0 && isTouch.value
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${playerCore.rate} ×',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            height: 1,
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
-            ),
-            Positioned(
-              left: -28,
-              right: -28,
-              bottom: -16,
-              height: 32,
-              child: isShowProgress.value &&
-                      !isShowControl.value &&
-                      currentPlay?.file.type != ContentType.audio
-                  ? ControlBarSlider(
-                      playerCore: playerCore,
-                      showControl: showControl,
-                      disabled: true,
-                    )
-                  : const SizedBox(),
-            ),
-            Positioned(
-              left: 12,
-              top: 12,
-              child: isShowProgress.value &&
-                      !isShowControl.value &&
-                      currentPlay?.file.type != ContentType.audio
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          currentPlay != null ? title : '',
-                          style: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontSize: 20,
-                            height: 1,
-                            decoration: TextDecoration.none,
-                            shadows: const [
-                              Shadow(
-                                color: Colors.black,
-                                offset: Offset(0, 0),
-                                blurRadius: 1,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : const SizedBox(),
-            ),
-            Positioned(
-              left: 12,
-              bottom: 6,
-              child: isShowProgress.value &&
-                      !isShowControl.value &&
-                      currentPlay?.file.type != ContentType.audio
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${formatDurationToMinutes(playerCore.position)} / ${formatDurationToMinutes(playerCore.duration)}',
-                          style: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontSize: 16,
-                            height: 2,
-                            decoration: TextDecoration.none,
-                            shadows: const [
-                              Shadow(
-                                color: Colors.black,
-                                offset: Offset(0, 0),
-                                blurRadius: 1,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : const SizedBox(),
-            ),
-            // AppBar
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOutCubicEmphasized,
-              top: isShowControl.value ||
-                      currentPlay?.file.type == ContentType.audio
-                  ? 0
-                  : -72,
-              left: 0,
-              right: 0,
-              child: MouseRegion(
-                onHover: (event) {
-                  if (event.kind != PointerDeviceKind.touch) {
-                    isHover.value = true;
-                    showControl();
-                  }
-                },
-                child: GestureDetector(
-                  onTap: () => showControl(),
-                  onDoubleTap: () async {
-                    if (isDesktop && await windowManager.isMaximized()) {
-                      await windowManager.unmaximize();
-                      await resizeWindow(playerCore.aspectRatio);
-                    } else {
-                      await windowManager.maximize();
-                    }
-                  },
-                  onPanStart: (details) async {
-                    if (isDesktop) {
-                      showControlForHover(windowManager.startDragging());
-                    }
-                  },
-                  child: CustomAppBar(
-                    title: title,
-                    playerCore: playerCore,
-                    actions: [
-                      const SizedBox(width: 8),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // ControlBar
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOutCubicEmphasized,
-              bottom: isShowControl.value ||
-                      currentPlay?.file.type == ContentType.audio
-                  ? 0
-                  : -96,
-              left: 0,
-              right: 0,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: MouseRegion(
-                    onHover: (event) {
-                      if (event.kind != PointerDeviceKind.touch) {
-                        isHover.value = true;
                         showControl();
                       }
                     },
-                    child: GestureDetector(
-                      onTap: () => showControl(),
-                      child: ControlBar(
-                        playerCore: playerCore,
-                        showControl: showControl,
-                        showControlForHover: showControlForHover,
+                    onTapDown: (details) {
+                      if (details.kind == PointerDeviceKind.touch) {
+                        isTouch.value = true;
+                      }
+                    },
+                    onDoubleTapDown: (details) async {
+                      if (details.kind == PointerDeviceKind.touch) {
+                        double position = details.globalPosition.dx /
+                            MediaQuery.of(context).size.width;
+                        if (position > 0.75) {
+                          if (isShowControl.value) {
+                            showControl();
+                          } else {
+                            showProgress();
+                          }
+                          await playerController.forward(10);
+                        } else if (position < 0.25) {
+                          if (isShowControl.value) {
+                            showControl();
+                          } else {
+                            showProgress();
+                          }
+                          playerController.backward(10);
+                        } else {
+                          if (playerCore.playing == true) {
+                            playerController.pause();
+                            showControl();
+                          } else {
+                            playerController.play();
+                          }
+                        }
+                      } else {
+                        if (isDesktop) {
+                          if (await windowManager.isFullScreen()) {
+                            await windowManager.setFullScreen(false);
+                            await resizeWindow(playerCore.videoParams?.aspect);
+                          } else {
+                            await windowManager.setFullScreen(true);
+                          }
+                        }
+                      }
+                    },
+                    onLongPressStart: (details) {
+                      if (isTouch.value && playerCore.playing) {
+                        isLongPress.value = true;
+                        playerController.updateRate(2.0);
+                      }
+                    },
+                    onLongPressMoveUpdate: (details) {
+                      int fast = (details.offsetFromOrigin.dx / 50).toInt();
+                      if (fast >= 1) {
+                        playerController
+                            .updateRate(fast > 4 ? 5.0 : (1 + fast).toDouble());
+                      } else if (fast <= -1) {
+                        playerController.updateRate(fast < -3
+                            ? 0.25
+                            : (1 - 0.25 * fast.abs()).toDouble());
+                      }
+                    },
+                    onLongPressEnd: (details) {
+                      playerController.updateRate(1.0);
+                      isTouch.value = false;
+                      isLongPress.value = false;
+                    },
+                    onLongPressCancel: () {
+                      playerController.updateRate(1.0);
+                      isTouch.value = false;
+                      isLongPress.value = false;
+                    },
+                    onPanStart: (details) async {
+                      if (isDesktop &&
+                          details.kind != PointerDeviceKind.touch) {
+                        showControlForHover(windowManager.startDragging());
+                      } else if (details.kind == PointerDeviceKind.touch) {
+                        isTouch.value = true;
+                        startPosition.value = details.globalPosition;
+                      }
+                    },
+                    onPanUpdate: (details) async {
+                      if (isTouch.value && startPosition.value != null) {
+                        double dx = (details.globalPosition.dx -
+                                startPosition.value!.dx)
+                            .abs();
+                        double dy = (details.globalPosition.dy -
+                                startPosition.value!.dy)
+                            .abs();
+                        if (!isHorizontalGesture.value &&
+                            !isVerticalGesture.value) {
+                          if (dx > dy) {
+                            isHorizontalGesture.value = true;
+                            playerCore.updateSeeking(true);
+                          } else {
+                            isVerticalGesture.value = true;
+                          }
+                        }
+
+                        // 调整进度
+                        if (isHorizontalGesture.value && playerCore.seeking) {
+                          double dx = details.delta.dx;
+                          int seconds =
+                              (dx * 5 + playerCore.position.inSeconds).toInt();
+                          Duration position = Duration(
+                              seconds: seconds < 0
+                                  ? 0
+                                  : seconds > playerCore.duration.inSeconds
+                                      ? playerCore.duration.inSeconds
+                                      : seconds);
+                          playerCore.updatePosition(position);
+                          if (isShowControl.value) {
+                            showControl();
+                          } else {
+                            showProgress();
+                          }
+                        }
+
+                        // 亮度和音量
+                        final startDX = startPosition.value?.dx;
+                        if (isVerticalGesture.value && startDX != null) {
+                          if (!isLeftGesture.value && !isRightGesture.value) {
+                            if (startDX <
+                                (MediaQuery.of(context).size.width / 2)) {
+                              isLeftGesture.value = true;
+                            } else {
+                              isRightGesture.value = true;
+                            }
+                          }
+
+                          double dy = details.delta.dy;
+
+                          if (isLeftGesture.value && brightness.value != null) {
+                            final newBrightness = brightness.value! - dy / 200;
+                            brightness.value = newBrightness > 1
+                                ? 1
+                                : newBrightness < 0
+                                    ? 0
+                                    : newBrightness;
+                          }
+
+                          if (isRightGesture.value && volume.value != null) {
+                            final newVolume = volume.value! - dy / 200;
+                            volume.value = newVolume > 1
+                                ? 1
+                                : newVolume < 0
+                                    ? 0
+                                    : newVolume;
+                          }
+                        }
+                      }
+                    },
+                    onPanEnd: (details) async {
+                      isTouch.value = false;
+                      isHorizontalGesture.value = false;
+                      isVerticalGesture.value = false;
+                      isLeftGesture.value = false;
+                      isRightGesture.value = false;
+                      startPosition.value = null;
+                      if (playerCore.seeking) {
+                        await playerController.seekTo(playerCore.position);
+                        playerCore.updateSeeking(false);
+                      }
+                    },
+                    onPanCancel: () async {
+                      isHorizontalGesture.value = false;
+                      isVerticalGesture.value = false;
+                      isLeftGesture.value = false;
+                      isRightGesture.value = false;
+                      startPosition.value = null;
+                      if (playerCore.seeking) {
+                        isTouch.value = false;
+                        await playerController.seekTo(playerCore.position);
+                        playerCore.updateSeeking(false);
+                      }
+                    },
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            color: Colors.black,
+                          ),
+                        ),
+                        Positioned(
+                          left: videoViewOffset.dx,
+                          top: videoViewOffset.dy,
+                          width: videoViewSize.width,
+                          height: videoViewSize.height,
+                          child: Video(
+                            key: ValueKey(currentPlay?.file.getID()),
+                            controller: controller,
+                            controls: NoVideoControls,
+                            fit: fit == BoxFit.none ? BoxFit.contain : fit,
+                            // wakelock: mediaType == 'video',
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Audio
+              if (playerCore.mediaType == MediaType.audio)
+                Positioned(
+                    left: 0,
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Audio(playerCore: playerCore)),
+              // 播放速度
+              if (playerCore.rate != 1.0)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 18, 12),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Transform.translate(
+                            offset: const Offset(0, 1.5),
+                            child: Icon(
+                              Icons.speed_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            playerCore.rate.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              height: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              // 屏幕亮度
+              if (isLeftGesture.value && brightness.value != null)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 18, 12),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            brightness.value == 0
+                                ? Icons.brightness_low_rounded
+                                : brightness.value! < 1
+                                    ? Icons.brightness_medium_rounded
+                                    : Icons.brightness_high_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: 100,
+                            child: LinearProgressIndicator(
+                              value: brightness.value,
+                              borderRadius: BorderRadius.circular(4),
+                              backgroundColor: Colors.grey,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              // 音量
+              if (isRightGesture.value && volume.value != null)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 18, 12),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            volume.value == 0
+                                ? Icons.volume_mute_rounded
+                                : volume.value! < 0.5
+                                    ? Icons.volume_down_rounded
+                                    : Icons.volume_up_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: 100,
+                            child: LinearProgressIndicator(
+                              value: volume.value,
+                              borderRadius: BorderRadius.circular(4),
+                              backgroundColor: Colors.grey,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              if (isShowProgress.value &&
+                  !isShowControl.value &&
+                  playerCore.mediaType != MediaType.audio)
+                Positioned(
+                  left: -28,
+                  right: -28,
+                  bottom: -16,
+                  height: 32,
+                  child: ControlBarSlider(
+                    playerCore: playerCore,
+                    showControl: showControl,
+                    disabled: true,
+                  ),
+                ),
+              if (isShowProgress.value &&
+                  !isShowControl.value &&
+                  playerCore.mediaType != MediaType.audio)
+                Positioned(
+                  left: 12,
+                  top: 12,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        currentPlay != null ? title : '',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 20,
+                          height: 1,
+                          decoration: TextDecoration.none,
+                          shadows: const [
+                            Shadow(
+                              color: Colors.black,
+                              offset: Offset(0, 0),
+                              blurRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (isShowProgress.value &&
+                  !isShowControl.value &&
+                  playerCore.mediaType != MediaType.audio)
+                Positioned(
+                  left: 12,
+                  bottom: 6,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${formatDurationToMinutes(playerCore.position)} / ${formatDurationToMinutes(playerCore.duration)}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 16,
+                          height: 2,
+                          decoration: TextDecoration.none,
+                          shadows: const [
+                            Shadow(
+                              color: Colors.black,
+                              offset: Offset(0, 0),
+                              blurRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              // 标题栏
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOutCubicEmphasized,
+                top: isShowControl.value ||
+                        playerCore.mediaType != MediaType.video
+                    ? 0
+                    : -72,
+                left: 0,
+                right: 0,
+                child: MouseRegion(
+                  onHover: (event) {
+                    if (event.kind != PointerDeviceKind.touch) {
+                      isHover.value = true;
+                      showControl();
+                    }
+                  },
+                  child: GestureDetector(
+                    onTap: () => showControl(),
+                    onDoubleTap: () async {
+                      if (isDesktop && await windowManager.isMaximized()) {
+                        await windowManager.unmaximize();
+                        await resizeWindow(playerCore.videoParams?.aspect);
+                      } else {
+                        await windowManager.maximize();
+                      }
+                    },
+                    onPanStart: (details) async {
+                      if (isDesktop) {
+                        showControlForHover(windowManager.startDragging());
+                      }
+                    },
+                    child: CustomAppBar(
+                      title: title,
+                      playerCore: playerCore,
+                      actions: [
+                        const SizedBox(width: 8),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // 控制栏
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOutCubicEmphasized,
+                bottom: isShowControl.value ||
+                        playerCore.mediaType != MediaType.video
+                    ? 0
+                    : -96,
+                left: 0,
+                right: 0,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: MouseRegion(
+                      onHover: (event) {
+                        if (event.kind != PointerDeviceKind.touch) {
+                          isHover.value = true;
+                          showControl();
+                        }
+                      },
+                      child: GestureDetector(
+                        onTap: () => showControl(),
+                        child: ControlBar(
+                          playerCore: playerCore,
+                          showControl: showControl,
+                          showControlForHover: showControlForHover,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -31,8 +31,8 @@ class WebDAVDialog extends HookWidget {
 
     final id = useMemoized(() => storage?.id ?? const Uuid().v4());
     final name = useState(storage?.name ?? '');
-    final url = useState(storage?.url ?? '');
-    final basePath = useState(storage?.basePath ?? []);
+    final host = useState(storage?.host ?? '');
+    final basePath = useState(storage?.basePath ?? ['/']);
     final username = useState(storage?.username ?? '');
     final password = useState(storage?.password ?? '');
     final https = useState(storage?.https ?? false);
@@ -47,7 +47,7 @@ class WebDAVDialog extends HookWidget {
         WebDAVStorage(
           id: id,
           name: name.value,
-          url: url.value,
+          host: host.value,
           basePath: basePath.value,
           port: portController.text,
           username: username.value,
@@ -63,7 +63,7 @@ class WebDAVDialog extends HookWidget {
         WebDAVStorage(
           id: id,
           name: name.value,
-          url: url.value,
+          host: host.value,
           basePath: basePath.value,
           port: portController.text,
           username: username.value,
@@ -77,7 +77,7 @@ class WebDAVDialog extends HookWidget {
       final bool isConnected = await testWebDAV(WebDAVStorage(
         id: id,
         name: name.value,
-        url: url.value,
+        host: host.value,
         basePath: basePath.value,
         port: portController.text,
         username: username.value,
@@ -111,11 +111,11 @@ class WebDAVDialog extends HookWidget {
                 TextFormField(
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(),
-                    labelText: t.url,
+                    labelText: t.host,
                   ),
-                  initialValue: url.value,
+                  initialValue: host.value,
                   onChanged: (value) {
-                    url.value = value.trim().split('//').last;
+                    host.value = value.trim().split('//').last;
                     isTested.value = false;
                   },
                 ),
@@ -237,7 +237,7 @@ class WebDAVDialog extends HookWidget {
         ),
         TextButton(
           onPressed: testConnection,
-          child: Text(t.connection_test),
+          child: Text(t.test_connection),
         ),
         TextButton(
           onPressed: isTested.value

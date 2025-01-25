@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
@@ -12,7 +12,13 @@ import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/files_filter.dart';
+import 'package:iris/utils/logger.dart';
 import 'package:media_kit/media_kit.dart';
+
+enum MediaType {
+  video,
+  audio,
+}
 
 class PlayerCore {
   final Player player;
@@ -24,13 +30,13 @@ class PlayerCore {
   final bool playing;
   final VideoParams? videoParams;
   final AudioParams? audioParams;
+  final MediaType? mediaType;
   final Duration position;
   final Duration duration;
   final Duration buffer;
   final bool seeking;
   final bool completed;
   final double rate;
-  final double aspectRatio;
   final FileItem? cover;
   final void Function(Duration) updatePosition;
   final void Function(bool) updateSeeking;
@@ -46,13 +52,13 @@ class PlayerCore {
     this.playing,
     this.videoParams,
     this.audioParams,
+    this.mediaType,
     this.position,
     this.duration,
     this.buffer,
     this.seeking,
     this.completed,
     this.rate,
-    this.aspectRatio,
     this.cover,
     this.updatePosition,
     this.updateSeeking,
@@ -72,6 +78,8 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   final bool autoPlay =
       useAppStore().select(context, (state) => state.autoPlay);
   final Repeat repeat = useAppStore().select(context, (state) => state.repeat);
+  final bool alwaysPlayFromBeginning =
+      useAppStore().select(context, (state) => state.alwaysPlayFromBeginning);
 
   final history = useHistoryStore().select(context, (state) => state.history);
 
@@ -115,10 +123,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           (subtitle) => subtitles.any((item) => item.title == subtitle.name)),
       [currentFile?.subtitles, subtitles]);
 
-  double aspectRatio =
-      videoParams != null && videoParams.w != null && videoParams.h != null
-          ? (videoParams.w! / videoParams.h!)
-          : 0;
+  final MediaType? mediaType = useMemoized(
+      () => videoParams?.aspect != null ? MediaType.video : MediaType.audio,
+      [videoParams?.aspect]);
 
   final positionStream = useStream(player.stream.position);
 
@@ -129,7 +136,9 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   }
 
   final List<String> dir = useMemoized(
-    () => (currentFile == null) ? [] : ([...currentFile.path]..removeLast()),
+    () => currentFile == null || currentFile.path.isEmpty
+        ? []
+        : ([...currentFile.path]..removeLast()),
     [currentFile],
   );
 
@@ -160,7 +169,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     if (currentFile == null || playQueue.isEmpty) {
       player.stop();
     } else {
-      log('Now playing: ${currentFile.name}, auto play: $autoPlay');
+      logger('Now playing: ${currentFile.uri}, auto play: $autoPlay');
       player.open(
         Media(currentFile.uri,
             httpHeaders: currentFile.auth != null
@@ -170,8 +179,11 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       );
     }
     return () {
-      if (currentFile != null && player.state.duration == Duration.zero) {
-        log('Save progress: ${currentFile.name}');
+      if (currentFile != null && player.state.duration != Duration.zero) {
+        if (Platform.isAndroid && currentFile.uri.startsWith('content://')) {
+          return;
+        }
+        logger('Save progress: ${currentFile.name}');
         useHistoryStore().add(Progress(
           dateTime: DateTime.now().toUtc(),
           position: player.state.position,
@@ -192,18 +204,20 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       if (currentFile != null && currentFile.type == ContentType.video) {
         Progress? progress = history[currentFile.getID()];
         if (progress != null) {
-          if (progress.duration.inMilliseconds == duration.inMilliseconds &&
+          if (!alwaysPlayFromBeginning &&
+              progress.duration.inMilliseconds == duration.inMilliseconds &&
               (progress.duration.inMilliseconds -
                       progress.position.inMilliseconds) >
                   5000) {
-            log('Resume progress: ${currentFile.name} position: ${progress.position} duration: ${progress.duration}');
+            logger(
+                'Resume progress: ${currentFile.name} position: ${progress.position} duration: ${progress.duration}');
             await player.seek(progress.position);
           }
         }
       }
       // 设置字幕
       if (externalSubtitles!.isNotEmpty) {
-        log('Set external subtitle: ${externalSubtitles[0].name}');
+        logger('Set external subtitle: ${externalSubtitles[0].name}');
         await player.setSubtitleTrack(
           SubtitleTrack.uri(
             externalSubtitles[0].uri,
@@ -211,7 +225,8 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
           ),
         );
       } else if (subtitles.length > 1) {
-        log('Set subtitle: ${subtitles[1].title ?? subtitles[1].language ?? subtitles[1].id}');
+        logger(
+            'Set subtitle: ${subtitles[1].title ?? subtitles[1].language ?? subtitles[1].id}');
         await player.setSubtitleTrack(subtitles[1]);
       } else {
         await player.setSubtitleTrack(SubtitleTrack.no());
@@ -225,12 +240,10 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
       if (completed) {
         if (repeat == Repeat.one) return;
         if (currentPlayIndex == playQueue.length - 1) {
-          if (repeat == Repeat.none) {
-            useAppStore().updateAutoPlay(false);
+          if (repeat == Repeat.all) {
+            await usePlayQueueStore().updateCurrentIndex(playQueue[0].index);
           }
-          usePlayQueueStore().updateCurrentIndex(playQueue[0].index);
         } else {
-          if (currentPlayIndex == playQueue.length - 1) return;
           await usePlayQueueStore()
               .updateCurrentIndex(playQueue[currentPlayIndex + 1].index);
         }
@@ -240,7 +253,7 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
   }, [completed, repeat]);
 
   useEffect(() {
-    log('$repeat');
+    logger('$repeat');
     if (repeat == Repeat.one) {
       player.setPlaylistMode(PlaylistMode.loop);
     } else {
@@ -255,7 +268,10 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
 
   Future<void> saveProgress() async {
     if (currentFile != null && player.state.duration != Duration.zero) {
-      log('Save progress: ${currentFile.name}');
+      if (Platform.isAndroid && currentFile.uri.startsWith('content://')) {
+        return;
+      }
+      logger('Save progress: ${currentFile.name}');
       useHistoryStore().add(Progress(
         dateTime: DateTime.now().toUtc(),
         position: player.state.position,
@@ -275,13 +291,13 @@ PlayerCore usePlayerCore(BuildContext context, Player player) {
     playing,
     videoParams,
     audioParams,
+    mediaType,
     duration == Duration.zero ? Duration.zero : position.value,
     duration,
     duration == Duration.zero ? Duration.zero : buffer,
     seeking.value,
     completed,
     rate,
-    aspectRatio,
     cover,
     updatePosition,
     updateSeeking,

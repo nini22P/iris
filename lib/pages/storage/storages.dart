@@ -8,7 +8,7 @@ import 'package:iris/pages/storage/favorites.dart';
 import 'package:iris/pages/storage/files.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/utils/path_converter.dart';
+import 'package:iris/utils/path_conv.dart';
 import 'package:iris/pages/dialog/show_local_dialog.dart';
 import 'package:iris/pages/dialog/show_webdav_dialog.dart';
 import 'package:iris/pages/storage/storages_list.dart';
@@ -108,8 +108,8 @@ class Storages extends HookWidget {
                                   context,
                                   storage: LocalStorage(
                                     type: value,
-                                    name: pathConverter(selectedDirectory).last,
-                                    basePath: pathConverter(selectedDirectory),
+                                    name: pathConv(selectedDirectory).last,
+                                    basePath: pathConv(selectedDirectory),
                                   ),
                                 );
                               }
@@ -117,6 +117,8 @@ class Storages extends HookWidget {
                             break;
                           case StorageType.webdav:
                             showWebDAVDialog(context);
+                            break;
+                          default:
                             break;
                         }
                       },

@@ -4,7 +4,6 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/is_desktop.dart';
-import 'package:window_manager/window_manager.dart';
 
 class Play extends HookWidget {
   const Play({super.key});
@@ -15,6 +14,8 @@ class Play extends HookWidget {
 
     final autoResize =
         useAppStore().select(context, (state) => state.autoResize);
+    final bool alwaysPlayFromBeginning =
+        useAppStore().select(context, (state) => state.alwaysPlayFromBeginning);
 
     return SingleChildScrollView(
       child: Column(
@@ -24,21 +25,21 @@ class Play extends HookWidget {
             child: ListTile(
               leading: const Icon(Icons.aspect_ratio_rounded),
               title: Text(t.auto_resize),
-              onTap: () {
-                if (autoResize) {
-                  windowManager.setAspectRatio(0);
-                }
-                useAppStore().toggleAutoResize();
-              },
+              onTap: () => useAppStore().toggleAutoResize(),
               trailing: Checkbox(
                 value: autoResize,
-                onChanged: (_) {
-                  if (autoResize) {
-                    windowManager.setAspectRatio(0);
-                  }
-                  useAppStore().toggleAutoResize();
-                },
+                onChanged: (_) => useAppStore().toggleAutoResize(),
               ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.restart_alt_rounded),
+            title: Text(t.always_play_from_beginning),
+            subtitle: Text(t.always_play_from_beginning_description),
+            onTap: () => useAppStore().toggleAlwaysPlayFromBeginning(),
+            trailing: Checkbox(
+              value: alwaysPlayFromBeginning,
+              onChanged: (_) => useAppStore().toggleAlwaysPlayFromBeginning(),
             ),
           ),
         ],

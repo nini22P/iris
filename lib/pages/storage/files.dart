@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:iris/globals.dart' as globals;
 import 'package:iris/models/file.dart';
 import 'package:iris/models/progress.dart';
 import 'package:iris/models/storages/storage.dart';
@@ -15,6 +16,7 @@ import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/files_filter.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/request_storage_permission.dart';
 import 'package:iris/widgets/custom_chip.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -30,14 +32,6 @@ class Files extends HookWidget {
 
     final refreshState = useState(false);
     void refresh() => refreshState.value = !refreshState.value;
-
-    final storageStatusFuture = useMemoized(
-        () async => !Platform.isAndroid
-            ? PermissionStatus.granted
-            : await Permission.storage.status,
-        [storage, refreshState.value]);
-
-    final storageStatus = useFuture(storageStatusFuture).data;
 
     final basePath = storage.basePath;
 
@@ -93,7 +87,7 @@ class Files extends HookWidget {
 
       await useAppStore().updateAutoPlay(true);
       await useAppStore().updateShuffle(false);
-      await usePlayQueueStore().update(playQueue, newIndex);
+      await usePlayQueueStore().update(playQueue: playQueue, index: newIndex);
     }
 
     void back() {
@@ -111,12 +105,12 @@ class Files extends HookWidget {
       children: [
         Expanded(
           child: Platform.isAndroid &&
-                  storageStatus != PermissionStatus.granted &&
+                  globals.storagePermissionStatus != PermissionStatus.granted &&
                   storage is LocalStorage
               ? Center(
                   child: ElevatedButton(
                       onPressed: () async {
-                        await Permission.storage.request();
+                        await requestStoragePermission();
                         refresh();
                       },
                       child: Text(t.grant_storage_permission)),
@@ -206,7 +200,7 @@ class Files extends HookWidget {
                                               }
                                             }(),
                                             ...filteredFiles[index]
-                                                .subtitles!
+                                                .subtitles
                                                 .map((subtitle) => subtitle.uri
                                                     .split('.')
                                                     .last

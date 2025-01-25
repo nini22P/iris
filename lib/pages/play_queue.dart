@@ -83,12 +83,13 @@ class PlayQueue extends HookWidget {
                 ),
                 subtitle: Row(
                   children: [
-                    Text("${fileSizeConvert(playQueue[index].file.size)} MB",
-                        style: TextStyle(
-                            fontSize: 13,
-                            color: currentPlayIndex == index
-                                ? Theme.of(context).colorScheme.primary
-                                : null)),
+                    if (playQueue[index].file.size > 0)
+                      Text("${fileSizeConvert(playQueue[index].file.size)} MB",
+                          style: TextStyle(
+                              fontSize: 13,
+                              color: currentPlayIndex == index
+                                  ? Theme.of(context).colorScheme.primary
+                                  : null)),
                     const Spacer(),
                     () {
                       final Progress? progress = useHistoryStore()
@@ -112,7 +113,7 @@ class PlayQueue extends HookWidget {
                     }(),
                     ...playQueue[index]
                         .file
-                        .subtitles!
+                        .subtitles
                         .map((subtitle) =>
                             subtitle.uri.split('.').last.toUpperCase())
                         .toSet()
@@ -151,10 +152,11 @@ class PlayQueue extends HookWidget {
                       value: FileOptions.remove,
                       child: Text(t.remove),
                     ),
-                    PopupMenuItem(
-                      value: FileOptions.openInFolder,
-                      child: Text(t.open_in_folder),
-                    ),
+                    if (playQueue[index].file.path.isNotEmpty)
+                      PopupMenuItem(
+                        value: FileOptions.openInFolder,
+                        child: Text(t.open_in_folder),
+                      ),
                   ],
                 ),
                 onTap: () {

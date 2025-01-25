@@ -29,7 +29,7 @@ class ThemeModeDialog extends HookWidget {
           child: Column(
         children: [
           ListTile(
-            title: Text(t.auto),
+            title: Text(t.system),
             contentPadding: const EdgeInsets.only(left: 8),
             leading: Radio(
               value: ThemeMode.system,

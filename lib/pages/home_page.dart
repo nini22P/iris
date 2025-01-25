@@ -1,7 +1,6 @@
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:iris/pages/player/iris_player.dart';
 import 'package:iris/theme.dart';
 
@@ -10,25 +9,24 @@ class HomePage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    useEffect(() {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-      SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        systemNavigationBarColor: Colors.transparent,
-      ));
-      return null;
-    }, []);
-
-    return Scaffold(
-      body: Theme(
-        data: ThemeData.dark(useMaterial3: true).copyWith(
-          colorScheme: const ColorScheme.dark(),
-          textTheme: GoogleFonts.notoSansScTextTheme(),
-          popupMenuTheme: baseTheme(context).popupMenuTheme,
-          listTileTheme: baseTheme(context).listTileTheme,
+    return DynamicColorBuilder(builder: (
+      ColorScheme? lightDynamic,
+      ColorScheme? darkDynamic,
+    ) {
+      final theme = getTheme(
+        context: context,
+        lightDynamic: lightDynamic,
+        darkDynamic: darkDynamic,
+      );
+      return Scaffold(
+        body: Theme(
+          data: theme.dark.copyWith(
+              colorScheme: theme.dark.colorScheme.copyWith(
+            onSurfaceVariant: Colors.white.withValues(alpha: 0.95),
+          )),
+          child: const IrisPlayer(),
         ),
-        child: const IrisPlayer(),
-      ),
-    );
+      );
+    });
   }
 }
