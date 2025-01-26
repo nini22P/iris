@@ -35,7 +35,14 @@ jobs:
           # Move the build output to the Iris directory
           Move-Item -Path "build\windows\x64\runner\Release\*" -Destination "Iris" -Force
           # Create a ZIP file
-          Compress-Archive -Path "Iris" -DestinationPath "Iris_windows.zip"
+          Compress-Archive -Path "Iris" -DestinationPath "Iris-windows.zip"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Iris-windows
+          path: Iris-windows.zip
+      - name: Rename ZIP archive
+        run: Rename-Item -Path "Iris-windows.zip" -NewName "Iris_windows.zip"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -69,14 +76,28 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=keystore.jks" >> android/key.properties
       - name: Build Flutter application for Android
-        run: flutter build apk
-      - name: Rename APK
-        run: mv build/app/outputs/flutter-apk/app-release.apk Iris_android.apk
-      - name: Upload Android artifact
+        run: flutter build apk --split-per-abi
+      - name: Rename armeabi-v7a APK
+        run: mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk Iris-android-armeabi-v7a.apk
+      - name: Rename arm64-v8a APK
+        run: mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk Iris-android-arm64-v8a.apk
+      - name: Rename x86_64 APK
+        run: mv build/app/outputs/flutter-apk/app-x86_64-release.apk Iris-android-x86_64.apk
+      - name: Upload armeabi-v7a APK
         uses: actions/upload-artifact@v4
         with:
-          name: Iris_android
-          path: Iris_android.apk
+          name: Iris-android-armeabi-v7a
+          path: Iris-android-armeabi-v7a.apk
+      - name: Upload arm64-v8a APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Iris-android-arm64-v8a
+          path: Iris-android-arm64-v8a.apk
+      - name: Upload x86_64 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Iris-android-x86_64
+          path: Iris-android-x86_64.apk
 
   release:
     name: Release
@@ -104,16 +125,11 @@ jobs:
           git push origin "$TAG_NAME"
       - name: Eextract log
         run: python extract_log.py ${{ steps.create_tag.outputs.TAG_NAME }}
-      - name: Download Windows artifact
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: Iris_windows
           path: artifacts
-      - name: Download Android artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Iris_android
-          path: artifacts
+          merge-multiple: true
       - name: Release
         uses: softprops/action-gh-release@v2
         env:
@@ -124,5 +140,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
+            artifacts/Iris-windows.zip
             artifacts/Iris_windows.zip
-            artifacts/Iris_android.apk
+            artifacts/Iris-android-armeabi-v7a.apk
+            artifacts/Iris-android-arm64-v8a.apk
+            artifacts/Iris-android-x86_64.apk

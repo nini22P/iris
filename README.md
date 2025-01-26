@@ -18,7 +18,52 @@ English | [中文](./README_CN.md)
 
 ## Download
 
-[Windows](https://github.com/nini22P/Iris/releases/latest/download/Iris_windows.zip) | [Android](https://github.com/nini22P/Iris/releases/latest/download/Iris_android.apk)
+### Windows
+- [Iris-windows.zip](https://github.com/nini22P/Iris/releases/latest/download/Iris-windows.zip)
+
+### Android
+| Architecture      | Download Link                                                            |
+|-------------------|-------------------------------------------------------------------------|
+| arm64-v8a         | [Iris-android-arm64-v8a.apk](https://github.com/nini22P/Iris/releases/latest/download/Iris-android-arm64-v8a.apk) |
+| armeabi-v7a       | [Iris-android-armeabi-v7a.apk](https://github.com/nini22P/Iris/releases/latest/download/Iris-android-armeabi-v7a.apk) |
+| x86_64            | [Iris-android-x86_64.apk](https://github.com/nini22P/Iris/releases/latest/download/Iris-android-x86_64.apk) |
+
+## Keyboard and Gesture Controls
+
+### Keyboard Controls
+| Key                  | Description                              |
+|----------------------|------------------------------------------|
+| `Space`              | Play / Pause / Select File               |
+| `Enter`              | Enter Full Screen / Exit Full Screen / Select File |
+| `F11`                | Enter Full Screen / Exit Full Screen     |
+| `Arrow Left`         | Rewind 10 seconds                        |
+| `Arrow Right`        | Fast forward 10 seconds                  |
+| `Ctrl + Arrow Left`  | Previous                                 |
+| `Ctrl + Arrow Right` | Next                                     |
+| `Ctrl + X`           | Shuffle                                  |
+| `Ctrl + R`           | Repeat                                   |
+| `Ctrl + V`           | Video Zoom                               |
+| `F`                  | Save                                     |
+| `P`                  | Play Queue                               |
+| `S`                  | Subtitles and Audio Tracks               |
+| `Ctrl + O`           | Open File                                |
+| `Ctrl + L`           | Open Link                                |
+| `Ctrl + H`           | Play History                             |
+| `Ctrl + P`           | Settings                                 |
+| `Esc`                | Exit Current Menu / Go Back / Close Full Screen |
+
+### Gesture Controls
+| Gesture              | Description                              |
+|----------------------|------------------------------------------|
+| Tap                  | Select an item or open a menu            |
+| Double Tap Center     | Play / Pause                            |
+| Double Tap Left Side  | Rewind 10 seconds                       |
+| Double Tap Right Side | Fast forward 10 seconds                 |
+| Swipe Left / Right    | Adjust playback progress                |
+| Swipe Up / Down on Left Side | Adjust screen brightness           |
+| Swipe Up / Down on Right Side | Adjust device volume              |
+| Long Press           | Start Speed Playback                     |
+| Long Press and Swipe Left/Right | Adjust Speed Playback Speed   |
 
 ## Contribution
 
