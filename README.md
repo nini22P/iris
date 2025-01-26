@@ -36,7 +36,7 @@ English | [中文](./README_CN.md)
 | `Space`              | Play / Pause / Select File               |
 | `Enter`              | Enter Full Screen / Exit Full Screen / Select File |
 | `F11`                | Enter Full Screen / Exit Full Screen     |
-| `Arrow Left`         | Rewind 10 seconds                        |
+| `Arrow Left`         | Fast backward 10 seconds                 |
 | `Arrow Right`        | Fast forward 10 seconds                  |
 | `Ctrl + Arrow Left`  | Previous                                 |
 | `Ctrl + Arrow Right` | Next                                     |
@@ -57,11 +57,11 @@ English | [中文](./README_CN.md)
 |----------------------|------------------------------------------|
 | Tap                  | Select an item or open a menu            |
 | Double Tap Center     | Play / Pause                            |
-| Double Tap Left Side  | Rewind 10 seconds                       |
+| Double Tap Left Side  | Fast backward 10 seconds                |
 | Double Tap Right Side | Fast forward 10 seconds                 |
 | Swipe Left / Right    | Adjust playback progress                |
-| Swipe Up / Down on Left Side | Adjust screen brightness           |
-| Swipe Up / Down on Right Side | Adjust device volume              |
+| Swipe Up / Down on Left Side | Adjust screen brightness         |
+| Swipe Up / Down on Right Side | Adjust device volume            |
 | Long Press           | Start Speed Playback                     |
 | Long Press and Swipe Left/Right | Adjust Speed Playback Speed   |
 
