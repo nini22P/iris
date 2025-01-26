@@ -70,16 +70,16 @@ class ReleaseDialog extends HookWidget {
           onPressed: () => launchURL(release.url),
           child: Text(t.releasePage),
         ),
-        Visibility(
-          visible: !isDesktop,
-          child: TextButton(
-            onPressed: () {
-              launchURL(release.url);
-              Navigator.pop(context, 'OK');
-            },
-            child: Text(t.download),
-          ),
-        ),
+        // Visibility(
+        //   visible: !isDesktop,
+        //   child: TextButton(
+        //     onPressed: () {
+        //       launchURL(release.url);
+        //       Navigator.pop(context, 'OK');
+        //     },
+        //     child: Text(t.download),
+        //   ),
+        // ),
         Visibility(
           visible: isDesktop,
           child: TextButton(

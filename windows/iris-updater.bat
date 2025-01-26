@@ -35,8 +35,8 @@ goto :end
 
 :version_found
 
-set "download_url=https://github.com/nini22P/Iris/releases/latest/download/Iris_windows.zip"
-set "zip_file=%download_folder%\Iris_windows.zip"
+set "download_url=https://github.com/nini22P/Iris/releases/latest/download/Iris-windows.zip"
+set "zip_file=%download_folder%\Iris-windows.zip"
 set "extract_folder=%download_folder%"
 
 title Download Iris !version_tag!
@@ -55,11 +55,11 @@ if %errorlevel% equ 0 (
 )
 
 if not exist "%zip_file%" (
-    echo Error: Failed to download Iris_windows.zip.
+    echo Error: Failed to download Iris-windows.zip.
     goto :end
 )
 
-echo Extracting Iris_windows.zip...
+echo Extracting Iris-windows.zip...
 powershell -Command "try { Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::ExtractToDirectory('%zip_file%', '%extract_folder%'); } catch { Write-Host 'Error extracting zip: ' $_.Exception.Message; exit 1 }"
 
 :: Check if Iris folder exists before moving
