@@ -1,3 +1,12 @@
+## v1.2.1
+
+### Changelog
+* Split APKs by architecture to reduce installation size.
+
+### 更新日志
+* 拆分不同架构的 APK 以减小安装包大小
+
+
 ## v1.2.0
 
 ### Changelog
