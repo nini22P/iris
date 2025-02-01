@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fvp/fvp.dart';
+import 'package:fvp/mdk.dart';
 import 'package:iris/models/player.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/logger.dart';
@@ -79,10 +79,8 @@ class SubtitleList extends HookWidget {
     }
 
     if (player is FvpPlayer) {
-      final subtitles =
-          (player as FvpPlayer).controller.getMediaInfo()?.subtitle ?? [];
-      final activeSubtitles =
-          (player as FvpPlayer).controller.getActiveSubtitleTracks() ?? [];
+      final subtitles = (player as FvpPlayer).player.mediaInfo.subtitle ?? [];
+      final activeSubtitles = (player as FvpPlayer).player.activeSubtitleTracks;
       return ListView(
         children: [
           ListTile(
@@ -105,7 +103,10 @@ class SubtitleList extends HookWidget {
             onTap: () {
               logger('Set subtitle: ${t.off}');
               (player as FvpPlayer).externalSubtitle.value = null;
-              (player as FvpPlayer).controller.setSubtitleTracks([]);
+              (player as FvpPlayer).player.setMedia('', MediaType.subtitle);
+              (player as FvpPlayer)
+                  .player
+                  .setActiveTracks(MediaType.subtitle, []);
               Navigator.of(context).pop();
             },
           ),
@@ -133,9 +134,9 @@ class SubtitleList extends HookWidget {
                 logger(
                     'Set subtitle: ${subtitle.metadata['title'] ?? subtitle.metadata['language'] ?? subtitle.index.toString()}');
                 (player as FvpPlayer).externalSubtitle.value = null;
-                (player as FvpPlayer)
-                    .controller
-                    .setSubtitleTracks([subtitles.indexOf(subtitle)]);
+                (player as FvpPlayer).player.setMedia('', MediaType.subtitle);
+                (player as FvpPlayer).player.setActiveTracks(
+                    MediaType.subtitle, [subtitles.indexOf(subtitle)]);
                 Navigator.of(context).pop();
               },
             ),
@@ -171,6 +172,9 @@ class SubtitleList extends HookWidget {
                         (player as FvpPlayer)
                             .externalSubtitles
                             .indexOf(subtitle);
+                    (player as FvpPlayer)
+                        .player
+                        .setMedia(subtitle.uri, MediaType.subtitle);
                     Navigator.of(context).pop();
                   },
                 ),

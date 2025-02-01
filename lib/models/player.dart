@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iris/models/file.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
-import 'package:video_player/video_player.dart';
+import 'package:fvp/mdk.dart' as fvp;
 
 class MediaPlayer {
   final bool isPlaying;
@@ -86,11 +86,11 @@ class MediaKitPlayer extends MediaPlayer {
 }
 
 class FvpPlayer extends MediaPlayer {
-  final VideoPlayerController controller;
+  final fvp.Player player;
   final ValueNotifier<int?> externalSubtitle;
 
   FvpPlayer({
-    required this.controller,
+    required this.player,
     required super.isPlaying,
     required this.externalSubtitle,
     required super.externalSubtitles,

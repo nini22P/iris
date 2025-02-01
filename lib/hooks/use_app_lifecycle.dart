@@ -11,6 +11,7 @@ void useAppLifecycle(MediaPlayer player) {
     try {
       if (appLifecycleState == AppLifecycleState.paused) {
         logger('App lifecycle state: paused');
+        player.pause();
         player.saveProgress();
       }
     } catch (e) {

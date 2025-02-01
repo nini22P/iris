@@ -31,14 +31,6 @@ void main(List<String> arguments) async {
   MediaKit.ensureInitialized();
 
   fvp.registerWith(options: {
-    // 'fastSeek': true,
-    'player': {
-      if (Platform.isAndroid) 'audio.renderer': 'AudioTrack',
-      'avio.reconnect': '1',
-      'avio.reconnect_delay_max': '7',
-      'buffer': '2000+150000',
-      'demux.buffer.ranges': '8',
-    },
     if (Platform.isAndroid)
       'subtitleFontFile': 'assets/fonts/NotoSansCJKsc-Medium.otf',
   });

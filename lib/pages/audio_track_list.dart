@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fvp/fvp.dart';
+import 'package:fvp/mdk.dart';
 import 'package:iris/models/player.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/logger.dart';
@@ -59,10 +59,8 @@ class AudioTrackList extends HookWidget {
     }
 
     if (player is FvpPlayer) {
-      final audios =
-          (player as FvpPlayer).controller.getMediaInfo()?.audio ?? [];
-      final activeAudioTracks =
-          (player as FvpPlayer).controller.getActiveAudioTracks() ?? [];
+      final audios = (player as FvpPlayer).player.mediaInfo.audio ?? [];
+      final activeAudioTracks = (player as FvpPlayer).player.activeAudioTracks;
       return ListView(
         children: [
           ListTile(
@@ -80,7 +78,9 @@ class AudioTrackList extends HookWidget {
             ),
             onTap: () {
               logger('Set audio track: ${t.off}');
-              (player as FvpPlayer).controller.setAudioTracks([]);
+              (player as FvpPlayer)
+                  .player
+                  .setActiveTracks(MediaType.subtitle, []);
               Navigator.of(context).pop();
             },
           ),
@@ -106,8 +106,8 @@ class AudioTrackList extends HookWidget {
                 logger(
                     'Set audio track: ${audio.metadata['title'] ?? audio.metadata['language'] ?? audios.indexOf(audio).toString()}');
                 (player as FvpPlayer)
-                    .controller
-                    .setAudioTracks([audios.indexOf(audio)]);
+                    .player
+                    .setActiveTracks(MediaType.audio, [audios.indexOf(audio)]);
                 Navigator.of(context).pop();
               },
             ),
