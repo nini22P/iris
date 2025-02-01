@@ -73,7 +73,6 @@ dependencies:
   screen_brightness: ^0.2.2
   flutter_volume_controller: ^1.3.3
   fvp: ^0.29.0
-  video_player: ^2.9.2
   wakelock_plus: ^1.2.10
 
 dev_dependencies:

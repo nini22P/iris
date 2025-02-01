@@ -24,12 +24,7 @@ FvpPlayer useFvpPlayer(BuildContext context) {
       usePlayQueueStore().select(context, (state) => state.currentIndex);
   final bool alwaysPlayFromBeginning =
       useAppStore().select(context, (state) => state.alwaysPlayFromBeginning);
-
   final history = useHistoryStore().select(context, (state) => state.history);
-
-  final looping =
-      useMemoized(() => repeat == Repeat.one ? true : false, [repeat]);
-
   final int currentPlayIndex = useMemoized(
       () => playQueue.indexWhere((element) => element.index == currentIndex),
       [playQueue, currentIndex]);
@@ -39,7 +34,6 @@ FvpPlayer useFvpPlayer(BuildContext context) {
           ? null
           : playQueue[currentPlayIndex],
       [playQueue, currentPlayIndex]);
-
   final file = useMemoized(() => currentPlay?.file, [currentPlay]);
 
   final player = useMemoized(() => mdk.Player(), [file]);
@@ -54,6 +48,8 @@ FvpPlayer useFvpPlayer(BuildContext context) {
   final size = useState<Size?>(null);
   final isPlaying = useState(false);
   final isCompleted = useState(false);
+  final looping =
+      useMemoized(() => repeat == Repeat.one ? true : false, [repeat]);
   final seeking = useState(false);
   final externalSubtitle = useState<int?>(null);
   final List<Subtitle> externalSubtitles = useMemoized(
@@ -65,21 +61,6 @@ FvpPlayer useFvpPlayer(BuildContext context) {
           ? size.value!.width / size.value!.height
           : 0,
       [size.value]);
-
-  void dispose() {
-    mediaInfo.value = null;
-    size.value = null;
-    isPlaying.value = false;
-    isCompleted.value = false;
-    position.value = Duration.zero;
-    buffer.value = Duration.zero;
-    rate.value = 1.0;
-    externalSubtitle.value = null;
-    player.onMediaStatus(null);
-    player.onEvent(null);
-    player.onStateChanged(null);
-    player.dispose();
-  }
 
   useEffect(() {
     try {
@@ -94,7 +75,7 @@ FvpPlayer useFvpPlayer(BuildContext context) {
         player.setProperty('avio.protocol_whitelist',
             'file,rtmp,http,https,tls,rtp,tcp,udp,crypto,httpproxy,data,concatf,concat,subfile');
         player.setProperty('avformat.rtsp_transport', 'tcp');
-        player.setProperty('buffer', '2000+80000');
+        player.setProperty('buffer', '2000+100000');
         // player.setProperty('demux.buffer.ranges', '8');
 
         player.onMediaStatus((oldValue, newValue) {
@@ -112,7 +93,6 @@ FvpPlayer useFvpPlayer(BuildContext context) {
 
         player.onStateChanged((oldValue, newValue) {
           logger('onStateChanged: $oldValue -> $newValue');
-
           if (duration != Duration.zero &&
               oldValue == mdk.PlaybackState.playing &&
               newValue == mdk.PlaybackState.stopped) {
@@ -168,16 +148,28 @@ FvpPlayer useFvpPlayer(BuildContext context) {
     } catch (e) {
       logger(e.toString());
     }
-    return dispose;
+    return () {
+      mediaInfo.value = null;
+      size.value = null;
+      isPlaying.value = false;
+      isCompleted.value = false;
+      position.value = Duration.zero;
+      buffer.value = Duration.zero;
+      rate.value = 1.0;
+      externalSubtitle.value = null;
+      player.onMediaStatus(null);
+      player.onEvent(null);
+      player.onStateChanged(null);
+      player.dispose();
+    };
   }, [player]);
-
-  // useEffect(() => dispose, []);
 
   Future<void> seekTo(Duration newPosition) async {
     logger('Seek to: $newPosition');
     if (duration == Duration.zero) return;
     if (player.state == mdk.PlaybackState.stopped) {
       player.state = mdk.PlaybackState.playing;
+      player.state = mdk.PlaybackState.paused;
     }
     newPosition.inSeconds < 0
         ? await player.seek(position: 0)
@@ -189,10 +181,9 @@ FvpPlayer useFvpPlayer(BuildContext context) {
   Future<void> play() async {
     await useAppStore().updateAutoPlay(true);
     if (player.state == mdk.PlaybackState.stopped) {
-      seekTo(Duration.zero);
-    } else {
-      player.state = mdk.PlaybackState.playing;
+      await seekTo(Duration.zero);
     }
+    player.state = mdk.PlaybackState.playing;
   }
 
   Future<void> pause() async {
