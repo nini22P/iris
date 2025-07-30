@@ -19,6 +19,10 @@ class UiStore extends Store<UiState> {
       set(state.copyWith(isFullScreen: !state.isFullScreen));
     }
   }
+
+  Future<void> updatePlayerExpanded(bool bool) async {
+    set(state.copyWith(isPlayerExpanded: bool));
+  }
 }
 
 UiStore useUiStore() => create(() => UiStore());

@@ -14,12 +14,13 @@ import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_storage_store.dart';
+import 'package:iris/store/use_ui_store.dart';
 import 'package:iris/utils/files_filter.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/files_sort.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/request_storage_permission.dart';
-import 'package:iris/widgets/app_chip.dart';
+import 'package:iris/widgets/iris_chip.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -217,7 +218,7 @@ class Files extends HookWidget {
                                                   progress.position
                                                       .inMilliseconds) <=
                                               5000) {
-                                            return AppChip(text: '100%');
+                                            return IRISChip(text: '100%');
                                           }
                                           final String progressString =
                                               (progress.position
@@ -226,7 +227,7 @@ class Files extends HookWidget {
                                                           .inMilliseconds *
                                                       100)
                                                   .toStringAsFixed(0);
-                                          return AppChip(
+                                          return IRISChip(
                                               text: '$progressString %');
                                         } else {
                                           return const SizedBox();
@@ -245,7 +246,7 @@ class Files extends HookWidget {
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 const SizedBox(width: 4),
-                                                AppChip(
+                                                IRISChip(
                                                   text: subtitleType,
                                                   primary: true,
                                                 ),
@@ -290,7 +291,7 @@ class Files extends HookWidget {
                                           files[index].type ==
                                               ContentType.audio) {
                                         play(files, index);
-                                        Navigator.pop(context);
+                                        useUiStore().updatePlayerExpanded(true);
                                       }
                                     }
                                   },

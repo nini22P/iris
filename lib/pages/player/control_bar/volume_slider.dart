@@ -7,11 +7,9 @@ class VolumeSlider extends HookWidget {
   const VolumeSlider({
     super.key,
     required this.showControl,
-    this.color,
   });
 
   final void Function() showControl;
-  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +21,8 @@ class VolumeSlider extends HookWidget {
         width: 128,
         child: SliderTheme(
           data: SliderTheme.of(context).copyWith(
-            thumbColor: color,
-            activeTrackColor: color?.withAlpha(222),
-            inactiveTrackColor: color?.withAlpha(99),
+            inactiveTrackColor:
+                Theme.of(context).colorScheme.primary.withAlpha(111),
             thumbShape: RoundSliderThumbShape(
               enabledThumbRadius: 5.6,
             ),

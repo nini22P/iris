@@ -9,14 +9,11 @@ class ControlBarSlider extends HookWidget {
     required this.player,
     required this.showControl,
     this.disabled = false,
-    this.color,
   });
 
   final MediaPlayer player;
-
   final void Function() showControl;
   final bool disabled;
-  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +26,7 @@ class ControlBarSlider extends HookWidget {
               visible: !disabled,
               child: Text(
                 formatDurationToMinutes(player.position),
-                style: TextStyle(
-                  color: color,
-                  height: 2,
-                ),
+                style: TextStyle(height: 2),
               ),
             ),
             Expanded(
@@ -40,7 +34,8 @@ class ControlBarSlider extends HookWidget {
                 children: [
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      disabledActiveTrackColor: color?.withAlpha(111),
+                      disabledActiveTrackColor:
+                          Theme.of(context).colorScheme.primary.withAlpha(111),
                       thumbShape: const RoundSliderThumbShape(
                         disabledThumbRadius: 0,
                         elevation: 0,
@@ -64,9 +59,11 @@ class ControlBarSlider extends HookWidget {
                   ),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      thumbColor: color,
-                      activeTrackColor: color?.withAlpha(222),
-                      inactiveTrackColor: color?.withAlpha(99),
+                      // thumbColor: Theme.of(context).colorScheme.onSurface,
+                      activeTrackColor:
+                          Theme.of(context).colorScheme.primary.withAlpha(222),
+                      inactiveTrackColor:
+                          Theme.of(context).colorScheme.primary.withAlpha(111),
                       thumbShape: RoundSliderThumbShape(
                         enabledThumbRadius: disabled ? 0 : 6,
                       ),
@@ -111,10 +108,7 @@ class ControlBarSlider extends HookWidget {
               visible: !disabled,
               child: Text(
                 formatDurationToMinutes(player.duration),
-                style: TextStyle(
-                  color: color,
-                  height: 2,
-                ),
+                style: TextStyle(height: 2),
               ),
             ),
           ],

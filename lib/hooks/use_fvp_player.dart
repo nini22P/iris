@@ -131,8 +131,9 @@ FvpPlayer useFvpPlayer(BuildContext context) {
   final isCompleted =
       useListenableSelector(controller, () => controller.value.isCompleted);
 
-  final double aspect = useMemoized(
-      () => size.width != 0 && size.height != 0 ? size.width / size.height : 0,
+  final double? aspect = useMemoized(
+      () =>
+          size.width != 0 && size.height != 0 ? size.width / size.height : null,
       [size.width, size.height]);
 
   final seeking = useState(false);

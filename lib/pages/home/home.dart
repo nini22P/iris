@@ -4,10 +4,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_fvp_player.dart';
 import 'package:iris/hooks/use_media_kit_player.dart';
-import 'package:iris/models/player.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/pages/player/iris_player.dart';
+import 'package:iris/pages/storages/storages.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/store/use_ui_store.dart';
 
 class Home extends HookWidget {
   const Home({super.key});
@@ -16,69 +17,56 @@ class Home extends HookWidget {
   Widget build(BuildContext context) {
     final playerBackend =
         useAppStore().select(context, (state) => state.playerBackend);
+    final isPlayerExpanded =
+        useUiStore().select(context, (state) => state.isPlayerExpanded);
 
-    final playerState = useState<MediaPlayer?>(null);
-
-    void handlePlayerCreated(MediaPlayer player) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          playerState.value = player;
-        }
-      });
-    }
-
-    final Widget playerHost;
-    switch (playerBackend) {
-      case PlayerBackend.mediaKit:
-        playerHost = _MediaKitPlayerHost(onPlayerCreated: handlePlayerCreated);
-        break;
-      case PlayerBackend.fvp:
-        playerHost = _FvpPlayerHost(onPlayerCreated: handlePlayerCreated);
-        break;
-    }
+    final IrisPlayer player = () {
+      switch (playerBackend) {
+        case PlayerBackend.mediaKit:
+          return IrisPlayer(
+            key: const ValueKey('media-kit'),
+            playerHooks: useMediaKitPlayer,
+          );
+        case PlayerBackend.fvp:
+          return IrisPlayer(
+            key: const ValueKey('fvp'),
+            playerHooks: useFvpPlayer,
+          );
+      }
+    }();
 
     return AnnotatedRegion(
-      value: const SystemUiOverlayStyle(
-        statusBarIconBrightness: Brightness.light,
-        statusBarColor: Colors.transparent,
-        systemNavigationBarColor: Colors.transparent,
+      value: SystemUiOverlayStyle(
+        statusBarIconBrightness: isPlayerExpanded
+            ? Brightness.light
+            : Theme.of(context).brightness == Brightness.dark
+                ? Brightness.light
+                : Brightness.dark,
+        statusBarColor: isPlayerExpanded
+            ? const Color.fromRGBO(0, 0, 0, 0.5)
+            : Theme.of(context).colorScheme.surface,
+        systemNavigationBarColor: isPlayerExpanded ? null : Colors.transparent,
       ),
       child: Scaffold(
-        backgroundColor: Color(0xFF2f2f2f),
-        body: Stack(
-          children: [
-            playerHost,
-            if (playerState.value != null)
-              IrisPlayer(player: playerState.value!)
-          ],
+        body: SafeArea(
+          left: !isPlayerExpanded,
+          top: !isPlayerExpanded,
+          right: !isPlayerExpanded,
+          bottom: !isPlayerExpanded,
+          child: Stack(
+            children: [
+              Positioned(
+                left: 0,
+                top: 48,
+                right: 0,
+                bottom: 112,
+                child: Storages(),
+              ),
+              player,
+            ],
+          ),
         ),
       ),
     );
-  }
-}
-
-class _MediaKitPlayerHost extends HookWidget {
-  final ValueChanged<MediaPlayer> onPlayerCreated;
-
-  const _MediaKitPlayerHost({required this.onPlayerCreated});
-
-  @override
-  Widget build(BuildContext context) {
-    final player = useMediaKitPlayer(context);
-    onPlayerCreated(player);
-    return Container(); // Doesn't build any UI itself.
-  }
-}
-
-class _FvpPlayerHost extends HookWidget {
-  final ValueChanged<MediaPlayer> onPlayerCreated;
-
-  const _FvpPlayerHost({required this.onPlayerCreated});
-
-  @override
-  Widget build(BuildContext context) {
-    final player = useFvpPlayer(context);
-    onPlayerCreated(player);
-    return Container(); // Doesn't build any UI itself.
   }
 }

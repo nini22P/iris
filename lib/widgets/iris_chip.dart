@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
-class AppChip extends StatelessWidget {
+class IRISChip extends StatelessWidget {
+  const IRISChip({
+    super.key,
+    required this.text,
+    this.primary = false,
+  });
+
   final String text;
   final bool primary;
-
-  const AppChip({super.key, required this.text, this.primary = false});
 
   @override
   Widget build(BuildContext context) {

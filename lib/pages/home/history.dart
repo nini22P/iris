@@ -11,7 +11,7 @@ import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/widgets/app_chip.dart';
+import 'package:iris/widgets/iris_chip.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class History extends HookWidget {
@@ -84,14 +84,14 @@ class History extends HookWidget {
                         if ((progress.duration.inMilliseconds -
                                 progress.position.inMilliseconds) <=
                             5000) {
-                          return AppChip(text: '100%');
+                          return IRISChip(text: '100%');
                         }
                         final String progressString =
                             (progress.position.inMilliseconds /
                                     progress.duration.inMilliseconds *
                                     100)
                                 .toStringAsFixed(0);
-                        return AppChip(text: '$progressString %');
+                        return IRISChip(text: '$progressString %');
                       } else {
                         return const SizedBox();
                       }
@@ -109,7 +109,7 @@ class History extends HookWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const SizedBox(width: 4),
-                              AppChip(
+                              IRISChip(
                                 text: subtitleType,
                                 primary: true,
                               ),

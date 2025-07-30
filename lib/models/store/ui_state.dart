@@ -9,6 +9,7 @@ abstract class UiState with _$UiState {
   const factory UiState({
     @Default(false) bool isAlwaysOnTop,
     @Default(false) bool isFullScreen,
+    @Default(false) bool isPlayerExpanded,
   }) = _UiState;
 
   factory UiState.fromJson(Map<String, dynamic> json) =>

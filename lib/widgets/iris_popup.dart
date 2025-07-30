@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:iris/widgets/iris_card.dart';
 import 'package:window_manager/window_manager.dart';
 
 enum PopupDirection { left, right }
@@ -10,7 +10,8 @@ Future<void> showPopup({
   required Widget child,
   required PopupDirection direction,
 }) async =>
-    await Navigator.of(context).push(Popup(child: child, direction: direction));
+    await Navigator.of(context)
+        .push(IRISPopup(child: child, direction: direction));
 
 Future<void> replacePopup({
   required BuildContext context,
@@ -18,10 +19,10 @@ Future<void> replacePopup({
   required PopupDirection direction,
 }) async =>
     await Navigator.of(context)
-        .pushReplacement(Popup(child: child, direction: direction));
+        .pushReplacement(IRISPopup(child: child, direction: direction));
 
-class Popup<T> extends PopupRoute<T> {
-  Popup({
+class IRISPopup<T> extends PopupRoute<T> {
+  IRISPopup({
     required this.child,
     required this.direction,
   });
@@ -94,23 +95,17 @@ class Popup<T> extends PopupRoute<T> {
                     child: child,
                   );
                 },
-                child: ClipRRect(
+                child: IRISCard(
                   borderRadius: BorderRadius.circular(16),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Material(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surface
-                          .withValues(alpha: 0.75),
-                      child: UnconstrainedBox(
-                        child: LimitedBox(
-                          maxWidth: screenWidth / size - 16,
-                          maxHeight: screenHeight - 18 - 48,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [Expanded(child: child)],
-                          ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: UnconstrainedBox(
+                      child: LimitedBox(
+                        maxWidth: screenWidth / size - 16,
+                        maxHeight: screenHeight - 16 - 48,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [Expanded(child: child)],
                         ),
                       ),
                     ),

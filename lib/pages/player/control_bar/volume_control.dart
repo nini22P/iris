@@ -31,14 +31,10 @@ class VolumeControl extends HookWidget {
     super.key,
     required this.showControl,
     this.showVolumeText = true,
-    this.color,
-    this.overlayColor,
   });
 
   final void Function() showControl;
   final bool showVolumeText;
-  final Color? color;
-  final WidgetStateProperty<Color?>? overlayColor;
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +71,6 @@ class VolumeControl extends HookWidget {
                       ? Icons.volume_down_rounded
                       : Icons.volume_up_rounded,
               size: 20,
-              color: color,
             ),
             onPressed: () {
               showControl();
@@ -85,12 +80,10 @@ class VolumeControl extends HookWidget {
                 useAppStore().toggleMute();
               }
             },
-            style: ButtonStyle(overlayColor: overlayColor),
           ),
           Expanded(
             child: VolumeSlider(
               showControl: showControl,
-              color: color,
             ),
           ),
           if (showVolumeText) const SizedBox(width: 8),
