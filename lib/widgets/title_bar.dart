@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
-import 'package:iris/info.dart';
+import 'package:iris/pages/storages/file_buttons.dart';
+import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/store/use_ui_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/platform.dart';
@@ -13,16 +14,14 @@ class TitleBar extends HookWidget {
     super.key,
     this.title,
     this.actions,
-    this.color,
-    this.overlayColor,
+    this.bgColor = Colors.transparent,
     this.saveProgress,
     this.resizeWindow,
   });
 
   final String? title;
   final List<Widget>? actions;
-  final Color? color;
-  final WidgetStateProperty<Color?>? overlayColor;
+  final Color bgColor;
   final Future<void> Function()? saveProgress;
   final Future<void> Function()? resizeWindow;
 
@@ -36,41 +35,30 @@ class TitleBar extends HookWidget {
     final isPlayerExpanded =
         useUiStore().select(context, (state) => state.isPlayerExpanded);
 
+    final currentStorage =
+        useStorageStore().select(context, (state) => state.currentStorage);
+
     return Container(
+      color: bgColor,
       padding: isDesktop
           ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
           : const EdgeInsets.fromLTRB(8, 8, 8, 8),
       child: ExcludeFocus(
         child: SafeArea(
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (isPlayerExpanded)
                 IRISCard(
                   child: IconButton(
                     icon: Icon(
                       Icons.arrow_back_rounded,
-                      color: color,
                     ),
                     onPressed: () => useUiStore().updatePlayerExpanded(false),
-                    style: ButtonStyle(overlayColor: overlayColor),
                   ),
                 ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: isPlayerExpanded
-                    ? const SizedBox()
-                    : Text(
-                        INFO.title,
-                        maxLines: 1,
-                        textAlign: TextAlign.start,
-                        style: TextStyle(
-                          fontSize: 16,
-                          overflow: TextOverflow.ellipsis,
-                          color: color,
-                        ),
-                      ),
-              ),
+              if (!isPlayerExpanded && currentStorage != null)
+                IRISCard(child: FileButtons()),
+              const Spacer(),
               IRISCard(
                 child: Row(
                   children: [
@@ -102,11 +90,8 @@ class TitleBar extends HookWidget {
                                         ? Icons.push_pin_rounded
                                         : Icons.push_pin_outlined,
                                     size: 18,
-                                    color: color,
                                   ),
                                   onPressed: useUiStore().toggleIsAlwaysOnTop,
-                                  style:
-                                      ButtonStyle(overlayColor: overlayColor),
                                 ),
                               ),
                               Visibility(
@@ -120,7 +105,6 @@ class TitleBar extends HookWidget {
                                         ? Icons.close_fullscreen_rounded
                                         : Icons.open_in_full_rounded,
                                     size: 18,
-                                    color: color,
                                   ),
                                   onPressed: () async {
                                     if (isFullScreen) {
@@ -129,8 +113,6 @@ class TitleBar extends HookWidget {
                                     useUiStore()
                                         .updateFullScreen(!isFullScreen);
                                   },
-                                  style:
-                                      ButtonStyle(overlayColor: overlayColor),
                                 ),
                               ),
                               Visibility(
@@ -139,10 +121,7 @@ class TitleBar extends HookWidget {
                                   onPressed: () => windowManager.minimize(),
                                   icon: Icon(
                                     Icons.remove_rounded,
-                                    color: color,
                                   ),
-                                  style:
-                                      ButtonStyle(overlayColor: overlayColor),
                                 ),
                               ),
                               Visibility(
@@ -162,16 +141,12 @@ class TitleBar extends HookWidget {
                                           child: Icon(
                                             Icons.filter_none_rounded,
                                             size: 18,
-                                            color: color,
                                           ),
                                         )
                                       : Icon(
                                           Icons.crop_din_rounded,
                                           size: 20,
-                                          color: color,
                                         ),
-                                  style:
-                                      ButtonStyle(overlayColor: overlayColor),
                                 ),
                               ),
                             ],
@@ -185,7 +160,6 @@ class TitleBar extends HookWidget {
                         },
                         icon: Icon(
                           Icons.close_rounded,
-                          color: color,
                         ),
                         style: ButtonStyle(
                           overlayColor: WidgetStateProperty.resolveWith<Color?>(

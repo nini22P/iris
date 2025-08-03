@@ -3,8 +3,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/oss_licenses.dart';
 import 'package:iris/utils/url.dart';
 
-class Libraries extends HookWidget {
-  const Libraries({super.key});
+class Dependencies extends HookWidget {
+  const Dependencies({super.key});
 
   static const title = 'Libraries';
 

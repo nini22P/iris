@@ -57,9 +57,9 @@ class Home extends HookWidget {
             children: [
               Positioned(
                 left: 0,
-                top: 48,
+                top: 0,
                 right: 0,
-                bottom: 112,
+                bottom: 0,
                 child: Storages(),
               ),
               player,

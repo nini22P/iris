@@ -32,6 +32,7 @@ class StoragesList extends HookWidget {
         [localStorages, storages]);
 
     return ListView.builder(
+      shrinkWrap: true,
       padding: EdgeInsets.zero,
       itemCount: allStorages.length,
       itemBuilder: (context, index) => ListTile(

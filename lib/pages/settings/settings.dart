@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/pages/settings/about.dart';
 import 'package:iris/pages/settings/general.dart';
-import 'package:iris/pages/settings/libraries.dart';
+import 'package:iris/pages/settings/dependencies.dart';
 import 'package:iris/pages/settings/play.dart';
 import 'package:iris/utils/get_localizations.dart';
 
@@ -29,7 +29,7 @@ class Settings extends HookWidget {
       ITab(title: t.general, child: const General()),
       ITab(title: t.play, child: const Play()),
       ITab(title: t.about, child: const About()),
-      ITab(title: t.libraries, child: const Libraries()),
+      ITab(title: t.dependencies, child: const Dependencies()),
     ];
 
     final tabController = useTabController(initialLength: tabs.length);

@@ -22,6 +22,7 @@ class Favorites extends HookWidget {
     final localStorages = useFuture(localStoragesFuture).data ?? [];
 
     return ListView.builder(
+      shrinkWrap: true,
       padding: EdgeInsets.zero,
       itemCount: favorites.length,
       itemBuilder: (context, index) => ListTile(

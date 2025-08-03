@@ -134,7 +134,7 @@ class MyApp extends HookWidget {
       ColorScheme? lightDynamic,
       ColorScheme? darkDynamic,
     ) {
-      final theme = getTheme(
+      globals.customTheme = getTheme(
         context: context,
         lightDynamic: lightDynamic,
         darkDynamic: darkDynamic,
@@ -142,8 +142,8 @@ class MyApp extends HookWidget {
 
       return MaterialApp(
         title: INFO.title,
-        theme: theme.light,
-        darkTheme: theme.dark,
+        theme: globals.customTheme?.light,
+        darkTheme: globals.customTheme?.dark,
         themeMode: themeMode,
         home: const Home(),
         locale: language == 'system' || language == 'auto'
