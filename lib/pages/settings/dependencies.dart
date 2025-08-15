@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:iris/oss_licenses.dart';
+import 'package:iris/data/oss_licenses.dart';
 import 'package:iris/utils/url.dart';
 
 class Dependencies extends HookWidget {
   const Dependencies({super.key});
 
-  static const title = 'Libraries';
+  static const title = 'Dependencies';
 
   final dependencies = allDependencies;
 

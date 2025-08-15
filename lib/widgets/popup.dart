@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:iris/widgets/iris_card.dart';
 import 'package:window_manager/window_manager.dart';
 
 enum PopupDirection { left, right }
@@ -10,8 +9,7 @@ Future<void> showPopup({
   required Widget child,
   required PopupDirection direction,
 }) async =>
-    await Navigator.of(context)
-        .push(IRISPopup(child: child, direction: direction));
+    await Navigator.of(context).push(Popup(child: child, direction: direction));
 
 Future<void> replacePopup({
   required BuildContext context,
@@ -19,10 +17,10 @@ Future<void> replacePopup({
   required PopupDirection direction,
 }) async =>
     await Navigator.of(context)
-        .pushReplacement(IRISPopup(child: child, direction: direction));
+        .pushReplacement(Popup(child: child, direction: direction));
 
-class IRISPopup<T> extends PopupRoute<T> {
-  IRISPopup({
+class Popup<T> extends PopupRoute<T> {
+  Popup({
     required this.child,
     required this.direction,
   });
@@ -95,8 +93,9 @@ class IRISPopup<T> extends PopupRoute<T> {
                     child: child,
                   );
                 },
-                child: IRISCard(
-                  borderRadius: BorderRadius.circular(16),
+                child: Card(
+                  clipBehavior: Clip.hardEdge,
+                  margin: EdgeInsets.zero,
                   child: Material(
                     color: Colors.transparent,
                     child: UnconstrainedBox(

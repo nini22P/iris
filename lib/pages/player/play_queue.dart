@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Chip;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/file.dart';
@@ -9,7 +9,7 @@ import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/widgets/iris_chip.dart';
+import 'package:iris/widgets/chip.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class PlayQueue extends HookWidget {
@@ -99,14 +99,14 @@ class PlayQueue extends HookWidget {
                         if ((progress.duration.inMilliseconds -
                                 progress.position.inMilliseconds) <=
                             5000) {
-                          return IRISChip(text: '100%');
+                          return Chip(text: '100%');
                         }
                         final String progressString =
                             (progress.position.inMilliseconds /
                                     progress.duration.inMilliseconds *
                                     100)
                                 .toStringAsFixed(0);
-                        return IRISChip(text: '$progressString %');
+                        return Chip(text: '$progressString %');
                       } else {
                         return const SizedBox();
                       }
@@ -123,7 +123,7 @@ class PlayQueue extends HookWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const SizedBox(width: 4),
-                              IRISChip(
+                              Chip(
                                 text: subtitleType,
                                 primary: true,
                               ),
@@ -142,6 +142,9 @@ class PlayQueue extends HookWidget {
                         break;
                       case FileOptions.openInFolder:
                         await openInFolder(context, playQueue[index].file);
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                        }
                         break;
                       default:
                         break;

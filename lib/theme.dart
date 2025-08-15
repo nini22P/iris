@@ -9,8 +9,6 @@ ThemeData baseTheme(BuildContext context) {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      // shadowColor: null,
-      // elevation: 0,
     ),
     listTileTheme: ListTileThemeData(
       shape: RoundedRectangleBorder(

@@ -13,7 +13,7 @@ import 'package:iris/hooks/use_cover.dart';
 import 'package:iris/hooks/use_full_screen.dart';
 import 'package:iris/hooks/use_orientation.dart';
 import 'package:iris/hooks/use_volume.dart';
-import 'package:iris/info.dart';
+import 'package:iris/data/info.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/player.dart';
 import 'package:iris/models/storages/local.dart';
@@ -29,15 +29,13 @@ import 'package:iris/store/use_ui_store.dart';
 import 'package:iris/utils/check_content_type.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/platform.dart';
-import 'package:iris/widgets/iris_card.dart';
-import 'package:iris/widgets/iris_popup.dart';
-import 'package:iris/pages/storages/storages.dart';
+import 'package:iris/widgets/popup.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/format_duration_to_minutes.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/resize_window.dart';
-import 'package:iris/widgets/title_bar.dart';
+import 'package:iris/pages/player/top_bar.dart';
 import 'package:iris/pages/player/control_bar/control_bar.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:video_player/video_player.dart';
@@ -143,6 +141,13 @@ class IrisPlayer extends HookWidget {
       focusNode.requestFocus();
       return;
     }, []);
+
+    useEffect(() {
+      if (isPlayerExpanded) {
+        focusNode.requestFocus();
+      }
+      return;
+    }, [isPlayerExpanded]);
 
     final canPop = useState(false);
 
@@ -385,15 +390,15 @@ class IrisPlayer extends HookWidget {
             usePlayQueueStore().next();
             break;
           // 存储
-          case LogicalKeyboardKey.keyF:
-            showControlForHover(
-              showPopup(
-                context: context,
-                child: const Storages(),
-                direction: PopupDirection.right,
-              ),
-            );
-            break;
+          // case LogicalKeyboardKey.keyF:
+          //   showControlForHover(
+          //     showPopup(
+          //       context: context,
+          //       child: const Storages(),
+          //       direction: PopupDirection.right,
+          //     ),
+          //   );
+          //   break;
           // 播放队列
           case LogicalKeyboardKey.keyP:
             showControlForHover(
@@ -846,12 +851,20 @@ class IrisPlayer extends HookWidget {
                     child: InkWell(
                       onTap: isPlayerExpanded
                           ? null
-                          : () => useUiStore().updatePlayerExpanded(true),
-                      child: IRISCard(
-                        borderRadius: isPlayerExpanded
-                            ? BorderRadius.zero
-                            : BorderRadius.circular(8),
-                        borderWidth: 1,
+                          : () {
+                              showControl();
+                              useUiStore().updatePlayerExpanded(true);
+                            },
+                      child: Card(
+                        color: Colors.transparent,
+                        clipBehavior: Clip.hardEdge,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: isPlayerExpanded
+                              ? BorderRadius.zero
+                              : BorderRadius.circular(8),
+                        ),
+                        margin: EdgeInsets.zero,
                         child: Stack(
                           children: [
                             Positioned(
@@ -1138,11 +1151,15 @@ class IrisPlayer extends HookWidget {
                     child: GestureDetector(
                       onTap: () => showControl(),
                       onDoubleTap: () async {
-                        if (isDesktop && await windowManager.isMaximized()) {
-                          await windowManager.unmaximize();
-                          await resizeWindow(player.aspect);
+                        if (isFullScreen) {
+                          await useUiStore().updateFullScreen(false);
                         } else {
-                          await windowManager.maximize();
+                          if (isDesktop && await windowManager.isMaximized()) {
+                            await windowManager.unmaximize();
+                            await resizeWindow(player.aspect);
+                          } else {
+                            await windowManager.maximize();
+                          }
                         }
                       },
                       onPanStart: (details) async {
@@ -1150,7 +1167,7 @@ class IrisPlayer extends HookWidget {
                           windowManager.startDragging();
                         }
                       },
-                      child: TitleBar(
+                      child: TopBar(
                         title: title,
                         saveProgress: () => player.saveProgress(),
                         resizeWindow: () => resizeWindow(player.aspect),

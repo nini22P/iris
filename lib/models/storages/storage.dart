@@ -5,9 +5,8 @@ import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/ftp.dart';
 import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/storages/webdav.dart';
+import 'package:iris/store/use_ui_store.dart';
 import 'package:iris/utils/platform.dart';
-import 'package:iris/widgets/iris_popup.dart';
-import 'package:iris/pages/storages/storages.dart';
 import 'package:iris/store/use_storage_store.dart';
 
 part 'storage.freezed.dart';
@@ -140,11 +139,5 @@ Future<void> openInFolder(BuildContext context, FileItem file) async {
     }
   }
 
-  if (context.mounted) {
-    replacePopup(
-      context: context,
-      child: Storages(),
-      direction: PopupDirection.right,
-    );
-  }
+  useUiStore().updatePlayerExpanded(false);
 }

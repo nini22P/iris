@@ -9,7 +9,6 @@ import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/use_ui_store.dart';
 import 'package:iris/widgets/dark.dart';
-import 'package:iris/widgets/iris_card.dart';
 import 'package:iris/widgets/dialogs/show_open_link_dialog.dart';
 import 'package:iris/widgets/dialogs/show_rate_dialog.dart';
 import 'package:iris/pages/player/control_bar/control_bar_slider.dart';
@@ -23,7 +22,7 @@ import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:iris/utils/resize_window.dart';
-import 'package:iris/widgets/iris_popup.dart';
+import 'package:iris/widgets/popup.dart';
 
 enum ControlBarView {
   minimal,
@@ -78,9 +77,15 @@ class ControlBar extends HookWidget {
         useAppStore().select(context, (state) => state.repeat);
     final BoxFit fit = useAppStore().select(context, (state) => state.fit);
 
-    return IRISCard(
-      disable: view == ControlBarView.expanded,
-      borderRadius: BorderRadius.circular(16),
+    return Card(
+      elevation: view == ControlBarView.expanded ? 0 : null,
+      margin: EdgeInsets.zero,
+      color: view == ControlBarView.expanded
+          ? Colors.transparent
+          : Theme.of(context).colorScheme.surfaceContainer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Dark(
         disable: view == ControlBarView.minimal,
         child: Container(
@@ -105,7 +110,7 @@ class ControlBar extends HookWidget {
                     end: Alignment.topCenter,
                     colors: [
                       Colors.black87.withValues(alpha: 0.8),
-                      Colors.black87.withValues(alpha: 0.4),
+                      Colors.black87.withValues(alpha: 0.5),
                       Colors.black87.withValues(alpha: 0),
                     ],
                   ),
@@ -479,8 +484,11 @@ class ControlBar extends HookWidget {
                                 Icons.more_vert_rounded,
                                 size: 20,
                                 color: view == ControlBarView.expanded
-                                    ? customTheme?.dark.colorScheme.onSurface
-                                    : Theme.of(context).colorScheme.onSurface,
+                                    ? customTheme
+                                        ?.dark.colorScheme.onSurfaceVariant
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                               ),
                               clipBehavior: Clip.hardEdge,
                               constraints: const BoxConstraints(minWidth: 200),

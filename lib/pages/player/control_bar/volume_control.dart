@@ -5,7 +5,6 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/pages/player/control_bar/volume_slider.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/widgets/iris_card.dart';
 import 'package:popover/popover.dart';
 
 Future<void> showVolumePopover(
@@ -57,40 +56,44 @@ class VolumeControl extends HookWidget {
           }
         }
       },
-      child: IRISCard(
-        borderRadius: BorderRadius.all(Radius.circular(8)),
-        padding: const EdgeInsets.fromLTRB(8, 0, 16, 0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          textBaseline: TextBaseline.ideographic,
-          children: [
-            IconButton(
-              tooltip: '${isMuted ? t.unmute : t.mute} ( Ctrl + M  )',
-              icon: Icon(
-                isMuted || volume == 0
-                    ? Icons.volume_off_rounded
-                    : volume < 50
-                        ? Icons.volume_down_rounded
-                        : Icons.volume_up_rounded,
-                size: 20,
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(8, 0, 16, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            textBaseline: TextBaseline.ideographic,
+            children: [
+              IconButton(
+                tooltip: '${isMuted ? t.unmute : t.mute} ( Ctrl + M  )',
+                icon: Icon(
+                  isMuted || volume == 0
+                      ? Icons.volume_off_rounded
+                      : volume < 50
+                          ? Icons.volume_down_rounded
+                          : Icons.volume_up_rounded,
+                  size: 20,
+                ),
+                onPressed: () {
+                  showControl();
+                  if (volume == 0) {
+                    useAppStore().updateVolume(80);
+                  } else {
+                    useAppStore().toggleMute();
+                  }
+                },
               ),
-              onPressed: () {
-                showControl();
-                if (volume == 0) {
-                  useAppStore().updateVolume(80);
-                } else {
-                  useAppStore().toggleMute();
-                }
-              },
-            ),
-            Expanded(
-              child: VolumeSlider(
-                showControl: showControl,
+              Expanded(
+                child: VolumeSlider(
+                  showControl: showControl,
+                ),
               ),
-            ),
-            if (showVolumeText) const SizedBox(width: 8),
-            if (showVolumeText) Text('${volume >= 100 ? '' : '  '}$volume'),
-          ],
+              if (showVolumeText) const SizedBox(width: 8),
+              if (showVolumeText) Text('${volume >= 100 ? '' : '  '}$volume'),
+            ],
+          ),
         ),
       ),
     );

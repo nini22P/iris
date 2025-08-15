@@ -6,11 +6,10 @@ import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/store/use_ui_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/platform.dart';
-import 'package:iris/widgets/iris_card.dart';
 import 'package:window_manager/window_manager.dart';
 
-class TitleBar extends HookWidget {
-  const TitleBar({
+class TopBar extends HookWidget {
+  const TopBar({
     super.key,
     this.title,
     this.actions,
@@ -48,7 +47,10 @@ class TitleBar extends HookWidget {
           child: Row(
             children: [
               if (isPlayerExpanded)
-                IRISCard(
+                Card(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(32)),
+                  margin: EdgeInsets.zero,
                   child: IconButton(
                     icon: Icon(
                       Icons.arrow_back_rounded,
@@ -57,9 +59,17 @@ class TitleBar extends HookWidget {
                   ),
                 ),
               if (!isPlayerExpanded && currentStorage != null)
-                IRISCard(child: FileButtons()),
+                Card(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(32)),
+                  margin: EdgeInsets.zero,
+                  child: FileButtons(),
+                ),
               const Spacer(),
-              IRISCard(
+              Card(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32)),
+                margin: EdgeInsets.zero,
                 child: Row(
                   children: [
                     ...actions ?? [],

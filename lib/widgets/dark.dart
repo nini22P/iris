@@ -17,17 +17,7 @@ class Dark extends StatelessWidget {
       return child;
     }
     return Theme(
-      data: (customTheme?.dark ?? ThemeData.dark()).copyWith(
-        iconButtonTheme: IconButtonThemeData(
-          style: ButtonStyle(
-            iconColor: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) {
-                return customTheme?.dark.colorScheme.onSurface;
-              },
-            ),
-          ),
-        ),
-      ),
+      data: (customTheme?.dark ?? ThemeData.dark()),
       child: child,
     );
   }

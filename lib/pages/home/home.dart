@@ -5,8 +5,8 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/hooks/use_fvp_player.dart';
 import 'package:iris/hooks/use_media_kit_player.dart';
 import 'package:iris/models/store/app_state.dart';
+import 'package:iris/pages/library/library.dart';
 import 'package:iris/pages/player/iris_player.dart';
-import 'package:iris/pages/storages/storages.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_ui_store.dart';
 
@@ -60,7 +60,7 @@ class Home extends HookWidget {
                 top: 0,
                 right: 0,
                 bottom: 0,
-                child: Storages(),
+                child: Library(),
               ),
               player,
             ],

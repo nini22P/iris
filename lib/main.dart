@@ -4,7 +4,7 @@ import 'package:fvp/fvp.dart' as fvp;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
-import 'package:iris/info.dart';
+import 'package:iris/data/info.dart';
 import 'package:iris/l10n/app_localizations.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/pages/home/home.dart';

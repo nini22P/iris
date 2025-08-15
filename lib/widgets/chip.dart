@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class IRISChip extends StatelessWidget {
-  const IRISChip({
+class Chip extends StatelessWidget {
+  const Chip({
     super.key,
     required this.text,
     this.primary = false,

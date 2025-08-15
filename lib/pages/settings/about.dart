@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:iris/info.dart';
+import 'package:iris/data/info.dart';
 import 'package:iris/widgets/dialogs/show_release_dialog.dart';
 import 'package:iris/utils/get_latest_release.dart';
 import 'package:iris/utils/get_localizations.dart';
