@@ -438,7 +438,8 @@ class ControlBar extends HookWidget {
                             // ),
 
                             //缩放
-                            if (MediaQuery.of(context).size.width >= 768)
+                            if (MediaQuery.of(context).size.width >= 768 &&
+                                current?.file.type == ContentType.video)
                               IconButton(
                                 tooltip:
                                     '${t.video_zoom}: ${fit == BoxFit.contain ? t.fit : fit == BoxFit.fill ? t.stretch : fit == BoxFit.cover ? t.crop : '100%'} ( Ctrl + V )',

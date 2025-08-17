@@ -17,6 +17,8 @@ import 'package:iris/data/info.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/player.dart';
 import 'package:iris/models/storages/local.dart';
+import 'package:iris/models/storages/storage.dart';
+import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/widgets/dialogs/show_open_link_dialog.dart';
 import 'package:iris/pages/home/history.dart';
 import 'package:iris/pages/player/play_queue.dart';
@@ -102,31 +104,34 @@ class IrisPlayer extends HookWidget {
         () => playQueue.indexWhere((element) => element.index == currentIndex),
         [playQueue, currentIndex]);
 
-    final PlayQueueItem? currentPlay = useMemoized(
+    final PlayQueueItem? current = useMemoized(
         () => playQueue.isEmpty || currentPlayIndex < 0
             ? null
             : playQueue[currentPlayIndex],
         [playQueue, currentPlayIndex]);
 
     final title = useMemoized(
-        () => currentPlay != null
+        () => current != null
             ? playQueue.length > 1
-                ? '[${currentPlayIndex + 1}/${playQueue.length}] ${currentPlay.file.name}'
-                : currentPlay.file.name
+                ? '[${currentPlayIndex + 1}/${playQueue.length}] ${current.file.name}'
+                : current.file.name
             : INFO.title,
-        [currentPlay, currentPlayIndex, playQueue]);
+        [current, currentPlayIndex, playQueue]);
 
     final mediaType = useMemoized(
         () => player.width == null ||
                 player.height == null ||
                 player.width == 0 ||
                 player.height == 0 ||
-                (currentPlay != null &&
-                    checkContentType(currentPlay.file.name) ==
-                        ContentType.audio)
+                (current != null &&
+                    checkContentType(current.file.name) == ContentType.audio)
             ? MediaType.audio
             : MediaType.video,
         [player]);
+
+    final auth = useMemoized(
+        () => useStorageStore().findById(cover!.storageId)?.getAuth(),
+        [current?.file.storageId]);
 
     useEffect(() {
       if (isDesktop) {
@@ -499,17 +504,26 @@ class IrisPlayer extends HookWidget {
     );
 
     final videoViewSize = useMemoized(() {
-      if (fit != BoxFit.none || player.width == 0 || player.height == 0) {
+      final width = player.width;
+      final height = player.height;
+
+      if (fit != BoxFit.none ||
+          width == null ||
+          height == null ||
+          width == 0 ||
+          height == 0 ||
+          !isPlayerExpanded) {
         return MediaQuery.of(context).size;
       } else {
-        return Size(player.width! / scaleFactor, player.height! / scaleFactor);
+        return Size(width / scaleFactor, height / scaleFactor);
       }
     }, [
       fit,
       MediaQuery.of(context).size,
       player.width,
       player.height,
-      scaleFactor
+      scaleFactor,
+      isPlayerExpanded,
     ]);
 
     final videoViewOffset = useMemoized(
@@ -876,6 +890,7 @@ class IrisPlayer extends HookWidget {
                                 color: Colors.black,
                               ),
                             ),
+
                             AnimatedPositioned(
                               duration: isPlayerExpanded
                                   ? Duration.zero
@@ -890,7 +905,9 @@ class IrisPlayer extends HookWidget {
                                   isPlayerExpanded ? videoViewSize.height : 80,
                               child: player is FvpPlayer
                                   ? FittedBox(
-                                      fit: fit,
+                                      fit: isPlayerExpanded
+                                          ? fit
+                                          : BoxFit.contain,
                                       child: SizedBox(
                                         width: player.width,
                                         height: player.height,
@@ -901,16 +918,34 @@ class IrisPlayer extends HookWidget {
                                     )
                                   : player is MediaKitPlayer
                                       ? Video(
-                                          key: ValueKey(currentPlay?.file.uri),
+                                          key: ValueKey(current?.file.uri),
                                           controller: player.controller,
                                           controls: NoVideoControls,
-                                          fit: fit == BoxFit.none
+                                          fit: fit == BoxFit.none ||
+                                                  !isPlayerExpanded
                                               ? BoxFit.contain
                                               : fit,
                                           // wakelock: mediaType == 'video',
                                         )
                                       : Container(),
                             ),
+                            if (!isPlayerExpanded)
+                              Container(
+                                child: cover != null
+                                    ? cover.storageId == localStorageId
+                                        ? Image.file(
+                                            File(cover.uri),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Image.network(
+                                            cover.uri,
+                                            headers: auth != null
+                                                ? {'authorization': auth}
+                                                : null,
+                                            fit: BoxFit.cover,
+                                          )
+                                    : null,
+                              ),
                             // Audio
                             if (mediaType == MediaType.audio &&
                                 isPlayerExpanded)
@@ -1080,7 +1115,7 @@ class IrisPlayer extends HookWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      currentPlay != null ? title : '',
+                                      current != null ? title : '',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 20,
