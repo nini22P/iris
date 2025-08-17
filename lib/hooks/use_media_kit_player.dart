@@ -313,20 +313,16 @@ MediaKitPlayer useMediaKitPlayer(BuildContext context) {
           : await player.seek(newPosition);
 
   Future<void> backward(int seconds) async {
-    if (file?.type == ContentType.video) {
-      await seekTo(Duration(seconds: position.value.inSeconds - seconds));
-    }
+    await seekTo(Duration(seconds: position.value.inSeconds - seconds));
   }
 
   Future<void> forward(int seconds) async {
-    if (file?.type == ContentType.video) {
-      await seekTo(Duration(seconds: position.value.inSeconds + seconds));
-    }
+    await seekTo(Duration(seconds: position.value.inSeconds + seconds));
   }
 
   Future<void> stepBackward() async {
     final nativePlayer = player.platform;
-    if (nativePlayer is NativePlayer) {
+    if (nativePlayer is NativePlayer && file?.type == ContentType.video) {
       await nativePlayer.command(['frame-back-step']);
       logger('Step backward');
     }
@@ -334,7 +330,7 @@ MediaKitPlayer useMediaKitPlayer(BuildContext context) {
 
   Future<void> stepForward() async {
     final nativePlayer = player.platform;
-    if (nativePlayer is NativePlayer) {
+    if (nativePlayer is NativePlayer && file?.type == ContentType.video) {
       await nativePlayer.command(['frame-step']);
       logger('Step forward');
     }

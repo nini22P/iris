@@ -17,10 +17,7 @@ class Audio extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final storage = useMemoized(
-        () => cover?.storageId == null
-            ? null
-            : useStorageStore().findById(cover!.storageId),
-        [cover?.storageId]);
+        () => useStorageStore().findById(cover?.storageId), [cover?.storageId]);
     final auth = useMemoized(() => storage?.getAuth(), [storage]);
     return IgnorePointer(
       child: Stack(

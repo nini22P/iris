@@ -296,6 +296,67 @@ class ControlBar extends HookWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
+                            //速度
+                            if (MediaQuery.of(context).size.width > 768)
+                              PopupMenuButton(
+                                key: rateMenuKey,
+                                clipBehavior: Clip.hardEdge,
+                                constraints: const BoxConstraints(minWidth: 0),
+                                itemBuilder: (BuildContext context) => [
+                                  0.25,
+                                  0.5,
+                                  0.75,
+                                  1.0,
+                                  1.25,
+                                  1.5,
+                                  1.75,
+                                  2.0,
+                                  3.0,
+                                  4.0,
+                                  5.0,
+                                ]
+                                    .map(
+                                      (item) => PopupMenuItem(
+                                        child: Text(
+                                          '${item}X',
+                                          style: TextStyle(
+                                            color: item == rate
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                : null,
+                                            fontWeight: item == rate
+                                                ? FontWeight.bold
+                                                : FontWeight.w100,
+                                          ),
+                                        ),
+                                        onTap: () async {
+                                          showControl();
+                                          useAppStore().updateRate(item);
+                                        },
+                                      ),
+                                    )
+                                    .toList(),
+                                child: Tooltip(
+                                  message: t.playback_speed,
+                                  child: TextButton(
+                                    onPressed: () => rateMenuKey.currentState
+                                        ?.showButtonMenu(),
+                                    child: Text(
+                                      '${rate}X',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: view == ControlBarView.expanded
+                                            ? customTheme
+                                                ?.dark.colorScheme.onSurface
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             // 播放列表
                             IconButton(
                               tooltip: '${t.play_queue} ( P )',
@@ -359,68 +420,6 @@ class ControlBar extends HookWidget {
                             //     showVolumeText: false,
                             //   ),
                             // ),
-
-                            //速度
-                            // if (MediaQuery.of(context).size.width > 600)
-                            //   PopupMenuButton(
-                            //     key: rateMenuKey,
-                            //     clipBehavior: Clip.hardEdge,
-                            //     constraints: const BoxConstraints(minWidth: 0),
-                            //     itemBuilder: (BuildContext context) => [
-                            //       0.25,
-                            //       0.5,
-                            //       0.75,
-                            //       1.0,
-                            //       1.25,
-                            //       1.5,
-                            //       1.75,
-                            //       2.0,
-                            //       3.0,
-                            //       4.0,
-                            //       5.0,
-                            //     ]
-                            //         .map(
-                            //           (item) => PopupMenuItem(
-                            //             child: Text(
-                            //               '${item}X',
-                            //               style: TextStyle(
-                            //                 color: item == rate
-                            //                     ? Theme.of(context)
-                            //                         .colorScheme
-                            //                         .primary
-                            //                     : null,
-                            //                 fontWeight: item == rate
-                            //                     ? FontWeight.bold
-                            //                     : FontWeight.w100,
-                            //               ),
-                            //             ),
-                            //             onTap: () async {
-                            //               showControl();
-                            //               useAppStore().updateRate(item);
-                            //             },
-                            //           ),
-                            //         )
-                            //         .toList(),
-                            //     child: Tooltip(
-                            //       message: t.playback_speed,
-                            //       child: TextButton(
-                            //         onPressed: () => rateMenuKey.currentState
-                            //             ?.showButtonMenu(),
-                            //         child: Text(
-                            //           '${rate}X',
-                            //           style: TextStyle(
-                            //             fontWeight: FontWeight.bold,
-                            //             color: view == ControlBarView.expanded
-                            //                 ? customTheme
-                            //                     ?.dark.colorScheme.onSurface
-                            //                 : Theme.of(context)
-                            //                     .colorScheme
-                            //                     .onSurface,
-                            //           ),
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ),
 
                             // IconButton(
                             //   tooltip: '${t.storage} ( F )',
@@ -638,19 +637,20 @@ class ControlBar extends HookWidget {
                                       useAppStore().toggleFit();
                                     },
                                   ),
-                                PopupMenuItem(
-                                  child: ListTile(
-                                    mouseCursor: SystemMouseCursors.click,
-                                    leading: const Icon(
-                                      Icons.speed_rounded,
-                                      size: 20,
+                                if (MediaQuery.of(context).size.width <= 768)
+                                  PopupMenuItem(
+                                    child: ListTile(
+                                      mouseCursor: SystemMouseCursors.click,
+                                      leading: const Icon(
+                                        Icons.speed_rounded,
+                                        size: 20,
+                                      ),
+                                      title:
+                                          Text('${t.playback_speed}: ${rate}X'),
                                     ),
-                                    title:
-                                        Text('${t.playback_speed}: ${rate}X'),
+                                    onTap: () => showControlForHover(
+                                        showRateDialog(context)),
                                   ),
-                                  onTap: () => showControlForHover(
-                                      showRateDialog(context)),
-                                ),
                                 if (MediaQuery.of(context).size.width < 420)
                                   PopupMenuItem(
                                     child: ListTile(

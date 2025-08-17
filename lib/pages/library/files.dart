@@ -301,7 +301,11 @@ class Files extends HookWidget {
                                           files[index].type ==
                                               ContentType.audio) {
                                         play(files, index);
-                                        useUiStore().updatePlayerExpanded(true);
+                                        if (files[index].type ==
+                                            ContentType.video) {
+                                          useUiStore()
+                                              .updatePlayerExpanded(true);
+                                        }
                                       }
                                     }
                                   },

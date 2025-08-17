@@ -1,37 +1,28 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
-import 'package:iris/globals.dart';
 import 'package:iris/hooks/use_app_lifecycle.dart';
-import 'package:iris/hooks/use_brightness.dart';
 import 'package:iris/hooks/use_cover.dart';
 import 'package:iris/hooks/use_full_screen.dart';
+import 'package:iris/hooks/use_gesture.dart';
+import 'package:iris/hooks/use_keyboard.dart';
 import 'package:iris/hooks/use_orientation.dart';
-import 'package:iris/hooks/use_volume.dart';
 import 'package:iris/data/info.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/player.dart';
 import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_storage_store.dart';
-import 'package:iris/widgets/dialogs/show_open_link_dialog.dart';
-import 'package:iris/pages/home/history.dart';
-import 'package:iris/pages/player/play_queue.dart';
 import 'package:iris/pages/player/audio.dart';
 import 'package:iris/pages/player/control_bar/control_bar_slider.dart';
-import 'package:iris/widgets/bottom_sheets/show_open_link_bottom_sheet.dart';
-import 'package:iris/pages/settings/settings.dart';
-import 'package:iris/pages/player/subtitle_and_audio_track.dart';
 import 'package:iris/store/use_ui_store.dart';
 import 'package:iris/utils/check_content_type.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/platform.dart';
-import 'package:iris/widgets/popup.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/format_duration_to_minutes.dart';
@@ -42,11 +33,6 @@ import 'package:iris/pages/player/control_bar/control_bar.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:video_player/video_player.dart';
 import 'package:window_manager/window_manager.dart';
-
-enum MediaType {
-  video,
-  audio,
-}
 
 class IrisPlayer extends HookWidget {
   const IrisPlayer({super.key, required this.playerHooks});
@@ -65,23 +51,12 @@ class IrisPlayer extends HookWidget {
     final cover = useCover(context, player);
 
     final isHover = useState(false);
-    final isTouch = useState(false);
-    final isLongPress = useState(false);
-    final startPosition = useState<Offset?>(null);
-    final isHorizontalGesture = useState(false);
-    final isVerticalGesture = useState(false);
-    final isLeftGesture = useState(false);
-    final isRightGesture = useState(false);
-
     final isShowControl = useState(true);
     final isShowProgress = useState(false);
 
     final controlHideTimer = useRef<Timer?>(null);
     final progressHideTimer = useRef<Timer?>(null);
     final systemUiHideTimer = useRef<Timer?>(null);
-
-    final brightness = useBrightness(isLeftGesture.value);
-    final volume = useVolume(isRightGesture.value);
 
     final t = getLocalizations(context);
     final rate = useAppStore().select(context, (state) => state.rate);
@@ -118,19 +93,8 @@ class IrisPlayer extends HookWidget {
             : INFO.title,
         [current, currentPlayIndex, playQueue]);
 
-    final mediaType = useMemoized(
-        () => player.width == null ||
-                player.height == null ||
-                player.width == 0 ||
-                player.height == 0 ||
-                (current != null &&
-                    checkContentType(current.file.name) == ContentType.audio)
-            ? MediaType.audio
-            : MediaType.video,
-        [player]);
-
     final auth = useMemoized(
-        () => useStorageStore().findById(cover!.storageId)?.getAuth(),
+        () => useStorageStore().findById(cover?.storageId)?.getAuth(),
         [current?.file.storageId]);
 
     useEffect(() {
@@ -191,7 +155,7 @@ class IrisPlayer extends HookWidget {
       systemUiHideTimer.value = Timer(
         const Duration(seconds: 3),
         () {
-          if (!isShowControl.value && mediaType == MediaType.video) {
+          if (!isShowControl.value && current?.file.type == ContentType.video) {
             SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
           }
         },
@@ -242,6 +206,29 @@ class IrisPlayer extends HookWidget {
       resetBottomProgressTimer();
     }
 
+    final gesture = useGesture(
+      context: context,
+      player: player,
+      isPlayerExpanded: isPlayerExpanded,
+      isFullScreen: isFullScreen,
+      showControl: showControl,
+      hideControl: hideControl,
+      showProgress: showProgress,
+      isHover: isHover,
+      isShowControl: isShowControl,
+    );
+
+    final onKeyEvent = useKeyboard(
+      context: context,
+      player: player,
+      isFullScreen: isFullScreen,
+      isShowControl: isShowControl,
+      showControl: showControl,
+      showControlForHover: showControlForHover,
+      showProgress: showProgress,
+      shuffle: shuffle,
+    );
+
     useEffect(() {
       startControlHideTimer();
       return () => controlHideTimer.value?.cancel();
@@ -260,7 +247,7 @@ class IrisPlayer extends HookWidget {
 
     useEffect(() {
       if (isShowControl.value ||
-          mediaType != MediaType.video ||
+          current?.file.type != ContentType.video ||
           !isPlayerExpanded) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
         systemUiHideTimer.value?.cancel();
@@ -268,7 +255,7 @@ class IrisPlayer extends HookWidget {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       }
       return;
-    }, [isShowControl.value, isPlayerExpanded, mediaType]);
+    }, [isShowControl.value, isPlayerExpanded, current?.file.type]);
 
     useEffect(() {
       SystemChrome.setSystemUIChangeCallback((value) async {
@@ -278,223 +265,6 @@ class IrisPlayer extends HookWidget {
       });
       return null;
     }, []);
-
-    void onKeyEvent(KeyEvent event) async {
-      if (event.runtimeType == KeyDownEvent) {
-        if (HardwareKeyboard.instance.isAltPressed) {
-          switch (event.logicalKey) {
-            // 退出
-            case LogicalKeyboardKey.keyX:
-              showControl();
-              await player.saveProgress();
-              exit(0);
-          }
-          return;
-        }
-
-        if (HardwareKeyboard.instance.isControlPressed) {
-          switch (event.logicalKey) {
-            // 上一个
-            case LogicalKeyboardKey.arrowLeft:
-              showControl();
-              usePlayQueueStore().previous();
-              break;
-            // 下一个
-            case LogicalKeyboardKey.arrowRight:
-              showControl();
-              usePlayQueueStore().next();
-              break;
-            // 设置
-            case LogicalKeyboardKey.keyP:
-              showControlForHover(
-                showPopup(
-                  context: context,
-                  child: const Settings(),
-                  direction: PopupDirection.right,
-                ),
-              );
-              break;
-            // 打开文件
-            case LogicalKeyboardKey.keyO:
-              showControl();
-              await pickLocalFile();
-              showControl();
-              break;
-            // 随机
-            case LogicalKeyboardKey.keyX:
-              showControl();
-              shuffle
-                  ? usePlayQueueStore().sort()
-                  : usePlayQueueStore().shuffle();
-              useAppStore().updateShuffle(!shuffle);
-              break;
-            // 循环
-            case LogicalKeyboardKey.keyR:
-              showControl();
-              useAppStore().toggleRepeat();
-              break;
-            // 视频缩放
-            case LogicalKeyboardKey.keyV:
-              showControl();
-              useAppStore().toggleFit();
-              break;
-            // 历史
-            case LogicalKeyboardKey.keyH:
-              showControlForHover(
-                showPopup(
-                  context: context,
-                  child: const History(),
-                  direction: PopupDirection.right,
-                ),
-              );
-              break;
-            // 打开链接
-            case LogicalKeyboardKey.keyL:
-              showControl();
-              isDesktop
-                  ? await showOpenLinkDialog(context)
-                  : await showOpenLinkBottomSheet(context);
-              showControl();
-              break;
-            // 关闭当前播放媒体文件
-            case LogicalKeyboardKey.keyC:
-              showControl();
-              player.pause();
-              usePlayQueueStore().updateCurrentIndex(-1);
-              break;
-            // 静音
-            case LogicalKeyboardKey.keyM:
-              showControl();
-              useAppStore().toggleMute();
-              break;
-            default:
-              break;
-          }
-          return;
-        }
-
-        switch (event.logicalKey) {
-          // 播放 | 暂停
-          case LogicalKeyboardKey.space:
-          case LogicalKeyboardKey.mediaPlayPause:
-            showControl();
-            if (player.isPlaying) {
-              player.pause();
-            } else {
-              player.play();
-            }
-            break;
-          // 上一个
-          case LogicalKeyboardKey.mediaTrackPrevious:
-            usePlayQueueStore().previous();
-            showControl();
-            break;
-          // 下一个
-          case LogicalKeyboardKey.mediaTrackNext:
-            showControl();
-            usePlayQueueStore().next();
-            break;
-          // 存储
-          // case LogicalKeyboardKey.keyF:
-          //   showControlForHover(
-          //     showPopup(
-          //       context: context,
-          //       child: const Storages(),
-          //       direction: PopupDirection.right,
-          //     ),
-          //   );
-          //   break;
-          // 播放队列
-          case LogicalKeyboardKey.keyP:
-            showControlForHover(
-              showPopup(
-                context: context,
-                child: const PlayQueue(),
-                direction: PopupDirection.right,
-              ),
-            );
-            break;
-          // 字幕和音轨
-          case LogicalKeyboardKey.keyS:
-            showControlForHover(
-              showPopup(
-                context: context,
-                child: SubtitleAndAudioTrack(player: player),
-                direction: PopupDirection.right,
-              ),
-            );
-            break;
-          // 退出全屏
-          case LogicalKeyboardKey.escape:
-            if (isDesktop && isFullScreen) {
-              useUiStore().updateFullScreen(false);
-            }
-            break;
-          // 全屏
-          case LogicalKeyboardKey.enter:
-          case LogicalKeyboardKey.f11:
-            if (isDesktop) {
-              useUiStore().updateFullScreen(!isFullScreen);
-            }
-            break;
-          case LogicalKeyboardKey.tab:
-            showControl();
-            break;
-          case LogicalKeyboardKey.f10:
-            showControl();
-            await useUiStore().toggleIsAlwaysOnTop();
-            break;
-          case LogicalKeyboardKey.equal:
-            await player.stepForward();
-            break;
-          case LogicalKeyboardKey.minus:
-            await player.stepBackward();
-            break;
-          case LogicalKeyboardKey.contextMenu:
-            showControl();
-            moreMenuKey.currentState?.showButtonMenu();
-            break;
-          default:
-            break;
-        }
-      }
-
-      if (event.runtimeType == KeyDownEvent ||
-          event.runtimeType == KeyRepeatEvent) {
-        switch (event.logicalKey) {
-          // 快退
-          case LogicalKeyboardKey.arrowLeft:
-            if (isShowControl.value) {
-              showControl();
-            } else {
-              showProgress();
-            }
-            player.backward(10);
-            break;
-          // 快进
-          case LogicalKeyboardKey.arrowRight:
-            if (isShowControl.value) {
-              showControl();
-            } else {
-              showProgress();
-            }
-            player.forward(10);
-            break;
-          // 提升音量
-          case LogicalKeyboardKey.arrowUp:
-            showControl();
-            await useAppStore().updateVolume(useAppStore().state.volume + 1);
-            break;
-          // 降低音量
-          case LogicalKeyboardKey.arrowDown:
-            showControl();
-            await useAppStore().updateVolume(useAppStore().state.volume - 1);
-            break;
-          default:
-            break;
-        }
-      }
-    }
 
     final scaleFactor = useMemoized(
       () =>
@@ -593,15 +363,11 @@ class IrisPlayer extends HookWidget {
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: MouseRegion(
-                      onHover: (event) {
-                        if (event.kind != PointerDeviceKind.touch) {
-                          isHover.value = true;
-                          showControl();
-                        }
-                      },
+                      onHover: gesture.onHover,
                       child: GestureDetector(
                         onTap: () => showControl(),
                         child: ControlBar(
+                          key: ValueKey('control-bar-minimal'),
                           player: player,
                           showControl: showControl,
                           showControlForHover: showControlForHover,
@@ -628,240 +394,19 @@ class IrisPlayer extends HookWidget {
                   cursor: isShowControl.value || player.isPlaying == false
                       ? SystemMouseCursors.basic
                       : SystemMouseCursors.none,
-                  onHover: (event) {
-                    if (event.kind != PointerDeviceKind.touch) {
-                      showControl();
-                    }
-                  },
+                  onHover: gesture.onHover,
                   child: GestureDetector(
-                    onTap: () {
-                      if (!isPlayerExpanded) {
-                        useUiStore().updatePlayerExpanded(true);
-                        showControl();
-                        return;
-                      }
-
-                      if (isShowControl.value) {
-                        hideControl();
-                      } else {
-                        showControl();
-                      }
-                    },
-                    onTapDown: (details) {
-                      if (!isPlayerExpanded) {
-                        return;
-                      }
-
-                      if (details.kind == PointerDeviceKind.touch) {
-                        isTouch.value = true;
-                      }
-                    },
-                    onDoubleTapDown: (details) async {
-                      if (!isPlayerExpanded) {
-                        return;
-                      }
-
-                      if (details.kind == PointerDeviceKind.touch) {
-                        double position = details.globalPosition.dx /
-                            MediaQuery.of(context).size.width;
-                        if (position > 0.75) {
-                          if (isShowControl.value) {
-                            showControl();
-                          } else {
-                            showProgress();
-                          }
-                          await player.forward(10);
-                        } else if (position < 0.25) {
-                          if (isShowControl.value) {
-                            showControl();
-                          } else {
-                            showProgress();
-                          }
-                          player.backward(10);
-                        } else {
-                          if (player.isPlaying == true) {
-                            player.pause();
-                            showControl();
-                          } else {
-                            player.play();
-                          }
-                        }
-                      } else {
-                        if (isDesktop) {
-                          if (isFullScreen) {
-                            await resizeWindow(player.aspect);
-                          }
-                          useUiStore().updateFullScreen(!isFullScreen);
-                        }
-                      }
-                    },
-                    onLongPressStart: (details) {
-                      if (!isPlayerExpanded) {
-                        return;
-                      }
-
-                      if (isTouch.value && player.isPlaying == true) {
-                        isLongPress.value = true;
-                        useAppStore().updateRate(2.0);
-                      }
-                    },
-                    onLongPressMoveUpdate: (details) {
-                      if (!isPlayerExpanded) {
-                        return;
-                      }
-
-                      int fast = (details.offsetFromOrigin.dx / 50).toInt();
-                      if (fast >= 1) {
-                        useAppStore()
-                            .updateRate(fast > 4 ? 5.0 : (1 + fast).toDouble());
-                      } else if (fast <= -1) {
-                        useAppStore().updateRate(fast < -3
-                            ? 0.25
-                            : (1 - 0.25 * fast.abs()).toDouble());
-                      }
-                    },
-                    onLongPressEnd: (details) {
-                      if (!isPlayerExpanded) {
-                        return;
-                      }
-
-                      if (isLongPress.value) {
-                        useAppStore().updateRate(1.0);
-                      }
-                      isLongPress.value = false;
-                      isTouch.value = false;
-                    },
-                    onLongPressCancel: () {
-                      if (!isPlayerExpanded) {
-                        return;
-                      }
-
-                      if (isLongPress.value) {
-                        useAppStore().updateRate(1.0);
-                      }
-                      isLongPress.value = false;
-                      isTouch.value = false;
-                    },
-                    onPanStart: (details) async {
-                      if (!isPlayerExpanded) {
-                        return;
-                      }
-
-                      if (isDesktop &&
-                          details.kind != PointerDeviceKind.touch) {
-                        windowManager.startDragging();
-                      } else if (details.kind == PointerDeviceKind.touch) {
-                        isTouch.value = true;
-                        startPosition.value = details.globalPosition;
-                      }
-                    },
-                    onPanUpdate: (details) async {
-                      if (!isPlayerExpanded) {
-                        return;
-                      }
-
-                      if (isTouch.value && startPosition.value != null) {
-                        double dx = (details.globalPosition.dx -
-                                startPosition.value!.dx)
-                            .abs();
-                        double dy = (details.globalPosition.dy -
-                                startPosition.value!.dy)
-                            .abs();
-                        if (!isHorizontalGesture.value &&
-                            !isVerticalGesture.value) {
-                          if (dx > dy) {
-                            isHorizontalGesture.value = true;
-                            player.updateSeeking(true);
-                          } else {
-                            isVerticalGesture.value = true;
-                          }
-                        }
-
-                        // 调整进度
-                        if (isHorizontalGesture.value && player.seeking) {
-                          double dx = details.delta.dx;
-                          int seconds =
-                              (dx * 2 + player.position.inSeconds).toInt();
-                          Duration position = Duration(
-                              seconds: seconds < 0
-                                  ? 0
-                                  : seconds > player.duration.inSeconds
-                                      ? player.duration.inSeconds
-                                      : seconds);
-                          player.updatePosition(position);
-                          if (isShowControl.value) {
-                            showControl();
-                          } else {
-                            showProgress();
-                          }
-                        }
-
-                        // 亮度和音量
-                        final startDX = startPosition.value?.dx;
-                        if (isVerticalGesture.value && startDX != null) {
-                          if (!isLeftGesture.value && !isRightGesture.value) {
-                            if (startDX <
-                                (MediaQuery.of(context).size.width / 2)) {
-                              isLeftGesture.value = true;
-                            } else {
-                              isRightGesture.value = true;
-                            }
-                          }
-
-                          double dy = details.delta.dy;
-
-                          if (isLeftGesture.value && brightness.value != null) {
-                            final newBrightness = brightness.value! - dy / 200;
-                            brightness.value = newBrightness > 1
-                                ? 1
-                                : newBrightness < 0
-                                    ? 0
-                                    : newBrightness;
-                          }
-
-                          if (isRightGesture.value && volume.value != null) {
-                            final newVolume = volume.value! - dy / 200;
-                            volume.value = newVolume > 1
-                                ? 1
-                                : newVolume < 0
-                                    ? 0
-                                    : newVolume;
-                          }
-                        }
-                      }
-                    },
-                    onPanEnd: (details) async {
-                      if (!isPlayerExpanded) {
-                        return;
-                      }
-
-                      isTouch.value = false;
-                      isHorizontalGesture.value = false;
-                      isVerticalGesture.value = false;
-                      isLeftGesture.value = false;
-                      isRightGesture.value = false;
-                      startPosition.value = null;
-                      if (player.seeking) {
-                        await player.seekTo(player.position);
-                        player.updateSeeking(false);
-                      }
-                    },
-                    onPanCancel: () async {
-                      if (!isPlayerExpanded) {
-                        return;
-                      }
-
-                      isHorizontalGesture.value = false;
-                      isVerticalGesture.value = false;
-                      isLeftGesture.value = false;
-                      isRightGesture.value = false;
-                      startPosition.value = null;
-                      if (player.seeking) {
-                        isTouch.value = false;
-                        await player.seekTo(player.position);
-                        player.updateSeeking(false);
-                      }
-                    },
+                    onTap: gesture.onTap,
+                    onTapDown: gesture.onTapDown,
+                    onDoubleTapDown: gesture.onDoubleTapDown,
+                    onLongPressStart: gesture.onLongPressStart,
+                    onLongPressMoveUpdate: gesture.onLongPressMoveUpdate,
+                    onLongPressEnd: gesture.onLongPressEnd,
+                    onLongPressCancel: gesture.onLongPressCancel,
+                    onPanStart: gesture.onPanStart,
+                    onPanUpdate: gesture.onPanUpdate,
+                    onPanEnd: gesture.onPanEnd,
+                    onPanCancel: gesture.onPanCancel,
                     child: InkWell(
                       onTap: isPlayerExpanded
                           ? null
@@ -890,7 +435,6 @@ class IrisPlayer extends HookWidget {
                                 color: Colors.black,
                               ),
                             ),
-
                             AnimatedPositioned(
                               duration: isPlayerExpanded
                                   ? Duration.zero
@@ -929,7 +473,8 @@ class IrisPlayer extends HookWidget {
                                         )
                                       : Container(),
                             ),
-                            if (!isPlayerExpanded)
+                            if (!isPlayerExpanded &&
+                                current?.file.type == ContentType.audio)
                               Container(
                                 child: cover != null
                                     ? cover.storageId == localStorageId
@@ -947,8 +492,8 @@ class IrisPlayer extends HookWidget {
                                     : null,
                               ),
                             // Audio
-                            if (mediaType == MediaType.audio &&
-                                isPlayerExpanded)
+                            if (isPlayerExpanded &&
+                                current?.file.type == ContentType.audio)
                               Positioned(
                                 left: 0,
                                 top: 0,
@@ -957,7 +502,7 @@ class IrisPlayer extends HookWidget {
                                 child: Audio(cover: cover),
                               ),
                             // 播放速度
-                            if (rate != 1.0 && isLongPress.value)
+                            if (rate != 1.0 && gesture.isLongPress)
                               Positioned(
                                 left: 0,
                                 top: 0,
@@ -999,7 +544,8 @@ class IrisPlayer extends HookWidget {
                                 ),
                               ),
                             // 屏幕亮度
-                            if (isLeftGesture.value && brightness.value != null)
+                            if (gesture.isLeftGesture &&
+                                gesture.brightness != null)
                               Positioned(
                                 left: 0,
                                 top: 0,
@@ -1017,9 +563,9 @@ class IrisPlayer extends HookWidget {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(
-                                          brightness.value == 0
+                                          gesture.brightness == 0
                                               ? Icons.brightness_low_rounded
-                                              : brightness.value! < 1
+                                              : gesture.brightness! < 1
                                                   ? Icons
                                                       .brightness_medium_rounded
                                                   : Icons
@@ -1031,7 +577,7 @@ class IrisPlayer extends HookWidget {
                                         SizedBox(
                                           width: 100,
                                           child: LinearProgressIndicator(
-                                            value: brightness.value,
+                                            value: gesture.brightness,
                                             borderRadius:
                                                 BorderRadius.circular(4),
                                             backgroundColor: Colors.grey,
@@ -1046,7 +592,8 @@ class IrisPlayer extends HookWidget {
                                 ),
                               ),
                             // 音量
-                            if (isRightGesture.value && volume.value != null)
+                            if (gesture.isRightGesture &&
+                                gesture.volume != null)
                               Positioned(
                                 left: 0,
                                 top: 0,
@@ -1064,9 +611,9 @@ class IrisPlayer extends HookWidget {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(
-                                          volume.value == 0
+                                          gesture.volume == 0
                                               ? Icons.volume_mute_rounded
-                                              : volume.value! < 0.5
+                                              : gesture.volume! < 0.5
                                                   ? Icons.volume_down_rounded
                                                   : Icons.volume_up_rounded,
                                           color: Colors.white,
@@ -1076,7 +623,7 @@ class IrisPlayer extends HookWidget {
                                         SizedBox(
                                           width: 100,
                                           child: LinearProgressIndicator(
-                                            value: volume.value,
+                                            value: gesture.volume,
                                             borderRadius:
                                                 BorderRadius.circular(4),
                                             backgroundColor: Colors.grey,
@@ -1093,7 +640,7 @@ class IrisPlayer extends HookWidget {
                               ),
                             if (isShowProgress.value &&
                                 !isShowControl.value &&
-                                mediaType != MediaType.audio)
+                                current?.file.type == ContentType.video)
                               Positioned(
                                 left: -28,
                                 right: -28,
@@ -1107,7 +654,7 @@ class IrisPlayer extends HookWidget {
                               ),
                             if (isShowProgress.value &&
                                 !isShowControl.value &&
-                                mediaType != MediaType.audio)
+                                current?.file.type == ContentType.video)
                               Positioned(
                                 left: 12,
                                 top: 12,
@@ -1135,7 +682,7 @@ class IrisPlayer extends HookWidget {
                               ),
                             if (isShowProgress.value &&
                                 !isShowControl.value &&
-                                mediaType != MediaType.audio)
+                                current?.file.type == ContentType.video)
                               Positioned(
                                 left: 12,
                                 bottom: 6,
@@ -1177,12 +724,7 @@ class IrisPlayer extends HookWidget {
                 right: 0,
                 child: SafeArea(
                   child: MouseRegion(
-                    onHover: (event) {
-                      if (event.kind != PointerDeviceKind.touch) {
-                        isHover.value = true;
-                        showControl();
-                      }
-                    },
+                    onHover: gesture.onHover,
                     child: GestureDetector(
                       onTap: () => showControl(),
                       onDoubleTap: () async {
@@ -1220,12 +762,7 @@ class IrisPlayer extends HookWidget {
                   left: 0,
                   right: 0,
                   child: MouseRegion(
-                    onHover: (event) {
-                      if (event.kind != PointerDeviceKind.touch) {
-                        isHover.value = true;
-                        showControl();
-                      }
-                    },
+                    onHover: gesture.onHover,
                     child: GestureDetector(
                       onTap: () => showControl(),
                       child: ControlBar(

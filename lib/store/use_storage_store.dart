@@ -10,8 +10,9 @@ import 'package:iris/utils/logger.dart';
 class StorageStore extends PersistentStore<StorageState> {
   StorageStore() : super(StorageState());
 
-  Storage? findById(String id) =>
-      state.storages.firstWhereOrNull((storage) => storage.id == id);
+  Storage? findById(String? id) => id == null
+      ? null
+      : state.storages.firstWhereOrNull((storage) => storage.id == id);
 
   Future<void> addStorage(Storage storage) async {
     set(state.copyWith(storages: [...state.storages, storage]));
