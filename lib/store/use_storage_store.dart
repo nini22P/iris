@@ -56,6 +56,20 @@ class StorageStore extends PersistentStore<StorageState> {
     await save(state);
   }
 
+  Future<void> back() async {
+    final basePath = state.currentStorage?.basePath;
+    final currentPath = state.currentPath;
+
+    if (basePath == null) return;
+
+    if (currentPath.length > basePath.length) {
+      updateCurrentPath(currentPath.sublist(0, currentPath.length - 1));
+    } else {
+      updateCurrentStorage(null);
+      updateCurrentPath([]);
+    }
+  }
+
   @override
   Future<StorageState?> load() async {
     logger('Loading StorageState');

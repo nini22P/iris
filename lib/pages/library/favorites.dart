@@ -24,36 +24,25 @@ class Favorites extends HookWidget {
     final localStorages = useFuture(localStoragesFuture).data ?? [];
 
     return favorites.isEmpty
-        ? const SizedBox()
-        : Column(
-            children: [
-              Container(
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  t.favorites,
-                  style: TextStyle(fontSize: 20),
-                ),
+        ? const SliverToBoxAdapter(child: SizedBox())
+        : SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverGrid.builder(
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 200,
+                mainAxisExtent: 140,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
               ),
-              GridView.builder(
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 200,
-                  mainAxisExtent: 140,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                ),
-                shrinkWrap: true,
-                padding: const EdgeInsets.all(16),
-                itemCount: favorites.length,
-                itemBuilder: (context, index) {
-                  final favorite = favorites[index];
-                  return _FavoriteCard(
-                    favorite: favorite,
-                    localStorages: localStorages,
-                  );
-                },
-              ),
-            ],
+              itemCount: favorites.length,
+              itemBuilder: (context, index) {
+                final favorite = favorites[index];
+                return _FavoriteCard(
+                  favorite: favorite,
+                  localStorages: localStorages,
+                );
+              },
+            ),
           );
   }
 }

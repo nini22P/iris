@@ -72,7 +72,7 @@ Gesture useGesture({
   final isLeftGesture = useState(false);
   final isRightGesture = useState(false);
 
-  final brightness = useBrightness(isLeftGesture.value);
+  final brightness = useBrightness(isLeftGesture.value, isPlayerExpanded);
   final volume = useVolume(isRightGesture.value);
 
   void onTapDown(TapDownDetails details) {
@@ -106,14 +106,14 @@ Gesture useGesture({
     if (details.kind == PointerDeviceKind.touch) {
       double position =
           details.globalPosition.dx / MediaQuery.of(context).size.width;
-      if (position > 0.75) {
+      if (position > 0.67) {
         if (isShowControl.value) {
           showControl();
         } else {
           showProgress();
         }
         await player.forward(10);
-      } else if (position < 0.25) {
+      } else if (position < 0.33) {
         if (isShowControl.value) {
           showControl();
         } else {

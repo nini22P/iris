@@ -8,15 +8,12 @@ import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 
-class FileButtons extends HookWidget {
-  const FileButtons({super.key});
+class FilesButtons extends HookWidget {
+  const FilesButtons({super.key});
 
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-
-    final refreshState = useState(false);
-    void refresh() => refreshState.value = !refreshState.value;
 
     final sortBy = useAppStore().select(context, (state) => state.sortBy);
     final sortOrder = useAppStore().select(context, (state) => state.sortOrder);
@@ -47,25 +44,13 @@ class FileButtons extends HookWidget {
       return null;
     }, []);
 
-    void back() {
-      final basePath = currentStorage?.basePath;
-      if (basePath == null) return;
-      if (currentPath.length > basePath.length) {
-        useStorageStore()
-            .updateCurrentPath(currentPath.sublist(0, currentPath.length - 1));
-      } else {
-        useStorageStore().updateCurrentStorage(null);
-        useStorageStore().updateCurrentPath([]);
-      }
-    }
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
           tooltip: t.back,
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: back,
+          onPressed: () => useStorageStore().back(),
         ),
         IconButton(
           tooltip: t.home,
@@ -74,11 +59,6 @@ class FileButtons extends HookWidget {
             useStorageStore().updateCurrentStorage(null);
             useStorageStore().updateCurrentPath([]);
           },
-        ),
-        IconButton(
-          tooltip: t.refresh,
-          icon: const Icon(Icons.refresh),
-          onPressed: refresh,
         ),
         PopupMenuButton(
           tooltip: t.sort,

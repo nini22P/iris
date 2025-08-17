@@ -84,40 +84,28 @@ class Storages extends HookWidget {
             ],
         [localStorages, storages]);
 
-    return Column(
-      children: [
-        Container(
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            t.storages,
-            style: TextStyle(fontSize: 20),
-          ),
+    return SliverPadding(
+      padding: const EdgeInsets.all(16),
+      sliver: SliverGrid.builder(
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 200,
+          mainAxisExtent: 140,
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
         ),
-        GridView.builder(
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 200,
-            mainAxisExtent: 140,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-          ),
-          shrinkWrap: true,
-          padding: const EdgeInsets.all(16),
-          itemCount: allStorages.length + 1,
-          itemBuilder: (context, index) {
-            if (index < allStorages.length) {
-              final storage = allStorages[index];
-              return _StorageCard(
-                storage: storage,
-                isLocal: localStorages.contains(storage),
-              );
-            } else {
-              return _AddStorageCard(
-                  onAddStorageSelected: onAddStorageSelected);
-            }
-          },
-        ),
-      ],
+        itemCount: allStorages.length + 1,
+        itemBuilder: (context, index) {
+          if (index < allStorages.length) {
+            final storage = allStorages[index];
+            return _StorageCard(
+              storage: storage,
+              isLocal: localStorages.contains(storage),
+            );
+          } else {
+            return _AddStorageCard(onAddStorageSelected: onAddStorageSelected);
+          }
+        },
+      ),
     );
   }
 }

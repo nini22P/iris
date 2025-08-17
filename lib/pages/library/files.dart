@@ -16,6 +16,7 @@ import 'package:iris/utils/files_filter.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/files_sort.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/platform.dart';
 import 'package:iris/utils/request_storage_permission.dart';
 import 'package:iris/widgets/chip.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -29,6 +30,8 @@ class Files extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
+
+    final safeAreaPadding = MediaQuery.of(context).padding;
 
     final refreshState = useState(false);
     void refresh() => refreshState.value = !refreshState.value;
@@ -94,226 +97,221 @@ class Files extends HookWidget {
       await usePlayQueueStore().update(playQueue: playQueue, index: newIndex);
     }
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(0, 56, 0, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-            child: BreadCrumb.builder(
-              itemCount: currentPath.length,
-              overflow: Platform.isAndroid || Platform.isIOS
-                  ? ScrollableOverflow(reverse: true)
-                  : const WrapOverflow(),
-              builder: (index) {
-                return BreadCrumbItem(
-                  content: TextButton(
-                    child: Text([
-                      storage.basePath.length > 1
-                          ? currentPath.first
-                          : storage.name,
-                      ...currentPath.sublist(1),
-                    ][index]),
-                    onPressed: () {
-                      useStorageStore()
-                          .updateCurrentPath(currentPath.sublist(0, index + 1));
-                    },
-                  ),
-                );
-              },
-              divider: Icon(
-                Icons.chevron_right_rounded,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurfaceVariant
-                    .withAlpha(222),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: isDesktop ? 56 : safeAreaPadding.top + 8),
+        Container(
+          padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+          child: BreadCrumb.builder(
+            itemCount: currentPath.length,
+            overflow: Platform.isAndroid || Platform.isIOS
+                ? ScrollableOverflow(reverse: true)
+                : const WrapOverflow(),
+            builder: (index) {
+              return BreadCrumbItem(
+                content: TextButton(
+                  child: Text([
+                    storage.basePath.length > 1
+                        ? currentPath.first
+                        : storage.name,
+                    ...currentPath.sublist(1),
+                  ][index]),
+                  onPressed: () {
+                    useStorageStore()
+                        .updateCurrentPath(currentPath.sublist(0, index + 1));
+                  },
+                ),
+              );
+            },
+            divider: Icon(
+              Icons.chevron_right_rounded,
+              color:
+                  Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(222),
             ),
           ),
-          Expanded(
-            child: Platform.isAndroid &&
-                    globals.storagePermissionStatus !=
-                        PermissionStatus.granted &&
-                    storage is LocalStorage
-                ? Center(
-                    child: ElevatedButton(
-                        onPressed: () async {
-                          await requestStoragePermission();
-                          refresh();
-                        },
-                        child: Text(t.grant_storage_permission)),
-                  )
-                : isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : isError
-                        ? Center(child: Text(t.unable_to_fetch_files))
-                        : files.isEmpty
-                            ? const Center()
-                            : ScrollablePositionedList.builder(
-                                padding: const EdgeInsets.only(bottom: 106),
-                                itemScrollController: itemScrollController,
-                                scrollOffsetController: scrollOffsetController,
-                                itemPositionsListener: itemPositionsListener,
-                                scrollOffsetListener: scrollOffsetListener,
-                                itemCount: files.length,
-                                itemBuilder: (context, index) => ListTile(
-                                  contentPadding:
-                                      const EdgeInsets.fromLTRB(16, 0, 8, 0),
-                                  visualDensity: const VisualDensity(
-                                      horizontal: 0, vertical: -4),
-                                  leading: () {
-                                    switch (files[index].type) {
-                                      case ContentType.dir:
-                                        return const Icon(Icons.folder_rounded);
-                                      case ContentType.video:
-                                        return const Icon(Icons.movie_rounded);
-                                      case ContentType.audio:
-                                        return const Icon(
-                                            Icons.audiotrack_rounded);
-                                      case ContentType.image:
-                                        return const Icon(Icons.image_rounded);
-                                      case ContentType.other:
-                                        return const Icon(
-                                            Icons.file_copy_rounded);
-                                    }
-                                  }(),
-                                  title: Text(
-                                    files[index].name,
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    textBaseline: TextBaseline.ideographic,
-                                    children: [
-                                      if (files[index].size != 0)
-                                        Text(
-                                          "${fileSizeConvert(files[index].size)} MB",
-                                          style: const TextStyle(
+        ),
+        Expanded(
+          child: Platform.isAndroid &&
+                  globals.storagePermissionStatus != PermissionStatus.granted &&
+                  storage is LocalStorage
+              ? Center(
+                  child: ElevatedButton(
+                      onPressed: () async {
+                        await requestStoragePermission();
+                        refresh();
+                      },
+                      child: Text(t.grant_storage_permission)),
+                )
+              : isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : isError
+                      ? Center(child: Text(t.unable_to_fetch_files))
+                      : files.isEmpty
+                          ? const Center()
+                          : ScrollablePositionedList.builder(
+                              padding: EdgeInsets.only(
+                                  top: 8,
+                                  bottom: isDesktop
+                                      ? 106
+                                      : safeAreaPadding.bottom + 168),
+                              itemScrollController: itemScrollController,
+                              scrollOffsetController: scrollOffsetController,
+                              itemPositionsListener: itemPositionsListener,
+                              scrollOffsetListener: scrollOffsetListener,
+                              itemCount: files.length,
+                              itemBuilder: (context, index) => ListTile(
+                                contentPadding:
+                                    const EdgeInsets.fromLTRB(16, 0, 8, 0),
+                                visualDensity: const VisualDensity(
+                                    horizontal: 0, vertical: -4),
+                                leading: () {
+                                  switch (files[index].type) {
+                                    case ContentType.dir:
+                                      return const Icon(Icons.folder_rounded);
+                                    case ContentType.video:
+                                      return const Icon(Icons.movie_rounded);
+                                    case ContentType.audio:
+                                      return const Icon(
+                                          Icons.audiotrack_rounded);
+                                    case ContentType.image:
+                                      return const Icon(Icons.image_rounded);
+                                    case ContentType.other:
+                                      return const Icon(
+                                          Icons.file_copy_rounded);
+                                  }
+                                }(),
+                                title: Text(
+                                  files[index].name,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  textBaseline: TextBaseline.ideographic,
+                                  children: [
+                                    if (files[index].size != 0)
+                                      Text(
+                                        "${fileSizeConvert(files[index].size)} MB",
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    if (files[index].size != 0)
+                                      const SizedBox(width: 8),
+                                    if (files[index].lastModified != null)
+                                      Expanded(
+                                        child: Text(
+                                          files[index]
+                                              .lastModified
+                                              .toString()
+                                              .split('.')[0],
+                                          style: TextStyle(
                                             fontSize: 13,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant
+                                                .withValues(alpha: 0.8),
+                                            fontWeight: FontWeight.w400,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                      if (files[index].size != 0)
-                                        const SizedBox(width: 8),
-                                      if (files[index].lastModified != null)
-                                        Expanded(
-                                          child: Text(
-                                            files[index]
-                                                .lastModified
-                                                .toString()
-                                                .split('.')[0],
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurfaceVariant
-                                                  .withValues(alpha: 0.8),
-                                              fontWeight: FontWeight.w400,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
+                                      ),
+                                    if (files[index].size != 0)
+                                      const SizedBox(width: 8),
+                                    () {
+                                      final Progress? progress =
+                                          useHistoryStore()
+                                              .findById(files[index].getID());
+                                      if (progress != null &&
+                                          progress.file.type ==
+                                              ContentType.video) {
+                                        if ((progress.duration.inMilliseconds -
+                                                progress
+                                                    .position.inMilliseconds) <=
+                                            5000) {
+                                          return Chip(text: '100%');
+                                        }
+                                        final String progressString =
+                                            (progress.position.inMilliseconds /
+                                                    progress.duration
+                                                        .inMilliseconds *
+                                                    100)
+                                                .toStringAsFixed(0);
+                                        return Chip(text: '$progressString %');
+                                      } else {
+                                        return const SizedBox();
+                                      }
+                                    }(),
+                                    ...files[index]
+                                        .subtitles
+                                        .map((subtitle) => subtitle.uri
+                                            .split('.')
+                                            .last
+                                            .toUpperCase())
+                                        .toSet()
+                                        .toList()
+                                        .map(
+                                          (subtitleType) => Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const SizedBox(width: 4),
+                                              Chip(
+                                                text: subtitleType,
+                                                primary: true,
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                      if (files[index].size != 0)
-                                        const SizedBox(width: 8),
-                                      () {
-                                        final Progress? progress =
-                                            useHistoryStore()
-                                                .findById(files[index].getID());
-                                        if (progress != null &&
-                                            progress.file.type ==
-                                                ContentType.video) {
-                                          if ((progress
-                                                      .duration.inMilliseconds -
-                                                  progress.position
-                                                      .inMilliseconds) <=
-                                              5000) {
-                                            return Chip(text: '100%');
+                                  ],
+                                ),
+                                trailing: files[index].type ==
+                                            ContentType.video ||
+                                        files[index].type == ContentType.audio
+                                    ? PopupMenuButton<FileOptions>(
+                                        clipBehavior: Clip.hardEdge,
+                                        constraints:
+                                            const BoxConstraints(minWidth: 200),
+                                        onSelected: (value) async {
+                                          switch (value) {
+                                            case FileOptions.addToPlayQueue:
+                                              usePlayQueueStore()
+                                                  .add([files[index]]);
+                                              break;
+                                            default:
+                                              break;
                                           }
-                                          final String progressString =
-                                              (progress.position
-                                                          .inMilliseconds /
-                                                      progress.duration
-                                                          .inMilliseconds *
-                                                      100)
-                                                  .toStringAsFixed(0);
-                                          return Chip(
-                                              text: '$progressString %');
-                                        } else {
-                                          return const SizedBox();
-                                        }
-                                      }(),
-                                      ...files[index]
-                                          .subtitles
-                                          .map((subtitle) => subtitle.uri
-                                              .split('.')
-                                              .last
-                                              .toUpperCase())
-                                          .toSet()
-                                          .toList()
-                                          .map(
-                                            (subtitleType) => Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const SizedBox(width: 4),
-                                                Chip(
-                                                  text: subtitleType,
-                                                  primary: true,
-                                                ),
-                                              ],
-                                            ),
+                                        },
+                                        itemBuilder: (context) => [
+                                          PopupMenuItem(
+                                            value: FileOptions.addToPlayQueue,
+                                            child: Text(t.add_to_play_queue),
                                           ),
-                                    ],
-                                  ),
-                                  trailing: files[index].type ==
-                                              ContentType.video ||
-                                          files[index].type == ContentType.audio
-                                      ? PopupMenuButton<FileOptions>(
-                                          clipBehavior: Clip.hardEdge,
-                                          constraints: const BoxConstraints(
-                                              minWidth: 200),
-                                          onSelected: (value) async {
-                                            switch (value) {
-                                              case FileOptions.addToPlayQueue:
-                                                usePlayQueueStore()
-                                                    .add([files[index]]);
-                                                break;
-                                              default:
-                                                break;
-                                            }
-                                          },
-                                          itemBuilder: (context) => [
-                                            PopupMenuItem(
-                                              value: FileOptions.addToPlayQueue,
-                                              child: Text(t.add_to_play_queue),
-                                            ),
-                                          ],
-                                        )
-                                      : null,
-                                  onTap: () {
-                                    if (files[index].isDir == true &&
-                                        files[index].name.isNotEmpty) {
-                                      useStorageStore().updateCurrentPath(
-                                          [...currentPath, files[index].name]);
-                                    } else {
+                                        ],
+                                      )
+                                    : null,
+                                onTap: () {
+                                  if (files[index].isDir == true &&
+                                      files[index].name.isNotEmpty) {
+                                    useStorageStore().updateCurrentPath(
+                                        [...currentPath, files[index].name]);
+                                  } else {
+                                    if (files[index].type ==
+                                            ContentType.video ||
+                                        files[index].type ==
+                                            ContentType.audio) {
+                                      play(files, index);
                                       if (files[index].type ==
-                                              ContentType.video ||
-                                          files[index].type ==
-                                              ContentType.audio) {
-                                        play(files, index);
-                                        if (files[index].type ==
-                                            ContentType.video) {
-                                          useUiStore()
-                                              .updatePlayerExpanded(true);
-                                        }
+                                          ContentType.video) {
+                                        useUiStore().updatePlayerExpanded(true);
                                       }
                                     }
-                                  },
-                                ),
+                                  }
+                                },
                               ),
-          ),
-        ],
-      ),
+                            ),
+        ),
+      ],
     );
   }
 }

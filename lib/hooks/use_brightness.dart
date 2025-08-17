@@ -3,7 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
-ValueNotifier<double?> useBrightness(bool isGesture) {
+ValueNotifier<double?> useBrightness(bool isGesture, bool isPlayerExpanded) {
   final brightness = useState<double?>(null);
 
   useEffect(() {
@@ -29,6 +29,19 @@ ValueNotifier<double?> useBrightness(bool isGesture) {
     }
     return;
   }, [brightness.value]);
+
+  useEffect(
+    () => () {
+      if (isPlayerExpanded) {
+        try {
+          ScreenBrightness.instance.resetApplicationScreenBrightness();
+        } catch (e) {
+          logger('Error resetting brightness: $e');
+        }
+      }
+    },
+    [isPlayerExpanded],
+  );
 
   // 退出时重置亮度
   useEffect(

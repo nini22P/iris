@@ -24,24 +24,17 @@ import 'package:iris/utils/platform.dart';
 import 'package:iris/utils/resize_window.dart';
 import 'package:iris/widgets/popup.dart';
 
-enum ControlBarView {
-  minimal,
-  expanded,
-}
-
 class ControlBar extends HookWidget {
   const ControlBar({
     super.key,
     required this.player,
     required this.showControl,
     required this.showControlForHover,
-    required this.view,
   });
 
   final MediaPlayer player;
   final void Function() showControl;
   final Future<void> Function(Future<void> callback) showControlForHover;
-  final ControlBarView view;
 
   @override
   Widget build(BuildContext context) {
@@ -78,31 +71,26 @@ class ControlBar extends HookWidget {
     final BoxFit fit = useAppStore().select(context, (state) => state.fit);
 
     return Card(
-      elevation: view == ControlBarView.expanded ? 0 : null,
+      elevation: isPlayerExpanded ? 0 : null,
       margin: EdgeInsets.zero,
-      color: view == ControlBarView.expanded
+      color: isPlayerExpanded
           ? Colors.transparent
           : Theme.of(context).colorScheme.surfaceContainer,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
       child: Dark(
-        disable: view == ControlBarView.minimal,
+        disable: !isPlayerExpanded,
         child: Container(
           padding: EdgeInsets.fromLTRB(
             8,
-            view == ControlBarView.expanded ? 16 : 8,
+            isPlayerExpanded ? 16 : 8,
             8,
-            view == ControlBarView.minimal
+            !isPlayerExpanded
                 ? 4
                 : (safeAreaPadding.bottom != 0 ? safeAreaPadding.bottom : 8),
           ),
-          height: view == ControlBarView.expanded
-              ? 96 +
-                  safeAreaPadding.bottom +
-                  (safeAreaPadding.bottom != 0 ? 28 : 0)
-              : 72,
-          decoration: view == ControlBarView.minimal
+          decoration: !isPlayerExpanded
               ? null
               : BoxDecoration(
                   gradient: LinearGradient(
@@ -128,6 +116,9 @@ class ControlBar extends HookWidget {
                     player: player,
                     showControl: showControl,
                   ),
+                ),
+                SizedBox(
+                  height: isPlayerExpanded ? 16 : 8,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -162,7 +153,7 @@ class ControlBar extends HookWidget {
                                   style: TextStyle(
                                     fontSize: 14,
                                     overflow: TextOverflow.ellipsis,
-                                    color: view == ControlBarView.expanded
+                                    color: isPlayerExpanded
                                         ? customTheme
                                             ?.dark.colorScheme.onSurface
                                         : Theme.of(context)
@@ -346,7 +337,7 @@ class ControlBar extends HookWidget {
                                       '${rate}X',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: view == ControlBarView.expanded
+                                        color: isPlayerExpanded
                                             ? customTheme
                                                 ?.dark.colorScheme.onSurface
                                             : Theme.of(context)
@@ -483,7 +474,7 @@ class ControlBar extends HookWidget {
                               icon: Icon(
                                 Icons.more_vert_rounded,
                                 size: 20,
-                                color: view == ControlBarView.expanded
+                                color: isPlayerExpanded
                                     ? customTheme
                                         ?.dark.colorScheme.onSurfaceVariant
                                     : Theme.of(context)

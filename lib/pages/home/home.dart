@@ -48,23 +48,17 @@ class Home extends HookWidget {
         systemNavigationBarColor: isPlayerExpanded ? null : Colors.transparent,
       ),
       child: Scaffold(
-        body: SafeArea(
-          left: !isPlayerExpanded,
-          top: !isPlayerExpanded,
-          right: !isPlayerExpanded,
-          bottom: !isPlayerExpanded,
-          child: Stack(
-            children: [
-              Positioned(
-                left: 0,
-                top: 0,
-                right: 0,
-                bottom: 0,
-                child: Library(),
-              ),
-              player,
-            ],
-          ),
+        body: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              child: Library(),
+            ),
+            player,
+          ],
         ),
       ),
     );

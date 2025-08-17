@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
-import 'package:iris/pages/storages/file_buttons.dart';
+import 'package:iris/pages/library/files_buttons.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/store/use_ui_store.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -58,12 +58,12 @@ class TopBar extends HookWidget {
                     onPressed: () => useUiStore().updatePlayerExpanded(false),
                   ),
                 ),
-              if (!isPlayerExpanded && currentStorage != null)
+              if (!isPlayerExpanded && currentStorage != null && isDesktop)
                 Card(
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(32)),
                   margin: EdgeInsets.zero,
-                  child: FileButtons(),
+                  child: FilesButtons(),
                 ),
               const Spacer(),
               Card(
