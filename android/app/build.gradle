@@ -1,4 +1,3 @@
-import java.io.File
 import java.nio.file.Files
 import java.security.MessageDigest
 
@@ -63,20 +62,20 @@ flutter {
 }
 
 
-task downloadFiles(type: Exec) {
+tasks.register('downloadFiles', Exec) {
     def filesToDownload = [
-        [
-            "url": "https://github.com/notofonts/noto-cjk/raw/refs/heads/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Medium.otf",
-            "md5": "58c83279d990b2cf88d40a0a34832e31",
-            "destination": file("./src/main/assets/flutter_assets/assets/fonts/NotoSansCJKsc-Medium.otf")
-        ]
+            [
+                    "url"        : "https://github.com/notofonts/noto-cjk/raw/refs/heads/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Medium.otf",
+                    "md5"        : "58c83279d990b2cf88d40a0a34832e31",
+                    "destination": file("./src/main/assets/flutter_assets/assets/fonts/NotoSansCJKsc-Medium.otf")
+            ]
     ]
 
     filesToDownload.each { fileInfo ->
         def destFile = fileInfo.destination
 
         if (destFile.exists()) {
-           def calculatedMD5 = MessageDigest.getInstance("MD5").digest(Files.readAllBytes(destFile.toPath())).encodeHex().toString()
+            def calculatedMD5 = MessageDigest.getInstance("MD5").digest(Files.readAllBytes(destFile.toPath())).encodeHex().toString()
 
             if (calculatedMD5 != fileInfo.md5) {
                 destFile.delete()
@@ -85,13 +84,13 @@ task downloadFiles(type: Exec) {
         }
 
         if (!destFile.exists()) {
-             destFile.parentFile.mkdirs()
+            destFile.parentFile.mkdirs()
             println "Downloading file from: ${fileInfo.url}"
             destFile.withOutputStream { os ->
                 os << new URL(fileInfo.url).openStream()
             }
 
-             def calculatedMD5 = MessageDigest.getInstance("MD5").digest(Files.readAllBytes(destFile.toPath())).encodeHex().toString()
+            def calculatedMD5 = MessageDigest.getInstance("MD5").digest(Files.readAllBytes(destFile.toPath())).encodeHex().toString()
             if (calculatedMD5 != fileInfo.md5) {
                 throw new GradleException("MD5 verification failed for ${destFile}")
             }
