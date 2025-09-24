@@ -58,6 +58,11 @@ class Audio extends HookWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.black,
+            ),
+          ),
           if (cover != null)
             _CoverImage(cover: cover!, auth: auth, fit: BoxFit.cover),
           BackdropFilter(

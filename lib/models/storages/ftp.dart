@@ -49,28 +49,25 @@ Future<List<FileItem>> getFTPFiles(
     List<FileItem> fileItems = [];
 
     for (final file in files) {
-      if (file.isDirectory || isMediaFile(file.name)) {
-        final basename = p.basenameWithoutExtension(file.name).split('.').first;
-        fileItems.add(
-          FileItem(
-            storageId: storage.id,
-            storageType: StorageType.ftp,
-            name: file.name,
-            uri: getUri(file.name),
-            path: [...path, file.name],
-            isDir: file.isDirectory,
-            size: file.isDirectory ? 0 : file.info?.size ?? 0,
-            lastModified: file.info?.modifyTime != null
-                ? DateTime.tryParse(file.info!.modifyTime!)
-                : null,
-            type: file.isDirectory
-                ? ContentType.other
-                : checkContentType(file.name),
-            subtitles:
-                isVideoFile(file.name) ? subtitleMap[basename] ?? [] : [],
-          ),
-        );
-      }
+      final basename = p.basenameWithoutExtension(file.name).split('.').first;
+      fileItems.add(
+        FileItem(
+          storageId: storage.id,
+          storageType: StorageType.ftp,
+          name: file.name,
+          uri: getUri(file.name),
+          path: [...path, file.name],
+          isDir: file.isDirectory,
+          size: file.isDirectory ? 0 : file.info?.size ?? 0,
+          lastModified: file.info?.modifyTime != null
+              ? DateTime.tryParse(file.info!.modifyTime!)
+              : null,
+          type: file.isDirectory
+              ? ContentType.other
+              : checkContentType(file.name),
+          subtitles: isVideoFile(file.name) ? subtitleMap[basename] ?? [] : [],
+        ),
+      );
     }
 
     return fileItems;

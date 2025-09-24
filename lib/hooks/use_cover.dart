@@ -52,9 +52,8 @@ FileItem? useCover() {
 
       final files = await storage.getFiles(dir);
 
-      final images = files
-          .where((file) => [ContentType.image].contains(file.type))
-          .toList();
+      final images =
+          files.where((file) => file.type == ContentType.image).toList();
 
       cover.value = images.firstWhereOrNull((image) =>
               image.name.split('.').first.toLowerCase() == 'cover') ??
