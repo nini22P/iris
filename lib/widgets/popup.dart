@@ -117,7 +117,7 @@ class Popup<T> extends PopupRoute<T> {
                       child: LimitedBox(
                         maxWidth: screenWidth / size - 16,
                         maxHeight:
-                            isDesktop ? screenHeight - 48 : screenHeight - 16,
+                            isDesktop ? screenHeight - 56 : screenHeight - 16,
                         child: Card(
                           child: Material(
                             color: Colors.transparent,
