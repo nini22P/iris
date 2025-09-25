@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/storage.dart';
-import 'package:iris/pages/storages/favorites.dart';
-import 'package:iris/pages/storages/files.dart';
+import 'package:iris/widgets/popups/storages/favorites.dart';
+import 'package:iris/widgets/popups/storages/files.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/path_conv.dart';
 import 'package:iris/widgets/dialogs/show_folder_dialog.dart';
 import 'package:iris/widgets/dialogs/show_ftp_dialog.dart';
 import 'package:iris/widgets/dialogs/show_webdav_dialog.dart';
-import 'package:iris/pages/storages/storages_list.dart';
+import 'package:iris/widgets/popups/storages/storages_list.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:saf_util/saf_util.dart';
 

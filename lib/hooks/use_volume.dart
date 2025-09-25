@@ -10,7 +10,6 @@ ValueNotifier<double?> useVolume(bool isGesture) {
     try {
       () async {
         if (!isGesture) return;
-        await FlutterVolumeController.updateShowSystemUI(false);
         volume.value = await FlutterVolumeController.getVolume();
       }();
     } catch (e) {
@@ -18,7 +17,6 @@ ValueNotifier<double?> useVolume(bool isGesture) {
     }
     return () {
       volume.value = null;
-      FlutterVolumeController.updateShowSystemUI(true);
     };
   }, [isGesture]);
 

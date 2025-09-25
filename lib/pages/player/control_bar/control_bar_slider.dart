@@ -10,12 +10,12 @@ import 'package:provider/provider.dart';
 class ControlBarSlider extends HookWidget {
   const ControlBarSlider({
     super.key,
-    required this.showControl,
+    this.showControl,
     this.disabled = false,
     this.color,
   });
 
-  final void Function() showControl;
+  final void Function()? showControl;
   final bool disabled;
   final Color? color;
 
@@ -92,7 +92,7 @@ class ControlBarSlider extends HookWidget {
                   onChanged: disabled
                       ? null
                       : (value) {
-                          showControl();
+                          showControl?.call();
                           seek(Duration(milliseconds: value.toInt()));
                         },
                   onChangeStart: disabled
