@@ -2,7 +2,8 @@
 
 # IRIS - A lightweight video player
 
-![ci](https://github.com/nini22P/iris/actions/workflows/ci.yml/badge.svg)
+[![Build Status](https://github.com/nini22P/iris/actions/workflows/ci.yml/badge.svg)](https://github.com/nini22P/iris/actions/workflows/ci.yml)
+<a href="https://apps.microsoft.com/detail/9NML7WNHNRTJ?referrer=appbadge&mode=direct"><img src="https://get.microsoft.com/images/en-us%20dark.svg" height="30"/></a>
 <a href="https://afdian.com/a/nini22P"><img alt="Afdian" style="height: 30px;" src="https://pic1.afdiancdn.com/static/img/welcome/button-sponsorme.png"></a>
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nini22p)
 
@@ -18,18 +19,14 @@ English | [中文](./README_CN.md)
 
 ## Download
 
-### Windows
-
-- [IRIS-windows-installer.exe](https://github.com/nini22P/iris/releases/latest/download/IRIS-windows-installer.exe)
-- [IRIS-windows.zip](https://github.com/nini22P/iris/releases/latest/download/IRIS-windows.zip)
-
-### Android
-
-| Architecture | Download Link                                                                                                      |
-| ------------ | ------------------------------------------------------------------------------------------------------------------ |
-| arm64-v8a    | [IRIS-android-arm64-v8a.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-arm64-v8a.apk)     |
-| armeabi-v7a  | [IRIS-android-armeabi-v7a.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-armeabi-v7a.apk) |
-| x86_64       | [IRIS-android-x86_64.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-x86_64.apk)           |
+| Platform | Arch/Channel      | Download Link                                                                                                      | Notes                  |
+| :------- | :---------------- | :----------------------------------------------------------------------------------------------------------------- | :--------------------- |
+| Windows  | **Microsoft Store** | [Microsoft Store](https://apps.microsoft.com/detail/9NML7WNHNRTJ)                                                  | **Recommended**, auto-updates |
+|          | Installer         | [IRIS-windows-installer.exe](https://github.com/nini22P/iris/releases/latest/download/IRIS-windows-installer.exe)     |                        |
+|          | Portable          | [IRIS-windows.zip](https://github.com/nini22P/iris/releases/latest/download/IRIS-windows.zip)                       | Unzip and run          |
+| Android  | arm64-v8a         | [IRIS-android-arm64-v8a.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-arm64-v8a.apk)     | For 64-bit devices     |
+|          | armeabi-v7a       | [IRIS-android-armeabi-v7a.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-armeabi-v7a.apk) | For 32-bit devices     |
+|          | x86_64            | [IRIS-android-x86_64.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-x86_64.apk)           | For emulators/x86 devices |
 
 ## Keyboard and Gesture Controls
 
@@ -38,8 +35,8 @@ English | [中文](./README_CN.md)
 | Key                    | Description                                        |
 | ---------------------- | -------------------------------------------------- |
 | `Space`              | Play / Pause / Select file                         |
-| `Arrow Left`         | Fast backward 10 seconds                           |
-| `Arrow Right`        | Fast forward 10 seconds                            |
+| `Arrow Left`         | Fast backward                    |
+| `Arrow Right`        | Fast forward                    |
 | `Arrow Up`           | Volume up                                          |
 | `Arrow Down`         | Volume down                                        |
 | `Ctrl + Arrow Left`  | Previous                                           |
@@ -70,12 +67,12 @@ English | [中文](./README_CN.md)
 | --------------------------------- | ----------------------------- |
 | Tap                               | Select an item or open a menu |
 | Double tap center                 | Play / Pause                  |
-| Double tap left side              | Fast backward 10 seconds      |
-| Double tap right side             | Fast forward 10 seconds       |
+| Double tap left side              | Fast backward                |
+| Double tap right side             | Fast forward                  |
 | Swipe left / right                | Adjust playback progress      |
 | Swipe up / down on left side      | Adjust screen brightness      |
 | Swipe up / down on right side     | Adjust device volume          |
-| Long press                        | Start speed playback          |
+| Long press                        | Display Playback Speed Selector |
 | Long press and swipe left / right | Adjust speed playback speed   |
 
 ## Contribution
