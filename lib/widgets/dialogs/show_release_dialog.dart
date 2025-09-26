@@ -10,6 +10,13 @@ import 'package:iris/utils/get_latest_release.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/url.dart';
 
+bool isPortable() {
+  String resolvedExecutablePath = Platform.resolvedExecutable;
+  String path = p.dirname(resolvedExecutablePath);
+  String batFilePath = p.join(path, 'iris-updater.bat');
+  return File(batFilePath).existsSync();
+}
+
 Future<void> showReleaseDialog(BuildContext context,
         {required Release release}) async =>
     await showDialog<void>(
@@ -32,10 +39,7 @@ class ReleaseDialog extends HookWidget {
 
     useEffect(() {
       if (isWindows) {
-        String resolvedExecutablePath = Platform.resolvedExecutable;
-        String path = p.dirname(resolvedExecutablePath);
-        String batFilePath = p.join(path, 'iris-updater.bat');
-        updateScriptIsExists.value = File(batFilePath).existsSync();
+        updateScriptIsExists.value = isPortable();
       }
       return null;
     }, []);
