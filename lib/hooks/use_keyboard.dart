@@ -28,9 +28,9 @@ KeyboardEvent useKeyboard({
 }) {
   final context = useContext();
 
-  final player = context.read<MediaPlayer>();
-
   void onKeyEvent(KeyEvent event) async {
+    final player = context.read<MediaPlayer>();
+
     if (event.runtimeType == KeyDownEvent) {
       if (HardwareKeyboard.instance.isAltPressed) {
         switch (event.logicalKey) {
@@ -138,7 +138,7 @@ KeyboardEvent useKeyboard({
         case LogicalKeyboardKey.space:
         case LogicalKeyboardKey.mediaPlayPause:
           showControl();
-          if (context.read<MediaPlayer>().isPlaying) {
+          if (player.isPlaying) {
             useAppStore().updateAutoPlay(false);
             player.pause();
           } else {

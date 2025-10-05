@@ -52,8 +52,6 @@ class ControlBar extends HookWidget {
     final isInitializing =
         context.select<MediaPlayer, bool>((player) => player.isInitializing);
 
-    final player = context.read<MediaPlayer>();
-
     final rate = useAppStore().select(context, (state) => state.rate);
     final volume = useAppStore().select(context, (state) => state.volume);
     final isMuted = useAppStore().select(context, (state) => state.isMuted);
@@ -117,10 +115,10 @@ class ControlBar extends HookWidget {
             showControl();
             if (isPlaying == true) {
               useAppStore().updateAutoPlay(false);
-              player.pause();
+              context.read<MediaPlayer>().pause();
             } else {
               useAppStore().updateAutoPlay(true);
-              player.play();
+              context.read<MediaPlayer>().play();
             }
           },
           style: ButtonStyle(overlayColor: overlayColor),
@@ -138,7 +136,7 @@ class ControlBar extends HookWidget {
       onPressed: () {
         showControl();
         useAppStore().updateAutoPlay(false);
-        player.pause();
+        context.read<MediaPlayer>().pause();
         usePlayQueueStore().updateCurrentIndex(-1);
       },
       style: ButtonStyle(overlayColor: overlayColor),
@@ -521,7 +519,7 @@ class ControlBar extends HookWidget {
             ),
           ),
           onTap: () async {
-            await player.saveProgress();
+            await context.read<MediaPlayer>().saveProgress();
             if (isDesktop) {
               windowManager.close();
             } else {

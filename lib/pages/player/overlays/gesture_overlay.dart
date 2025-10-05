@@ -29,6 +29,12 @@ class GestureOverlay extends HookWidget {
     final isShowControl =
         usePlayerUiStore().select(context, (state) => state.isShowControl);
 
+    final cursor = useMemoized(
+        () => isShowControl || !isPlaying
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.none,
+        [isShowControl, isPlaying]);
+
     final isSpeedSelectorVisible = useState(false);
     final selectedSpeed = useState(1.0);
     final speedSelectorPosition = useState(Offset.zero);
@@ -75,9 +81,7 @@ class GestureOverlay extends HookWidget {
     );
 
     return MouseRegion(
-      cursor: isShowControl || isPlaying == false
-          ? SystemMouseCursors.basic
-          : SystemMouseCursors.none,
+      cursor: cursor,
       onHover: gesture.onHover,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,

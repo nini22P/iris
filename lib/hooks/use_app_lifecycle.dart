@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 
 void useAppLifecycle() {
   final context = useContext();
-  final saveProgress = context.read<MediaPlayer>().saveProgress;
 
   AppLifecycleState? appLifecycleState = useAppLifecycleState();
 
@@ -14,7 +13,7 @@ void useAppLifecycle() {
     try {
       if (appLifecycleState == AppLifecycleState.paused) {
         logger('App lifecycle state: paused');
-        saveProgress();
+        context.read<MediaPlayer>().saveProgress();
       }
     } catch (e) {
       logger('App lifecycle state error: $e');

@@ -35,8 +35,6 @@ class Player extends HookWidget {
     final height =
         context.select<MediaPlayer, double>((player) => player.height);
 
-    final saveProgress = context.read<MediaPlayer>().saveProgress;
-
     useAppLifecycle();
 
     final cover = useCover();
@@ -123,7 +121,7 @@ class Player extends HookWidget {
 
     Future<void> showControlForHover(Future<void> callback) async {
       try {
-        saveProgress();
+        context.read<MediaPlayer>().saveProgress();
         showControl();
         usePlayerUiStore().updateIsHovering(true);
         await callback;
@@ -216,7 +214,7 @@ class Player extends HookWidget {
         canPop: false,
         onPopInvokedWithResult: (bool didPop, Object? result) async {
           if (!didPop) {
-            await saveProgress();
+            await context.read<MediaPlayer>().saveProgress();
             if (isDesktop) {
               windowManager.close();
             } else {

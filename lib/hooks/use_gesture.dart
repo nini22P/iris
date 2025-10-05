@@ -32,7 +32,6 @@ class Gesture {
   final bool isRightGesture;
   final double? brightness;
   final double? volume;
-  final MouseCursor cursor;
 
   Gesture({
     required this.onTapDown,
@@ -52,7 +51,6 @@ class Gesture {
     required this.isRightGesture,
     required this.brightness,
     required this.volume,
-    required this.cursor,
   });
 }
 
@@ -65,8 +63,6 @@ Gesture useGesture({
   required void Function(double speed, double visualOffset) updateSelectedSpeed,
 }) {
   final context = useContext();
-
-  final player = context.read<MediaPlayer>();
 
   final gestureState = useRef({
     'isTouch': false,
@@ -98,6 +94,8 @@ Gesture useGesture({
   }
 
   void onDoubleTapDown(TapDownDetails details) {
+    final player = context.read<MediaPlayer>();
+
     if (details.kind == PointerDeviceKind.touch) {
       final screenWidth = MediaQuery.sizeOf(context).width;
       final tapDx = details.globalPosition.dx;
@@ -129,7 +127,8 @@ Gesture useGesture({
   }
 
   void onLongPressStart(LongPressStartDetails details) {
-    if (gestureState.value['isTouch'] as bool && player.isPlaying) {
+    if (gestureState.value['isTouch'] as bool &&
+        context.read<MediaPlayer>().isPlaying) {
       gestureState.value['isLongPress'] = true;
       gestureState.value['startPanOffset'] = details.globalPosition;
 
@@ -207,7 +206,8 @@ Gesture useGesture({
       gestureState.value['isTouch'] = true;
       gestureState.value['isDragging'] = true;
       gestureState.value['startPanOffset'] = details.globalPosition;
-      gestureState.value['startSeekPosition'] = player.position;
+      gestureState.value['startSeekPosition'] =
+          context.read<MediaPlayer>().position;
       gestureState.value['panDirection'] = null;
       isLeftGesture.value = false;
       isRightGesture.value = false;
@@ -247,9 +247,10 @@ Gesture useGesture({
       int targetSeconds = (startSeconds + seekSecondsOffset).round();
 
       // 边界检查
-      targetSeconds = targetSeconds.clamp(0, player.duration.inSeconds);
+      targetSeconds = targetSeconds.clamp(
+          0, context.read<MediaPlayer>().duration.inSeconds);
 
-      player.seek(Duration(seconds: targetSeconds));
+      context.read<MediaPlayer>().seek(Duration(seconds: targetSeconds));
       showProgress();
     }
 
@@ -306,12 +307,6 @@ Gesture useGesture({
     }
   }
 
-  final cursor = useMemoized(() {
-    return player.isPlaying == false
-        ? SystemMouseCursors.basic
-        : SystemMouseCursors.none;
-  }, [player.isPlaying]);
-
   return Gesture(
     onTapDown: onTapDown,
     onTap: onTap,
@@ -330,6 +325,5 @@ Gesture useGesture({
     isRightGesture: isRightGesture.value,
     brightness: brightness.value,
     volume: volume.value,
-    cursor: cursor,
   );
 }
