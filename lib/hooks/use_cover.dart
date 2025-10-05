@@ -15,15 +15,11 @@ FileItem? useCover() {
   final currentIndex =
       usePlayQueueStore().select(context, (state) => state.currentIndex);
 
-  final int currentPlayIndex = useMemoized(
-      () => playQueue.indexWhere((element) => element.index == currentIndex),
-      [playQueue, currentIndex]);
-
-  final FileItem? file = useMemoized(
-      () => playQueue.isEmpty || currentPlayIndex < 0
-          ? null
-          : playQueue[currentPlayIndex].file,
-      [playQueue, currentPlayIndex]);
+  final FileItem? file = useMemoized(() {
+    final index =
+        playQueue.indexWhere((element) => element.index == currentIndex);
+    return playQueue.isEmpty || index < 0 ? null : playQueue[index].file;
+  }, [playQueue, currentIndex]);
 
   final localStoragesFuture =
       useMemoized(() async => await getLocalStorages(context), []);
@@ -52,9 +48,8 @@ FileItem? useCover() {
 
       final files = await storage.getFiles(dir);
 
-      final images = files
-          .where((file) => [ContentType.image].contains(file.type))
-          .toList();
+      final images =
+          files.where((file) => file.type == ContentType.image).toList();
 
       cover.value = images.firstWhereOrNull((image) =>
               image.name.split('.').first.toLowerCase() == 'cover') ??

@@ -96,21 +96,19 @@ Future<List<FileItem>> getWebDAVFiles(
     if (fileName == null) continue;
 
     final isDir = file.isDir;
-    if (isDir == true || isMediaFile(fileName)) {
-      final basename = p.basenameWithoutExtension(fileName).split('.').first;
-      fileItems.add(FileItem(
-        storageId: id,
-        storageType: StorageType.webdav,
-        name: fileName,
-        uri: getUri(fileName),
-        path: [...path, fileName],
-        isDir: isDir ?? false,
-        size: file.size ?? 0,
-        lastModified: file.mTime,
-        type: isDir ?? false ? ContentType.other : checkContentType(fileName),
-        subtitles: isVideoFile(fileName) ? subtitleMap[basename] ?? [] : [],
-      ));
-    }
+    final basename = p.basenameWithoutExtension(fileName).split('.').first;
+    fileItems.add(FileItem(
+      storageId: id,
+      storageType: StorageType.webdav,
+      name: fileName,
+      uri: getUri(fileName),
+      path: [...path, fileName],
+      isDir: isDir ?? false,
+      size: file.size ?? 0,
+      lastModified: file.mTime,
+      type: isDir ?? false ? ContentType.other : checkContentType(fileName),
+      subtitles: isVideoFile(fileName) ? subtitleMap[basename] ?? [] : [],
+    ));
   }
 
   return fileItems;

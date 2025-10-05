@@ -1,3 +1,17 @@
+## v1.5.1
+
+### Changelog
+
+* Adjusted the playback control bar style in compact layout
+* Clicking “Check update” in the Microsoft Store version redirects to the Store page
+* Fixed forward and backward issues
+
+### 更新日志
+
+* 调整了紧凑布局下的播放控制栏样式
+* 微软商店版本中点击检查更新将跳转至商店页面
+* 修复了快退快进的问题
+
 ## v1.5.0
 
 ### Changelog

@@ -7,7 +7,7 @@ import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/storages/webdav.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:iris/widgets/popup.dart';
-import 'package:iris/pages/storages/storages.dart';
+import 'package:iris/widgets/popups/storages/storages.dart';
 import 'package:iris/store/use_storage_store.dart';
 
 part 'storage.freezed.dart';

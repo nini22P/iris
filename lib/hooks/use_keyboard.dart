@@ -4,11 +4,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/globals.dart';
 import 'package:iris/models/player.dart';
 import 'package:iris/models/storages/local.dart';
-import 'package:iris/pages/player/overlays/history.dart';
-import 'package:iris/pages/player/overlays/play_queue.dart';
-import 'package:iris/pages/player/overlays/track/subtitle_and_audio_track.dart';
-import 'package:iris/pages/settings/settings.dart';
-import 'package:iris/pages/storages/storages.dart';
+import 'package:iris/widgets/popups/history.dart';
+import 'package:iris/widgets/popups/play_queue.dart';
+import 'package:iris/widgets/popups/track/subtitle_and_audio_track.dart';
+import 'package:iris/widgets/popups/settings/settings.dart';
+import 'package:iris/widgets/popups/storages/storages.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_player_ui_store.dart';
@@ -28,9 +28,9 @@ KeyboardEvent useKeyboard({
 }) {
   final context = useContext();
 
-  final player = context.read<MediaPlayer>();
-
   void onKeyEvent(KeyEvent event) async {
+    final player = context.read<MediaPlayer>();
+
     if (event.runtimeType == KeyDownEvent) {
       if (HardwareKeyboard.instance.isAltPressed) {
         switch (event.logicalKey) {
@@ -138,7 +138,7 @@ KeyboardEvent useKeyboard({
         case LogicalKeyboardKey.space:
         case LogicalKeyboardKey.mediaPlayPause:
           showControl();
-          if (context.read<MediaPlayer>().isPlaying) {
+          if (player.isPlaying) {
             useAppStore().updateAutoPlay(false);
             player.pause();
           } else {

@@ -310,19 +310,17 @@ Future<List<FileItem>> getContentFiles(String uri) async {
   List<FileItem> fileItems = [];
 
   for (final file in files) {
-    if (file.isDir || isMediaFile(file.name)) {
-      final basename = p.basenameWithoutExtension(file.name).split('.').first;
-      fileItems.add(FileItem(
-        name: file.name,
-        uri: file.uri,
-        path: [uri, file.name],
-        isDir: file.isDir,
-        size: file.isDir ? 0 : file.length,
-        lastModified: DateTime.fromMillisecondsSinceEpoch(file.lastModified),
-        type: file.isDir ? ContentType.other : checkContentType(file.name),
-        subtitles: isVideoFile(file.name) ? subtitleMap[basename] ?? [] : [],
-      ));
-    }
+    final basename = p.basenameWithoutExtension(file.name).split('.').first;
+    fileItems.add(FileItem(
+      name: file.name,
+      uri: file.uri,
+      path: [uri, file.name],
+      isDir: file.isDir,
+      size: file.isDir ? 0 : file.length,
+      lastModified: DateTime.fromMillisecondsSinceEpoch(file.lastModified),
+      type: file.isDir ? ContentType.other : checkContentType(file.name),
+      subtitles: isVideoFile(file.name) ? subtitleMap[basename] ?? [] : [],
+    ));
   }
 
   return fileItems;

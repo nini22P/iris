@@ -58,6 +58,11 @@ class Audio extends HookWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.black,
+            ),
+          ),
           if (cover != null)
             _CoverImage(cover: cover!, auth: auth, fit: BoxFit.cover),
           BackdropFilter(
@@ -110,7 +115,7 @@ class Audio extends HookWidget {
   ) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(48, 56, 48, 96),
+        padding: const EdgeInsets.fromLTRB(48, 56, 48, 144),
         child: ConstrainedBox(
           constraints: const BoxConstraints(
             maxWidth: 400.0,
@@ -148,7 +153,11 @@ class Audio extends HookWidget {
                 48,
                 56,
                 24,
-                constraints.maxWidth > 1024 ? 64 : 96,
+                constraints.maxWidth > 1024
+                    ? 64
+                    : constraints.maxWidth > 640
+                        ? 96
+                        : 144,
               ),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(

@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:iris/globals.dart' show speedStops, speedSelectorItemWidth;
 import 'package:iris/hooks/use_brightness.dart';
 import 'package:iris/hooks/use_volume.dart';
@@ -31,7 +32,6 @@ class Gesture {
   final bool isRightGesture;
   final double? brightness;
   final double? volume;
-  final MouseCursor cursor;
 
   Gesture({
     required this.onTapDown,
@@ -51,7 +51,6 @@ class Gesture {
     required this.isRightGesture,
     required this.brightness,
     required this.volume,
-    required this.cursor,
   });
 }
 
@@ -64,8 +63,6 @@ Gesture useGesture({
   required void Function(double speed, double visualOffset) updateSelectedSpeed,
 }) {
   final context = useContext();
-
-  final player = context.read<MediaPlayer>();
 
   final gestureState = useRef({
     'isTouch': false,
@@ -97,20 +94,22 @@ Gesture useGesture({
   }
 
   void onDoubleTapDown(TapDownDetails details) {
+    final player = context.read<MediaPlayer>();
+
     if (details.kind == PointerDeviceKind.touch) {
       final screenWidth = MediaQuery.sizeOf(context).width;
       final tapDx = details.globalPosition.dx;
 
-      if (tapDx > screenWidth * 0.7) {
-        // 右侧 30%
+      if (tapDx > screenWidth * 0.75) {
+        // 右侧 25%
         showProgress();
         player.forward(10);
-      } else if (tapDx < screenWidth * 0.3) {
-        // 左侧 30%
+      } else if (tapDx < screenWidth * 0.25) {
+        // 左侧 25%
         showProgress();
         player.backward(10);
       } else {
-        // 中间 40%
+        // 中间 50%
         if (player.isPlaying) {
           useAppStore().updateAutoPlay(false);
           player.pause();
@@ -128,7 +127,8 @@ Gesture useGesture({
   }
 
   void onLongPressStart(LongPressStartDetails details) {
-    if (gestureState.value['isTouch'] as bool && player.isPlaying) {
+    if (gestureState.value['isTouch'] as bool &&
+        context.read<MediaPlayer>().isPlaying) {
       gestureState.value['isLongPress'] = true;
       gestureState.value['startPanOffset'] = details.globalPosition;
 
@@ -206,7 +206,8 @@ Gesture useGesture({
       gestureState.value['isTouch'] = true;
       gestureState.value['isDragging'] = true;
       gestureState.value['startPanOffset'] = details.globalPosition;
-      gestureState.value['startSeekPosition'] = player.position;
+      gestureState.value['startSeekPosition'] =
+          context.read<MediaPlayer>().position;
       gestureState.value['panDirection'] = null;
       isLeftGesture.value = false;
       isRightGesture.value = false;
@@ -246,9 +247,10 @@ Gesture useGesture({
       int targetSeconds = (startSeconds + seekSecondsOffset).round();
 
       // 边界检查
-      targetSeconds = targetSeconds.clamp(0, player.duration.inSeconds);
+      targetSeconds = targetSeconds.clamp(
+          0, context.read<MediaPlayer>().duration.inSeconds);
 
-      player.seek(Duration(seconds: targetSeconds));
+      context.read<MediaPlayer>().seek(Duration(seconds: targetSeconds));
       showProgress();
     }
 
@@ -259,6 +261,10 @@ Gesture useGesture({
         isLeftGesture.value =
             startOffset.dx < MediaQuery.sizeOf(context).width / 2;
         isRightGesture.value = !isLeftGesture.value;
+
+        if (isRightGesture.value) {
+          FlutterVolumeController.updateShowSystemUI(false);
+        }
       }
 
       final double dy = details.delta.dy;
@@ -287,6 +293,8 @@ Gesture useGesture({
     };
     isLeftGesture.value = false;
     isRightGesture.value = false;
+
+    FlutterVolumeController.updateShowSystemUI(true);
   }
 
   void onPanEnd(DragEndDetails details) => _resetPanState();
@@ -298,12 +306,6 @@ Gesture useGesture({
       showControl();
     }
   }
-
-  final cursor = useMemoized(() {
-    return player.isPlaying == false
-        ? SystemMouseCursors.basic
-        : SystemMouseCursors.none;
-  }, [player.isPlaying]);
 
   return Gesture(
     onTapDown: onTapDown,
@@ -323,6 +325,5 @@ Gesture useGesture({
     isRightGesture: isRightGesture.value,
     brightness: brightness.value,
     volume: volume.value,
-    cursor: cursor,
   );
 }

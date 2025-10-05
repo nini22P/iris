@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:iris/utils/platform.dart';
+import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/info.dart';
@@ -6,6 +9,16 @@ import 'package:iris/utils/get_latest_release.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/url.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+
+bool isMsix() {
+  if (!isWindows) {
+    return false;
+  }
+  String resolvedExecutablePath = Platform.resolvedExecutable;
+  String path = p.dirname(resolvedExecutablePath);
+  String manifestPath = p.join(path, 'AppxManifest.xml');
+  return File(manifestPath).existsSync();
+}
 
 class About extends HookWidget {
   const About({super.key});
@@ -48,6 +61,11 @@ class About extends HookWidget {
               title: Text(t.check_update),
               subtitle: noNewVersion.value ? Text(t.no_new_version) : null,
               onTap: () async {
+                if (isMsix()) {
+                  launchURL(
+                      'ms-windows-store://pdp/?ProductId=${INFO.msStoreId}');
+                  return;
+                }
                 noNewVersion.value = false;
                 final release = await getLatestRelease();
                 if (release != null && context.mounted) {

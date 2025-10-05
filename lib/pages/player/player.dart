@@ -14,6 +14,8 @@ import 'package:iris/models/player.dart';
 import 'package:iris/models/storages/local.dart';
 import 'package:iris/pages/player/audio.dart';
 import 'package:iris/pages/player/overlays/controls_overlay.dart';
+import 'package:iris/pages/player/overlays/gesture_overlay.dart';
+import 'package:iris/pages/player/overlays/minimal_progress_overlay.dart';
 import 'package:iris/pages/player/video_view.dart';
 import 'package:iris/store/use_player_ui_store.dart';
 import 'package:iris/utils/check_content_type.dart';
@@ -32,8 +34,6 @@ class Player extends HookWidget {
     final width = context.select<MediaPlayer, double>((player) => player.width);
     final height =
         context.select<MediaPlayer, double>((player) => player.height);
-
-    final saveProgress = context.read<MediaPlayer>().saveProgress;
 
     useAppLifecycle();
 
@@ -121,7 +121,7 @@ class Player extends HookWidget {
 
     Future<void> showControlForHover(Future<void> callback) async {
       try {
-        saveProgress();
+        context.read<MediaPlayer>().saveProgress();
         showControl();
         usePlayerUiStore().updateIsHovering(true);
         await callback;
@@ -214,7 +214,7 @@ class Player extends HookWidget {
         canPop: false,
         onPopInvokedWithResult: (bool didPop, Object? result) async {
           if (!didPop) {
-            await saveProgress();
+            await context.read<MediaPlayer>().saveProgress();
             if (isDesktop) {
               windowManager.close();
             } else {
@@ -239,11 +239,24 @@ class Player extends HookWidget {
                   fit: fit,
                 ),
               ),
+              Positioned.fill(
+                child: MinimalProgressOverlay(
+                  title: title,
+                  file: file,
+                ),
+              ),
               // Audio
               if (file?.type == ContentType.audio)
                 Positioned.fill(
                   child: Audio(cover: cover),
                 ),
+              Positioned.fill(
+                child: GestureOverlay(
+                  showControl: showControl,
+                  hideControl: hideControl,
+                  showProgress: showProgress,
+                ),
+              ),
               Positioned.fill(
                 child: ControlsOverlay(
                   file: file,

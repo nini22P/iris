@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:iris/pages/settings/about.dart';
-import 'package:iris/pages/settings/general.dart';
-import 'package:iris/pages/settings/dependencies.dart';
-import 'package:iris/pages/settings/play.dart';
+import 'package:iris/widgets/popups/track/audio_track_list.dart';
+import 'package:iris/widgets/popups/track/subtitle_list.dart';
 import 'package:iris/utils/get_localizations.dart';
 
 class ITab {
@@ -16,25 +14,22 @@ class ITab {
   });
 }
 
-class Settings extends HookWidget {
-  const Settings({super.key});
-
-  static const title = 'Settings';
+class SubtitleAndAudioTrack extends HookWidget {
+  const SubtitleAndAudioTrack({super.key});
 
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
 
     List<ITab> tabs = [
-      ITab(title: t.general, child: const General()),
-      ITab(title: t.play, child: const Play()),
-      ITab(title: t.about, child: const About()),
-      ITab(title: t.dependencies, child: const Dependencies()),
+      ITab(title: t.subtitle, child: SubtitleList()),
+      ITab(title: t.audio_track, child: AudioTrackList()),
     ];
 
     final tabController = useTabController(initialLength: tabs.length);
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Expanded(
           child: TabBarView(
@@ -67,7 +62,7 @@ class Settings extends HookWidget {
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
                     dividerColor: Colors.transparent,
-                    tabs: tabs.map((e) => Tab(text: e.title)).toList()),
+                    tabs: tabs.map((tab) => Tab(text: tab.title)).toList()),
                 const Spacer(),
                 IconButton(
                   tooltip: '${t.close} ( Escape )',

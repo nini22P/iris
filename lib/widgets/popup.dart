@@ -69,55 +69,55 @@ class Popup<T> extends PopupRoute<T> {
           alignment: direction == PopupDirection.left
               ? Alignment.bottomLeft
               : Alignment.bottomRight,
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: 8,
-              left: direction == PopupDirection.left ? 8 : 0,
-              right: direction == PopupDirection.right ? 8 : 0,
-            ),
-            child: AnimatedBuilder(
-              animation: animation,
-              builder: (context, child) {
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: direction == PopupDirection.left
-                        ? const Offset(-1.0, 0.0)
-                        : const Offset(1.0, 0.0),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeInOutCubicEmphasized,
-                    ),
+          child: AnimatedBuilder(
+            animation: animation,
+            builder: (context, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: direction == PopupDirection.left
+                      ? const Offset(-1.0, 0.0)
+                      : const Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeInOutCubicEmphasized,
                   ),
-                  child: child,
-                );
+                ),
+                child: child,
+              );
+            },
+            child: Dismissible(
+              key: UniqueKey(),
+              direction: direction == PopupDirection.left
+                  ? DismissDirection.endToStart
+                  : DismissDirection.startToEnd,
+              onUpdate: (details) {
+                if (details.previousReached) {
+                  _popOnce(context);
+                }
               },
-              child: Dismissible(
-                key: UniqueKey(),
-                direction: direction == PopupDirection.left
-                    ? DismissDirection.endToStart
-                    : DismissDirection.startToEnd,
-                onUpdate: (details) {
-                  if (details.previousReached) {
-                    _popOnce(context);
-                  }
-                },
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final screenWidth = constraints.maxWidth;
-                    final screenHeight = constraints.maxHeight;
-                    final int size = screenWidth > 1200
-                        ? 3
-                        : screenWidth > 720
-                            ? 2
-                            : 1;
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final screenWidth = constraints.maxWidth;
+                  final screenHeight = constraints.maxHeight;
+                  final int size = screenWidth > 1200
+                      ? 3
+                      : screenWidth > 720
+                          ? 2
+                          : 1;
 
-                    return UnconstrainedBox(
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 8,
+                      left: direction == PopupDirection.left ? 8 : 0,
+                      right: direction == PopupDirection.right ? 8 : 0,
+                    ),
+                    child: UnconstrainedBox(
                       child: LimitedBox(
                         maxWidth: screenWidth / size - 16,
                         maxHeight:
-                            isDesktop ? screenHeight - 48 : screenHeight - 16,
+                            isDesktop ? screenHeight - 56 : screenHeight - 16,
                         child: Card(
                           child: Material(
                             color: Colors.transparent,
@@ -130,9 +130,9 @@ class Popup<T> extends PopupRoute<T> {
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
           ),

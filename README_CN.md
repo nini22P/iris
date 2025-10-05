@@ -2,7 +2,8 @@
 
 # IRIS - 轻量级视频播放器
 
-![ci](https://github.com/nini22P/iris/actions/workflows/ci.yml/badge.svg)
+[![Build Status](https://github.com/nini22P/iris/actions/workflows/ci.yml/badge.svg)](https://github.com/nini22P/iris/actions/workflows/ci.yml)
+<a href="https://apps.microsoft.com/detail/9NML7WNHNRTJ?referrer=appbadge&mode=direct"><img src="https://get.microsoft.com/images/zh-cn%20dark.svg" height="30"/></a>
 <a href="https://afdian.com/a/nini22P"><img alt="爱发电" style="height: 30px;" src="https://pic1.afdiancdn.com/static/img/welcome/button-sponsorme.png"></a>
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nini22p)
 
@@ -18,18 +19,14 @@
 
 ## 下载
 
-### Windows
-
-- [IRIS-windows-installer.exe](https://github.com/nini22P/iris/releases/latest/download/IRIS-windows-installer.exe)
-- [IRIS-windows.zip](https://github.com/nini22P/iris/releases/latest/download/IRIS-windows.zip)
-
-### Android
-
-| 设备架构    | 下载链接                                                                                                           |
-| ----------- | ------------------------------------------------------------------------------------------------------------------ |
-| arm64-v8a   | [IRIS-android-arm64-v8a.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-arm64-v8a.apk)     |
-| armeabi-v7a | [IRIS-android-armeabi-v7a.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-armeabi-v7a.apk) |
-| x86_64      | [IRIS-android-x86_64.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-x86_64.apk)           |
+| 平台    | 架构/渠道     | 下载链接                                                                                                           | 备注             |
+| :------ | :------------ | :----------------------------------------------------------------------------------------------------------------- | :--------------- |
+| Windows | **微软商店**  | [Microsoft Store](https://apps.microsoft.com/detail/9NML7WNHNRTJ)                                                  | **推荐**，自动更新 |
+|         | 安装包        | [IRIS-windows-installer.exe](https://github.com/nini22P/iris/releases/latest/download/IRIS-windows-installer.exe)     |                  |
+|         | 便携版        | [IRIS-windows.zip](https://github.com/nini22P/iris/releases/latest/download/IRIS-windows.zip)                       | 解压即用         |
+| Android | arm64-v8a     | [IRIS-android-arm64-v8a.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-arm64-v8a.apk)     | 64位设备         |
+|         | armeabi-v7a   | [IRIS-android-armeabi-v7a.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-armeabi-v7a.apk) | 32位设备         |
+|         | x86_64        | [IRIS-android-x86_64.apk](https://github.com/nini22P/iris/releases/latest/download/IRIS-android-x86_64.apk)           | 模拟器/x86设备   |
 
 ## 键位和手势
 
@@ -38,8 +35,8 @@
 | 键位                   | 描述                                 |
 | ---------------------- | ------------------------------------ |
 | `Space`              | 播放 / 暂停 / 选择文件               |
-| `Arrow Left`         | 快退 10 秒                           |
-| `Arrow Right`        | 快进 10 秒                           |
+| `Arrow Left`         | 快退                                 |
+| `Arrow Right`        | 快进                                 |
 | `Arrow Up`           | 提升音量                             |
 | `Arrow Down`         | 降低音量                             |
 | `Ctrl + Arrow Left`  | 上一个                               |
@@ -70,13 +67,13 @@
 | ---------------- | ------------------ |
 | 单击             | 选择项目或打开菜单 |
 | 双击屏幕中心     | 播放 / 暂停        |
-| 双击屏幕左侧     | 快退 10 秒         |
-| 双击屏幕右侧     | 快进 10 秒         |
+| 双击屏幕左侧     | 快退                |
+| 双击屏幕右侧     | 快进                |
 | 左右滑动         | 调整播放进度       |
 | 屏幕左侧上下滑动 | 调整屏幕亮度       |
 | 屏幕右侧上下滑动 | 调整设备音量       |
-| 长按             | 启动倍速播放       |
-| 长按后左右滑动   | 调整倍速播放的速度 |
+| 长按             | 显示播放速度选择器 |
+| 长按后左右滑动   | 调整播放速度       |
 
 ## 贡献
 
