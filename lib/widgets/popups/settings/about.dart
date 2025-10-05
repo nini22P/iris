@@ -16,8 +16,8 @@ bool isMsix() {
   }
   String resolvedExecutablePath = Platform.resolvedExecutable;
   String path = p.dirname(resolvedExecutablePath);
-  String batFilePath = p.join(path, 'AppxManifest.xml');
-  return File(batFilePath).existsSync();
+  String manifestPath = p.join(path, 'AppxManifest.xml');
+  return File(manifestPath).existsSync();
 }
 
 class About extends HookWidget {

@@ -463,7 +463,7 @@ class ControlBar extends HookWidget {
             ),
             title: Text(t.history),
             trailing: Text(
-              'Ctirl + H',
+              'Ctrl + H',
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).dividerColor,
@@ -487,7 +487,7 @@ class ControlBar extends HookWidget {
             ),
             title: Text(t.settings),
             trailing: Text(
-              'Ctirl + P',
+              'Ctrl + P',
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).dividerColor,
