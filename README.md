@@ -90,4 +90,4 @@ Thank you for your support!
 
 ## License
 
-This project is licensed under the AGPLv3 license. For more details, please see the [LICENSE](./LICENSE) file.
+This project is licensed under the MPL-2.0 license. For more details, please see the [LICENSE](./LICENSE) file.

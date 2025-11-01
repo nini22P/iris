@@ -181,7 +181,10 @@ KeyboardEvent useKeyboard({
           showControlForHover(
             showPopup(
               context: context,
-              child: SubtitleAndAudioTrack(),
+              child: Provider<MediaPlayer>.value(
+                value: context.read<MediaPlayer>(),
+                child: const SubtitleAndAudioTrack(),
+              ),
               direction: PopupDirection.right,
             ),
           );

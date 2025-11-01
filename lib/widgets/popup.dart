@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart' hide Card;
+import 'package:flutter/services.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:iris/widgets/card.dart';
 import 'package:window_manager/window_manager.dart';
@@ -25,10 +26,13 @@ class Popup<T> extends PopupRoute<T> {
   Popup({
     required this.child,
     required this.direction,
-  });
+  }) {
+    _focusNode = FocusNode();
+  }
 
   final Widget child;
   final PopupDirection direction;
+  late final FocusNode _focusNode;
 
   bool _isPopping = false;
 
@@ -51,93 +55,110 @@ class Popup<T> extends PopupRoute<T> {
   Duration get transitionDuration => const Duration(milliseconds: 250);
 
   @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: GestureDetector(
-            onPanStart: (details) {
-              if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-                windowManager.startDragging();
-              }
-            },
-            onTap: () => _popOnce(context),
-          ),
-        ),
-        Align(
-          alignment: direction == PopupDirection.left
-              ? Alignment.bottomLeft
-              : Alignment.bottomRight,
-          child: AnimatedBuilder(
-            animation: animation,
-            builder: (context, child) {
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: direction == PopupDirection.left
-                      ? const Offset(-1.0, 0.0)
-                      : const Offset(1.0, 0.0),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeInOutCubicEmphasized,
-                  ),
-                ),
-                child: child,
-              );
-            },
-            child: Dismissible(
-              key: UniqueKey(),
-              direction: direction == PopupDirection.left
-                  ? DismissDirection.endToStart
-                  : DismissDirection.startToEnd,
-              onUpdate: (details) {
-                if (details.previousReached) {
-                  _popOnce(context);
+    return KeyboardListener(
+      focusNode: _focusNode,
+      autofocus: true,
+      onKeyEvent: (event) {
+        if (event.logicalKey == LogicalKeyboardKey.escape) {
+          _popOnce(context);
+        }
+      },
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onPanStart: (details) {
+                if (Platform.isWindows ||
+                    Platform.isLinux ||
+                    Platform.isMacOS) {
+                  windowManager.startDragging();
                 }
               },
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final screenWidth = constraints.maxWidth;
-                  final screenHeight = constraints.maxHeight;
-                  final int size = screenWidth > 1200
-                      ? 3
-                      : screenWidth > 720
-                          ? 2
-                          : 1;
-
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 8,
-                      left: direction == PopupDirection.left ? 8 : 0,
-                      right: direction == PopupDirection.right ? 8 : 0,
+              onTap: () => _popOnce(context),
+            ),
+          ),
+          Align(
+            alignment: direction == PopupDirection.left
+                ? Alignment.bottomLeft
+                : Alignment.bottomRight,
+            child: AnimatedBuilder(
+              animation: animation,
+              builder: (context, child) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: direction == PopupDirection.left
+                        ? const Offset(-1.0, 0.0)
+                        : const Offset(1.0, 0.0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeInOutCubicEmphasized,
                     ),
-                    child: UnconstrainedBox(
-                      child: LimitedBox(
-                        maxWidth: screenWidth / size - 16,
-                        maxHeight:
-                            isDesktop ? screenHeight - 56 : screenHeight - 16,
-                        child: Card(
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Expanded(child: child),
-                              ],
+                  ),
+                  child: child,
+                );
+              },
+              child: Dismissible(
+                key: UniqueKey(),
+                direction: direction == PopupDirection.left
+                    ? DismissDirection.endToStart
+                    : DismissDirection.startToEnd,
+                onUpdate: (details) {
+                  if (details.previousReached) {
+                    _popOnce(context);
+                  }
+                },
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final screenWidth = constraints.maxWidth;
+                    final screenHeight = constraints.maxHeight;
+                    final int size = screenWidth > 1200
+                        ? 3
+                        : screenWidth > 720
+                            ? 2
+                            : 1;
+
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: 8,
+                        left: direction == PopupDirection.left ? 8 : 0,
+                        right: direction == PopupDirection.right ? 8 : 0,
+                      ),
+                      child: UnconstrainedBox(
+                        child: LimitedBox(
+                          maxWidth: screenWidth / size - 16,
+                          maxHeight:
+                              isDesktop ? screenHeight - 56 : screenHeight - 16,
+                          child: Card(
+                            child: Material(
+                              color: Colors.transparent,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Expanded(child: child),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

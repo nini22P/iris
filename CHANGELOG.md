@@ -1,3 +1,19 @@
+## v1.5.2
+
+### Changelog
+
+* Migrate to MPL-2.0 license
+* Add more media type support
+* Fix key open subtitle and audio track issue
+* Fix popup layer cannot be closed with `Esc` key issue
+
+### 更新日志
+
+* 迁移到 MPL-2.0 许可证
+* 添加更多媒体类型支持
+* 修复按键打开字幕和音频轨道的问题
+* 修复弹出层无法使用 `Esc` 键关闭的问题
+
 ## v1.5.1
 
 ### Changelog
