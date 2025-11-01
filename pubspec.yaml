@@ -89,4 +89,4 @@ msix_config:
   trim_logo: false
   languages: en-us, zh-cn
   execution_alias: iris
-  file_extension: .aac, .aiff, .alac, .amr, .ape, .caf, .cda, .dsd, .dts, .flac, .m4a, .midi, .mp3, .mpc, .oga, .ogg, .opus, .raw, .spx, .tak, .tta, .wav, .wma, .wv, .3gp, .amv, .asf, .avi, .divx, .dpx, .drc, .dv, .f4v, .flv, .h264, .h265, .hevc, .m2ts, .m4p, .m4v, .mkv, .mng, .mov, .mp2, .mp4, .mpe, .mpeg, .mpg, .mpv, .mts, .mxf, .nsv, .ogv, .qt, .rm, .rmvb, .ts, .vob, .webm, .wmv, .yuv,
+  file_extension: .aac, .aiff, .alac, .amr, .ape, .caf, .cda, .dsd, .dts, .flac, .m4a, .midi, .mp3, .mpc, .oga, .ogg, .opus, .raw, .spx, .tak, .tta, .wav, .wma, .wv, .3gp, .amv, .asf, .avi, .divx, .dpx, .drc, .dv, .f4v, .flv, .h264, .h265, .hevc, .m2ts, .m4p, .m4v, .mkv, .mng, .mov, .mp2, .mp4, .mpe, .mpeg, .mpg, .mpv, .mts, .mxf, .nsv, .ogv, .qt, .rm, .rmvb, .ts, .vob, .webm, .wmv, .yuv

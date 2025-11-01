@@ -26,10 +26,13 @@ class Popup<T> extends PopupRoute<T> {
   Popup({
     required this.child,
     required this.direction,
-  });
+  }) {
+    _focusNode = FocusNode();
+  }
 
   final Widget child;
   final PopupDirection direction;
+  late final FocusNode _focusNode;
 
   bool _isPopping = false;
 
@@ -52,10 +55,16 @@ class Popup<T> extends PopupRoute<T> {
   Duration get transitionDuration => const Duration(milliseconds: 250);
 
   @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
     return KeyboardListener(
-      focusNode: FocusNode(),
+      focusNode: _focusNode,
       autofocus: true,
       onKeyEvent: (event) {
         if (event.logicalKey == LogicalKeyboardKey.escape) {
