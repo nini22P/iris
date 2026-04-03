@@ -25,7 +25,7 @@ jobs:
         with:
           channel: stable
       - name: Generate code
-        run: flutter pub get && flutter pub run build_runner build --delete-conflicting-outputs
+        run: flutter pub get && dart run build_runner build --delete-conflicting-outputs
       - name: Build Flutter application for Windows
         run: flutter build windows
       - name: Create ZIP archive
@@ -74,7 +74,7 @@ jobs:
         with:
           channel: stable
       - name: Generate code
-        run: flutter pub get && flutter pub run build_runner build --delete-conflicting-outputs
+        run: flutter pub get && dart run build_runner build --delete-conflicting-outputs
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
