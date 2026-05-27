@@ -103,11 +103,11 @@ Gesture useGesture({
       if (tapDx > screenWidth * 0.75) {
         // 右侧 25%
         showProgress();
-        player.forward(10);
+        player.forward(5);
       } else if (tapDx < screenWidth * 0.25) {
         // 左侧 25%
         showProgress();
-        player.backward(10);
+        player.backward(5);
       } else {
         // 中间 50%
         if (player.isPlaying) {
