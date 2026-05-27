@@ -104,6 +104,8 @@
   "subtitle_file_does_not_exist": "字幕文件不存在",
   "system": "系统",
   "test_connection": "测试连接",
+  "test_connection_failed": "连接失败",
+  "test_connection_success": "连接成功",
   "theme_mode": "主题模式",
   "unable_to_fetch_files": "无法获取文件",
   "unmute": "取消静音",

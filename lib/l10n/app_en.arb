@@ -104,6 +104,8 @@
   "subtitle_file_does_not_exist": "Subtitle file does not exist",
   "system": "System",
   "test_connection": "Test connection",
+  "test_connection_failed": "Connection failed",
+  "test_connection_success": "Connection successful",
   "theme_mode": "Theme mode",
   "unable_to_fetch_files": "Unable to fetch files.",
   "unmute": "Unmute",

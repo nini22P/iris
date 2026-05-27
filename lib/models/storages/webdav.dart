@@ -7,6 +7,26 @@ import 'package:path/path.dart' as p;
 import 'package:webdav_client/webdav_client.dart' as webdav;
 import 'package:iris/models/file.dart';
 
+String _stripBrackets(String host) {
+  if (host.startsWith('[') && host.endsWith(']')) {
+    return host.substring(1, host.length - 1);
+  }
+  return host;
+}
+
+bool _isIPv6(String host) => host.contains(':');
+
+String _formatHost(String host) {
+  final raw = _stripBrackets(host);
+  if (_isIPv6(raw)) return '[$raw]';
+  return raw;
+}
+
+String _buildBaseUrl(bool https, String host, String port) {
+  final h = _formatHost(host);
+  return "http${https ? 's' : ''}://$h${port.isNotEmpty ? ':$port' : ''}";
+}
+
 Future<bool> testWebDAV(WebDAVStorage storage) async {
   final host = storage.host;
   final port = storage.port;
@@ -17,18 +37,18 @@ Future<bool> testWebDAV(WebDAVStorage storage) async {
 
   try {
     var client = webdav.newClient(
-      "http${https ? 's' : ''}://$host:$port",
+      _buildBaseUrl(https, host, port),
       user: username,
       password: password,
       debug: false,
     );
+    client.auth = webdav.BasicAuth(user: username, pwd: password);
 
     client.setHeaders({'accept-charset': 'utf-8'});
     client.setConnectTimeout(4000);
     client.setSendTimeout(4000);
     client.setReceiveTimeout(4000);
 
-    // await client.ping();
     await client.readDir(basePath.join('/'));
     return true;
   } catch (e) {
@@ -49,11 +69,12 @@ Future<List<FileItem>> getWebDAVFiles(
   final https = storage.https;
 
   var client = webdav.newClient(
-    "http${https ? 's' : ''}://$host:$port",
+    _buildBaseUrl(https, host, port),
     user: username,
     password: password,
     debug: false,
   );
+  client.auth = webdav.BasicAuth(user: username, pwd: password);
 
   client.setHeaders({'accept-charset': 'utf-8'});
   client.setConnectTimeout(8000);
@@ -65,7 +86,7 @@ Future<List<FileItem>> getWebDAVFiles(
   final cleanPathSegments = path.map((e) => e.replaceAll('/', '')).toList();
   final baseUri = Uri(
     scheme: storage.https ? 'https' : 'http',
-    host: storage.host,
+    host: _stripBrackets(storage.host),
     port: int.tryParse(storage.port),
     pathSegments: cleanPathSegments,
   );

@@ -85,6 +85,12 @@ class WebDAVDialog extends HookWidget {
         https: https.value,
       ));
       isTested.value = isConnected;
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isConnected ? t.test_connection_success : t.test_connection_failed),
+        ),
+      );
     }
 
     return AlertDialog(
