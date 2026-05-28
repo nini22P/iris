@@ -19,10 +19,7 @@ class ITab {
   final String title;
   final Widget child;
 
-  const ITab({
-    required this.title,
-    required this.child,
-  });
+  const ITab({required this.title, required this.child});
 }
 
 class Storages extends HookWidget {
@@ -31,8 +28,10 @@ class Storages extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final currentStorage =
-        useStorageStore().select(context, (state) => state.currentStorage);
+    final currentStorage = useStorageStore().select(
+      context,
+      (state) => state.currentStorage,
+    );
 
     List<ITab> tabs = [
       ITab(title: t.storage, child: const StoragesList()),
@@ -49,21 +48,23 @@ class Storages extends HookWidget {
                 child: TabBarView(
                   controller: tabController,
                   children: tabs
-                      .map((tab) => Card(
+                      .map(
+                        (tab) => Card(
                           color: Colors.transparent,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: tab.child))
+                          child: tab.child,
+                        ),
+                      )
                       .toList(),
                 ),
               ),
               Divider(
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withValues(alpha: 0.25),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.25),
                 height: 0,
               ),
               Container(
@@ -85,8 +86,9 @@ class Storages extends HookWidget {
                       icon: const Icon(Icons.add_rounded),
                       iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
                       clipBehavior: Clip.hardEdge,
-                      color:
-                          Theme.of(context).colorScheme.surface.withAlpha(250),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surface.withAlpha(250),
                       onSelected: (StorageType value) {
                         switch (value) {
                           case StorageType.internal:
@@ -109,9 +111,8 @@ class Storages extends HookWidget {
                                   );
                                 }
                               } else {
-                                String? selectedDirectory = await FilePicker
-                                    .platform
-                                    .getDirectoryPath();
+                                String? selectedDirectory =
+                                    await FilePicker.getDirectoryPath();
 
                                 if (selectedDirectory != null &&
                                     context.mounted) {

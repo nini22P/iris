@@ -20,9 +20,7 @@ import 'package:iris/utils/check_content_type.dart';
 import 'package:saf_util/saf_util.dart';
 import 'package:saf_util/saf_util_platform_interface.dart';
 
-Future<List<LocalStorage>> getLocalStorages(
-  BuildContext context,
-) async {
+Future<List<LocalStorage>> getLocalStorages(BuildContext context) async {
   final t = getLocalizations(context);
   if (isDesktop) {
     List<LocalStorage> storages = [];
@@ -43,11 +41,7 @@ Future<List<LocalStorage>> getLocalStorages(
             : '${drive.type == DriveType.network ? t.network_storage : t.local_storage} (${drive.name})';
         final root = drive.root.replaceAll('\\', '');
 
-        final storage = LocalStorage(
-          type: type,
-          name: name,
-          basePath: [root],
-        );
+        final storage = LocalStorage(type: type, name: name, basePath: [root]);
 
         storages.add(storage);
       }
@@ -84,18 +78,21 @@ Future<List<LocalStorage>> getLocalStorages(
     return storages;
   } else if (isAndroid) {
     final androidXStorage = AndroidXStorage();
-    final external =
-        await androidXStorage.getExternalStorageDirectory().catchError((error) {
-      logger('Error getting external storage: $error');
-      return null;
-    });
-    final sdcard =
-        await androidXStorage.getSDCardStorageDirectory().catchError((error) {
-      logger('Error getting SD card: $error');
-      return null;
-    });
-    final usbs =
-        await androidXStorage.getUSBStorageDirectories().catchError((error) {
+    final external = await androidXStorage
+        .getExternalStorageDirectory()
+        .catchError((error) {
+          logger('Error getting external storage: $error');
+          return null;
+        });
+    final sdcard = await androidXStorage.getSDCardStorageDirectory().catchError(
+      (error) {
+        logger('Error getting SD card: $error');
+        return null;
+      },
+    );
+    final usbs = await androidXStorage.getUSBStorageDirectories().catchError((
+      error,
+    ) {
       logger('Error getting USB storages: $error');
       return <String?>[];
     });
@@ -157,7 +154,8 @@ Future<PlayQueueState?> getLocalPlayQueue(String filePath) async {
   final List<FileItem> sortedFiles = filesSort(files: files);
   final List<FileItem> filteredFiles = sortedFiles
       .where(
-          (file) => [ContentType.video, ContentType.audio].contains(file.type))
+        (file) => [ContentType.video, ContentType.audio].contains(file.type),
+      )
       .toList();
 
   final List<PlayQueueItem> playQueue = filteredFiles
@@ -176,7 +174,7 @@ Future<PlayQueueState?> getLocalPlayQueue(String filePath) async {
 }
 
 Future<void> pickLocalFile() async {
-  FilePickerResult? result = await FilePicker.platform.pickFiles(
+  FilePickerResult? result = await FilePicker.pickFiles(
     type: FileType.custom,
     allowedExtensions: [...Formats.video, ...Formats.audio],
   );
@@ -197,7 +195,9 @@ Future<void> pickLocalFile() async {
 }
 
 Future<List<FileItem>> getLocalFiles(
-    LocalStorage storage, List<String> path) async {
+  LocalStorage storage,
+  List<String> path,
+) async {
   final directoryPath = p.joinAll(path);
   final directory = Directory(directoryPath);
 
@@ -219,8 +219,10 @@ Future<List<FileItem>> getLocalFiles(
 
   for (final group in groupedEntities.values) {
     final videos = group
-        .where((e) =>
-            e is! Directory && checkContentType(e.path) == ContentType.video)
+        .where(
+          (e) =>
+              e is! Directory && checkContentType(e.path) == ContentType.video,
+        )
         .toList();
     final subtitles = group.where((e) {
       final ext = p.extension(e.path).replaceFirst('.', '');
@@ -243,35 +245,39 @@ Future<List<FileItem>> getLocalFiles(
         return Subtitle(name: subTitleName, uri: sub.path);
       }).toList();
 
-      fileItems.add(FileItem(
-        storageId: storage.id,
-        storageType: storage.type,
-        name: p.basename(video.path),
-        uri: video.path,
-        path: [...path, p.basename(video.path)],
-        isDir: false,
-        size: videoStat.size,
-        lastModified: videoStat.modified,
-        type: ContentType.video,
-        subtitles: associatedSubtitles,
-      ));
+      fileItems.add(
+        FileItem(
+          storageId: storage.id,
+          storageType: storage.type,
+          name: p.basename(video.path),
+          uri: video.path,
+          path: [...path, p.basename(video.path)],
+          isDir: false,
+          size: videoStat.size,
+          lastModified: videoStat.modified,
+          type: ContentType.video,
+          subtitles: associatedSubtitles,
+        ),
+      );
     }
 
     for (final entity in others) {
       final stat = await entity.stat();
       final isDir = entity is Directory;
-      fileItems.add(FileItem(
-        storageId: storage.id,
-        storageType: storage.type,
-        name: p.basename(entity.path),
-        uri: entity.path,
-        path: [...path, p.basename(entity.path)],
-        isDir: isDir,
-        size: isDir ? 0 : stat.size,
-        lastModified: stat.modified,
-        type: isDir ? ContentType.other : checkContentType(entity.path),
-        subtitles: [],
-      ));
+      fileItems.add(
+        FileItem(
+          storageId: storage.id,
+          storageType: storage.type,
+          name: p.basename(entity.path),
+          uri: entity.path,
+          path: [...path, p.basename(entity.path)],
+          isDir: isDir,
+          size: isDir ? 0 : stat.size,
+          lastModified: stat.modified,
+          type: isDir ? ContentType.other : checkContentType(entity.path),
+          subtitles: [],
+        ),
+      );
     }
   }
 
@@ -285,11 +291,7 @@ Future<void> pickContentFile() async {
     await usePlayQueueStore().update(
       playQueue: [
         PlayQueueItem(
-          file: FileItem(
-            name: file.name,
-            uri: file.uri,
-            size: file.length,
-          ),
+          file: FileItem(name: file.name, uri: file.uri, size: file.length),
           index: 0,
         ),
       ],
@@ -311,16 +313,18 @@ Future<List<FileItem>> getContentFiles(String uri) async {
 
   for (final file in files) {
     final basename = p.basenameWithoutExtension(file.name).split('.').first;
-    fileItems.add(FileItem(
-      name: file.name,
-      uri: file.uri,
-      path: [uri, file.name],
-      isDir: file.isDir,
-      size: file.isDir ? 0 : file.length,
-      lastModified: DateTime.fromMillisecondsSinceEpoch(file.lastModified),
-      type: file.isDir ? ContentType.other : checkContentType(file.name),
-      subtitles: isVideoFile(file.name) ? subtitleMap[basename] ?? [] : [],
-    ));
+    fileItems.add(
+      FileItem(
+        name: file.name,
+        uri: file.uri,
+        path: [uri, file.name],
+        isDir: file.isDir,
+        size: file.isDir ? 0 : file.length,
+        lastModified: DateTime.fromMillisecondsSinceEpoch(file.lastModified),
+        type: file.isDir ? ContentType.other : checkContentType(file.name),
+        subtitles: isVideoFile(file.name) ? subtitleMap[basename] ?? [] : [],
+      ),
+    );
   }
 
   return fileItems;
