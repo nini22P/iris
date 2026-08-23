@@ -12,7 +12,7 @@ dependencies:
   cupertino_icons: ^1.0.9
   flutter_localizations:
     sdk: flutter
-  intl: 0.20.2
+  intl: 0.20.3
   file_picker: ^11.0.2
   flutter_breadcrumb: ^1.0.1
   flutter_hooks: ^0.21.3
@@ -30,9 +30,9 @@ dependencies:
   url_launcher: ^6.3.2
   scrollable_positioned_list: ^0.3.8
   google_fonts: ^8.1.0
-  dynamic_color: ^1.8.1
+  dynamic_color: ^1.9.0
   window_size: ^0.2.0
-  uuid: ^4.5.3
+  uuid: ^4.6.0
   flutter_markdown: ^0.7.7
   http: ^1.6.0
   collection: ^1.19.1
@@ -40,15 +40,15 @@ dependencies:
   freezed_annotation: ^3.1.0
   disks_desktop: ^1.0.1
   android_x_storage: ^1.0.2
-  permission_handler: ^12.0.3
-  desktop_drop: ^0.7.1
+  permission_handler: ^13.0.1
+  desktop_drop: ^0.8.0
   app_links: ^7.1.2
   device_info_plus: ^12.4.0
   saf_util: ^2.2.0
   screen_brightness: ^2.1.11
-  flutter_volume_controller: ^2.0.1
-  fvp: ^0.37.2
-  video_player: ^2.11.1
+  flutter_volume_controller: ^2.0.2
+  fvp: ^0.38.1
+  video_player: ^2.14.0
   wakelock_plus: ^1.5.2
   popover: ^0.4.0
   pure_ftp: ^0.7.5
@@ -72,6 +72,12 @@ dev_dependencies:
   msix: ^3.16.13
   # flutter_hooks_lint: ^1.4.0
   # custom_lint: ^0.8.1
+
+dependency_overrides:
+  pure_ftp:
+    git:
+      url: https://github.com/nini22P/pure_ftp.git
+      ref: master
 
 flutter:
   generate: true

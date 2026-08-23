@@ -31,21 +31,21 @@ void main(List<String> arguments) async {
 
   MediaKit.ensureInitialized();
 
-  fvp.registerWith(options: {
-    // 'fastSeek': true,
-    'player': {
-      if (Platform.isAndroid) 'audio.renderer': 'AudioTrack',
-      'avio.reconnect': '1',
-      'avio.reconnect_delay_max': '7',
-      'buffer': '2000+80000',
-      'demux.buffer.ranges': '8',
+  fvp.registerWith(
+    options: {
+      // 'fastSeek': true,
+      'player': {
+        if (Platform.isAndroid) 'audio.renderer': 'AudioTrack',
+        'avio.reconnect': '1',
+        'avio.reconnect_delay_max': '7',
+        'buffer': '2000+80000',
+        'demux.buffer.ranges': '8',
+      },
+      if (Platform.isAndroid)
+        'subtitleFontFile': 'assets/fonts/NotoSansCJKsc-Medium.otf',
+      'global': {'log': 'debug'},
     },
-    if (Platform.isAndroid)
-      'subtitleFontFile': 'assets/fonts/NotoSansCJKsc-Medium.otf',
-    'global': {
-      'log': 'debug',
-    }
-  });
+  );
 
   final appLinks = AppLinks();
   final initUri = await appLinks.getInitialLinkString();
@@ -78,7 +78,11 @@ void main(List<String> arguments) async {
   MediaStream mediaStream = MediaStream();
   mediaStream.startServer();
 
-  runApp(const StoreScope(child: MyApp()));
+  runApp(
+    StoreScope(
+      child: ExcludeSemantics(excluding: isWindows, child: const MyApp()),
+    ),
+  );
 }
 
 class MyApp extends HookWidget {
@@ -90,15 +94,17 @@ class MyApp extends HookWidget {
       () async {
         globals.storagePermissionStatus = Platform.isAndroid
             ? await isAndroid11OrHigher()
-                ? await Permission.manageExternalStorage.status
-                : await Permission.storage.status
+                  ? await Permission.manageExternalStorage.status
+                  : await Permission.storage.status
             : PermissionStatus.granted;
       }();
       return null;
     }, []);
 
-    ThemeMode themeMode =
-        useAppStore().select(context, (state) => state.themeMode);
+    ThemeMode themeMode = useAppStore().select(
+      context,
+      (state) => state.themeMode,
+    );
     String language = useAppStore().select(context, (state) => state.language);
 
     final appLinks = useMemoized(() => AppLinks());
@@ -132,34 +138,34 @@ class MyApp extends HookWidget {
       return null;
     }, [uri]);
 
-    return DynamicColorBuilder(builder: (
-      ColorScheme? lightDynamic,
-      ColorScheme? darkDynamic,
-    ) {
-      final theme = getTheme(
-        context: context,
-        lightDynamic: lightDynamic,
-        darkDynamic: darkDynamic,
-      );
+    return DynamicColorBuilder(
+      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+        final theme = getTheme(
+          context: context,
+          lightDynamic: lightDynamic,
+          darkDynamic: darkDynamic,
+        );
 
-      return MaterialApp(
-        title: INFO.title,
-        theme: theme.light,
-        darkTheme: theme.dark,
-        themeMode: themeMode,
-        home: const Home(),
-        locale: language == 'system' || language == 'auto'
-            ? null
-            : Locale(language),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        localeResolutionCallback: (locale, supportedLocales) => supportedLocales
-                .map((e) => e.languageCode)
-                .toList()
-                .contains(locale!.languageCode)
-            ? null
-            : const Locale('en'),
-        supportedLocales: AppLocalizations.supportedLocales,
-      );
-    });
+        return MaterialApp(
+          title: INFO.title,
+          theme: theme.light,
+          darkTheme: theme.dark,
+          themeMode: themeMode,
+          home: const Home(),
+          locale: language == 'system' || language == 'auto'
+              ? null
+              : Locale(language),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localeResolutionCallback: (locale, supportedLocales) =>
+              supportedLocales
+                  .map((e) => e.languageCode)
+                  .toList()
+                  .contains(locale!.languageCode)
+              ? null
+              : const Locale('en'),
+          supportedLocales: AppLocalizations.supportedLocales,
+        );
+      },
+    );
   }
 }
