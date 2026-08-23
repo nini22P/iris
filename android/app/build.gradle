@@ -16,8 +16,9 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "nini22p.iris"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    // permission_handler_android 13.x requires compileSdk 37
+    compileSdk = 37
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
