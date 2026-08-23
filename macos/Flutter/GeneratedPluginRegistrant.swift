@@ -10,7 +10,7 @@ import desktop_drop
 import device_info_plus
 import disks_desktop
 import dynamic_color
-import file_picker
+import file_picker_darwin
 import flutter_secure_storage_macos
 import flutter_volume_controller
 import fvp

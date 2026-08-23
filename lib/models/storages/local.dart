@@ -47,11 +47,11 @@ Future<List<LocalStorage>> getLocalStorages(BuildContext context) async {
       }
 
       for (var shortcut in networkShortcuts) {
-        if (shortcut.path == null) continue;
+        if (shortcut.target == null) continue;
         final storage = LocalStorage(
           type: StorageType.network,
           name: shortcut.name,
-          basePath: [shortcut.path!],
+          basePath: [shortcut.target!],
         );
 
         storages.add(storage);
@@ -174,12 +174,12 @@ Future<PlayQueueState?> getLocalPlayQueue(String filePath) async {
 }
 
 Future<void> pickLocalFile() async {
-  FilePickerResult? result = await FilePicker.pickFiles(
+  final result = await FilePicker.pickFiles(
     type: FileType.custom,
     allowedExtensions: [...Formats.video, ...Formats.audio],
   );
 
-  final filePath = result?.files.first.path;
+  final filePath = result.first.path;
 
   if (filePath != null) {
     final playQueue = await getLocalPlayQueue(filePath);

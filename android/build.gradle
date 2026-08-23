@@ -26,20 +26,6 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// Workaround: file_picker 11.x skips applying the Kotlin plugin when AGP >= 9,
-// assuming AGP built-in Kotlin is enabled, but this project keeps
-// android.builtInKotlin=false (Flutter migrator), so its Kotlin sources are never compiled.
-// Apply KGP explicitly for those plugins.
-subprojects { sub ->
-    sub.pluginManager.withPlugin("com.android.library") {
-        if (["file_picker"].contains(sub.name)
-                && !sub.pluginManager.hasPlugin("org.jetbrains.kotlin.android")) {
-            sub.pluginManager.apply("org.jetbrains.kotlin.android")
-            sub.android.kotlinOptions.jvmTarget = "17"
-        }
-    }
-}
-
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
